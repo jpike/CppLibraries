@@ -1,0 +1,9 @@
+// To avoid annoyances with Windows min/max #defines.
+#define NOMINMAX
+
+#include "ErrorHandling/ErrorHandling.project"
+#include "Filesystem/Filesystem.project"
+#include "Graphics/Graphics.project"
+#include "Math/Math.project"
+#include "String/String.project"
+#include "Windowing/Windowing.project"

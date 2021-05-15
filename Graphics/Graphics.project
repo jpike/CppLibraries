@@ -1,0 +1,22 @@
+// To avoid annoyances with Windows min/max #defines.
+#define NOMINMAX
+
+#include "Graphics/Gui/Font.cpp"
+#include "Graphics/Gui/Glyph.cpp"
+
+#include "Graphics/Modeling/WavefrontMaterial.cpp"
+#include "Graphics/Modeling/WavefrontObjectModel.cpp"
+
+#include "Graphics/Bitmap.cpp"
+#include "Graphics/Camera.cpp"
+#include "Graphics/Color.cpp"
+#include "Graphics/Cube.cpp"
+#include "Graphics/DepthBuffer.cpp"
+#include "Graphics/FrameTimer.cpp"
+#include "Graphics/Light.cpp"
+#include "Graphics/Lighting.cpp"
+#include "Graphics/Object3D.cpp"
+#include "Graphics/Shading.cpp"
+#include "Graphics/SoftwareRasterizationAlgorithm.cpp"
+#include "Graphics/Triangle.cpp"
+#include "Graphics/ViewingTransformations.cpp"
