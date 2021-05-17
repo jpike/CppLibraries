@@ -1,5 +1,5 @@
 # CppLibraries
-https://github.com/jpike/CppLibraries/actions/workflows/codeql-analysis.yml/badge.svg
+![CodeQL](https://github.com/jpike/CppLibraries/actions/workflows/codeql-analysis.yml/badge.svg)
 
 Collection of C++ libraries I hope will be re-usable.
 
