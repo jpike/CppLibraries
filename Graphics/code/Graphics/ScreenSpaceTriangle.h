@@ -23,8 +23,8 @@ namespace GRAPHICS
         std::shared_ptr<Material> Material = nullptr;
         /// The vertices of the triangle.  Should be in counter-clockwise order.
         /// A z-coordinate is included to support depth-testing.
-        std::array<MATH::Vector3f, VERTEX_COUNT> VertexPositions = {};
+        std::array<MATH::Vector3f, VERTEX_COUNT> VertexPositions = std::array<MATH::Vector3f, VERTEX_COUNT>();
         /// The colors of each vertex (same order as vertex positions).
-        std::array<GRAPHICS::Color, VERTEX_COUNT> VertexColors = {};
+        std::array<GRAPHICS::Color, VERTEX_COUNT> VertexColors = std::array<GRAPHICS::Color, VERTEX_COUNT>();
     };
 }

@@ -22,10 +22,11 @@ namespace MATH
         static Vector3 CrossProduct(const Vector3& lhs, const Vector3& rhs);
 
         // CONSTRUCTION.
+        explicit Vector3() = default;
         explicit Vector3(
-            const ComponentType x = static_cast<ComponentType>(0), 
-            const ComponentType y = static_cast<ComponentType>(0),
-            const ComponentType z = static_cast<ComponentType>(0));
+            const ComponentType x, 
+            const ComponentType y,
+            const ComponentType z);
 
         // OPERATORS.
         bool operator== (const Vector3& rhs) const;
@@ -41,11 +42,11 @@ namespace MATH
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The x component of the vector.
-        ComponentType X;
+        ComponentType X = static_cast<ComponentType>(0);
         /// The y component of the vector.
-        ComponentType Y;
+        ComponentType Y = static_cast<ComponentType>(0);
         /// The z component of the vector.
-        ComponentType Z;
+        ComponentType Z = static_cast<ComponentType>(0);
     };
 
     // DEFINE COMMON VECTOR3 TYPES.

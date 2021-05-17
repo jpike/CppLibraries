@@ -48,7 +48,7 @@ namespace GRAPHICS
         {
             .Material = world_triangle.Material,
             .VertexPositions = world_triangle.Vertices,
-            .VertexColors = {}
+            .VertexColors = std::array<GRAPHICS::Color, ScreenSpaceTriangle::VERTEX_COUNT>()
         };
 
         // TRANSFORM EACH VERTEX.
