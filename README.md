@@ -1,4 +1,6 @@
 # CppLibraries
+https://github.com/jpike/CppLibraries/actions/workflows/codeql-analysis.yml/badge.svg
+
 Collection of C++ libraries I hope will be re-usable.
 
 These basically come from other projects in my GitHub repo but have generally been generic and good enough
