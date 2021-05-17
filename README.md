@@ -5,8 +5,8 @@ These basically come from other projects in my GitHub repo but have generally be
 to be worth factoring out to separate libraries for re-use.  This repository is in a very early state though,
 so the code is not as high-quality yet as I would like.
 
-So no guarantees about the state of the current code.  You are certainly welcome to try using it if you want,
-but it is currently largely intended for my own use.
+So no guarantees about the state of the current code.  The "Graphics" library in particular is in relatively poor shape.
+You are certainly welcome to try using it if you want, but it is currently largely intended for my own use.
 
 # Building/Using
 In general, I aim to minimize overall dependencies for these libraries, but I will introduce dependencies that

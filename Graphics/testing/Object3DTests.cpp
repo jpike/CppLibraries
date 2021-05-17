@@ -1,7 +1,7 @@
 #include <cmath>
 #include <map>
+#include <catch.hpp>
 #include "Graphics/Object3D.h"
-#include "ThirdParty/Catch/catch.hpp"
 
 constexpr float ONE_ROTATED_30_DEGREES = 0.86603f;
 constexpr float ONE_ROTATED_45_DEGREES = 0.70711f;
