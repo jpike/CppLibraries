@@ -1,3 +1,5 @@
+#ifdef _WIN32
+
 #include <strsafe.h>
 #include <Windows.h>
 #include "ErrorHandling/ErrorMessageBox.h"
@@ -88,3 +90,6 @@ namespace ERROR_HANDLING
             MB_ICONERROR | MB_OK);
     }
 }
+
+#endif
+

@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef _WIN32
+
 namespace ERROR_HANDLING
 {
     /// Displays an error message in a pop-up dialog box.
@@ -11,3 +13,6 @@ namespace ERROR_HANDLING
         static void Display(const char* const error_message);
     };
 }
+
+#endif
+
