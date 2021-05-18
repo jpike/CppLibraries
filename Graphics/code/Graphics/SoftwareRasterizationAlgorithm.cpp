@@ -1,3 +1,5 @@
+#if _WIN32
+
 // To avoid annoyances with Windows min/max #defines.
 #define NOMINMAX
 
@@ -738,3 +740,5 @@ namespace GRAPHICS
         }
     }
 }
+
+#endif
