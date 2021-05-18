@@ -27,7 +27,7 @@ namespace GRAPHICS
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The material of the triangle.
-        std::shared_ptr<Material> Material = nullptr;
+        std::shared_ptr<class Material> Material = nullptr;
         /// The vertices of the triangle.
         /// Should be in counter-clockwise order.
         std::array<MATH::Vector3f, VERTEX_COUNT> Vertices = std::array<MATH::Vector3f, VERTEX_COUNT>();

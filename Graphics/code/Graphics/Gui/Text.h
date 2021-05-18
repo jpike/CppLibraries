@@ -1,5 +1,7 @@
 #pragma once
 
+#if _WIN32
+
 #include <string>
 #include "Graphics/Gui/Font.h"
 #include "Math/Vector2.h"
@@ -19,3 +21,5 @@ namespace GRAPHICS::GUI
         MATH::Vector2f LeftTopPosition = MATH::Vector2f(0.0f, 0.0f);
     };
 }
+
+#endif

@@ -1,5 +1,7 @@
 #pragma once
 
+#if _WIN32
+
 #include <optional>
 #include <vector>
 #include "Graphics/Bitmap.h"
@@ -56,3 +58,5 @@ namespace GRAPHICS
             DepthBuffer* depth_buffer);
     };
 }
+
+#endif
