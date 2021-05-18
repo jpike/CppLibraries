@@ -1,3 +1,5 @@
+#if _WIN32
+
 #include "Windowing/Win32Window.h"
 
 namespace WINDOWING
@@ -215,3 +217,5 @@ namespace WINDOWING
         ReleaseDC(WindowHandle, device_context);
     }
 }
+
+#endif

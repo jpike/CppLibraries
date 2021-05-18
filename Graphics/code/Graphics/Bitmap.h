@@ -24,7 +24,9 @@ namespace GRAPHICS
     {
     public:
         // CONSTRUCTION/DESTRUCTION.
+#if _WIN32
         static std::shared_ptr<Bitmap> Load(const std::filesystem::path& filepath);
+#endif
         explicit Bitmap(
             const unsigned int width_in_pixels,
             const unsigned int height_in_pixels,

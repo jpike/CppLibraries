@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef _WIN32
+
 #include <array>
 #include <memory>
 #include <Windows.h>
@@ -41,3 +43,5 @@ namespace GRAPHICS::GUI
         Bitmap Pixels = Bitmap(GLYPH_BITMAP_DIMENSION_IN_PIXELS, GLYPH_BITMAP_DIMENSION_IN_PIXELS, ColorFormat::ARGB);
     };
 }
+
+#endif

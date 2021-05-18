@@ -1,5 +1,7 @@
 #pragma once
 
+#if _WIN32
+
 #include <memory>
 #include <string>
 #include <Windows.h>
@@ -29,3 +31,5 @@ namespace WINDOWING
         HWND WindowHandle;
     };
 }
+
+#endif

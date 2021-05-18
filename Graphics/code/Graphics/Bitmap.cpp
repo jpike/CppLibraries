@@ -1,9 +1,12 @@
 #include <fstream>
+#if _WIN32
 #include <Windows.h>
+#endif
 #include "Graphics/Bitmap.h"
 
 namespace GRAPHICS
 {
+#if _WIN32
     /// Attempts to load the bitmap from the specified filepath.
     /// @param[in]  filepath - The path to the bitmap file to load.
     /// @return The texture, if loaded successfully; null otherwise.
@@ -79,6 +82,7 @@ namespace GRAPHICS
 
         return bitmap;
     }
+#endif
 
     /// Constructor.
     /// @param[in]  width_in_pixels - The width of the bitmap.

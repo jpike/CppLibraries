@@ -1,3 +1,5 @@
+#ifdef _WIN32
+
 #include "Graphics/Gui/Font.h"
 
 namespace GRAPHICS::GUI
@@ -134,3 +136,5 @@ namespace GRAPHICS::GUI
         return system_fixed_font;
     }
 }
+
+#endif
