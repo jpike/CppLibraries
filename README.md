@@ -18,6 +18,7 @@ Current dependencies are basically just the following:
 - Windows API
 - GSL
 - Catch (unit testing)
+- SDL
 
 A `build.bat` file exists in the root of this repo for building the `CppLibraries.project` file into a single `.lib`
 file for all of the libraries in this repo (though note that a decent amount of code is header-only with C++ templates).
