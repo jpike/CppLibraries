@@ -1,0 +1,6 @@
+Third-party licenses
+
+bgfx has a number of third-party dependencies included.  See the following for more details on those licenses:
+https://bkaradzic.github.io/bgfx/license.html
+
+Or you can see the various original third-party license files within my custom forked repository - https://github.com/jpike/bgfx
