@@ -29,10 +29,11 @@ file for all of the libraries in this repo (though note that a decent amount of 
 Each individual library in this repo is organized in its own subdirectory with the following structure:
 ```
 LibraryName/
-    code/ (contains the primary source code for the library)
-        LibraryName/ (additional subdirectory with library name to allow clearer #includes like "LibraryName/File.h")
-    build.bat (batch file for building the individual library; can check this for dependencies on other libraries)
+    The main source code for each library is located here for easy inclusion from the root directory.
+    build.bat (batch file for building the individual library; can check this for dependencies on other libraries; will output to this directory for ease-of-use)
     LibraryName.project (file for #including the files in the library for a unity/single-translation-unit build)
+    testing/
+        (A subdirectory to more clearly isolate test code from the main library code)
 ```
 
 # License

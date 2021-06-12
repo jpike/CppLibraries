@@ -16,7 +16,7 @@ IF NOT "%1" == "" (
 )
 
 REM DEFINE COMPILER OPTIONS.
-SET COMMON_COMPILER_OPTIONS=/EHsc /WX /W4 /TP /std:c++latest
+SET COMMON_COMPILER_OPTIONS=/EHsc /WX /W4 /TP /std:c++latest /Fo:CppLibraries_%build_mode%
 SET DEBUG_COMPILER_OPTIONS=%COMMON_COMPILER_OPTIONS% /Z7 /Od /MTd
 SET RELEASE_COMPILER_OPTIONS=%COMMON_COMPILER_OPTIONS% /O2 /MT
 
@@ -24,13 +24,7 @@ REM DEFINE FILES TO COMPILE/LINK.
 SET COMPILATION_FILE="..\..\CppLibraries.project"
 
 REM CREATE THE COMMAND LINE OPTIONS FOR THE FILES TO COMPILE/LINK.
-SET INCLUDE_DIRS=/I ..\..\Containers\code
-SET INCLUDE_DIRS=%INCLUDE_DIRS% /I ..\..\ErrorHandling /I ..\..\ErrorHandling\code
-SET INCLUDE_DIRS=%INCLUDE_DIRS% /I ..\..\Filesystem /I ..\..\Filesystem\code
-SET INCLUDE_DIRS=%INCLUDE_DIRS% /I ..\..\Graphics /I ..\..\Graphics\code
-SET INCLUDE_DIRS=%INCLUDE_DIRS% /I ..\..\Math /I ..\..\Math\code
-SET INCLUDE_DIRS=%INCLUDE_DIRS% /I ..\..\String /I ..\..\String\code
-SET INCLUDE_DIRS=%INCLUDE_DIRS% /I ..\..\Windowing /I ..\..\Windowing\code
+SET INCLUDE_DIRS=/I ..\..
 SET PROJECT_FILES_DIRS_AND_LIBS=%COMPILATION_FILE% %INCLUDE_DIRS%
 
 REM MOVE INTO THE BUILD DIRECTORY.
@@ -45,10 +39,10 @@ PUSHD "%build_directory%"
         cl.exe %DEBUG_COMPILER_OPTIONS% %PROJECT_FILES_DIRS_AND_LIBS%
     )
     
-    lib.exe "CppLibraries.obj"
+    lib.exe "CppLibraries_%build_mode%.obj"
 
 POPD
 
-ECHO Done building CppLibraries.lib.
+ECHO Done building CppLibraries_%build_mode%.lib.
 
 @ECHO ON
