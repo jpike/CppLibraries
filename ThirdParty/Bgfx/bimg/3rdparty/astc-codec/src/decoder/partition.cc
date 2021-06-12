@@ -29,7 +29,7 @@
 
 namespace astc_codec {
 
-namespace {
+namespace ASTC_PARTITION {
 
 // The maximum number of partitions supported by ASTC is four.
 constexpr int kMaxNumSubsets = 4;
@@ -404,8 +404,8 @@ int PartitionMetric(const Partition& a, const Partition& b) {
 
   // Make sure that the number of parts is within our limits. ASTC has a maximum
   // of four subsets per block according to the specification.
-  UTILS_RELEASE_ASSERT(a.num_parts <= kMaxNumSubsets);
-  UTILS_RELEASE_ASSERT(b.num_parts <= kMaxNumSubsets);
+  UTILS_RELEASE_ASSERT(a.num_parts <= ASTC_PARTITION::kMaxNumSubsets);
+  UTILS_RELEASE_ASSERT(b.num_parts <= ASTC_PARTITION::kMaxNumSubsets);
 
   const int w = a.footprint.Width();
   const int h = b.footprint.Height();
@@ -461,12 +461,12 @@ int PartitionMetric(const Partition& a, const Partition& b) {
   // so we can keep track of this in a matrix. Similarly, to keep the assignment
   // one-to-one, once a value in B has been assigned to, it cannot be assigned
   // to again.
-  std::array<std::array<bool, kMaxNumSubsets>, kMaxNumSubsets> assigned { };
+  std::array<std::array<bool, ASTC_PARTITION::kMaxNumSubsets>, ASTC_PARTITION::kMaxNumSubsets> assigned { };
 
   int pixels_matched = 0;
   for (const auto& pair_count : pair_counts) {
     bool is_assigned = false;
-    for (int i = 0; i < kMaxNumSubsets; ++i) {
+    for (int i = 0; i < ASTC_PARTITION::kMaxNumSubsets; ++i) {
       is_assigned |= assigned.at(pair_count.a).at(i);
       is_assigned |= assigned.at(i).at(pair_count.b);
     }
@@ -487,7 +487,7 @@ Partition GetASTCPartition(const Footprint& footprint, int num_parts,
                            int partition_id) {
   // Partitions must have at least one subset but may have at most four
   assert(num_parts >= 0);
-  assert(num_parts <= kMaxNumSubsets);
+  assert(num_parts <= ASTC_PARTITION::kMaxNumSubsets);
 
   // Partition ID can be no more than 10 bits.
   assert(partition_id >= 0);
@@ -500,7 +500,7 @@ Partition GetASTCPartition(const Footprint& footprint, int num_parts,
   // algorithms that depend on this class.
   for (int y = 0; y < footprint.Height(); ++y) {
     for (int x = 0; x < footprint.Width(); ++x) {
-      const int p = SelectASTCPartition(partition_id, x, y, 0, num_parts,
+      const int p = ASTC_PARTITION::SelectASTCPartition(partition_id, x, y, 0, num_parts,
                                         footprint.NumPixels());
       part.assignment.push_back(p);
     }
@@ -536,24 +536,24 @@ const std::vector<const Partition*> FindKClosestASTCPartitions(
   }
 
   static const auto* const kASTCPartitionTrees =
-      new std::array<PartitionTree, Footprint::NumValidFootprints()> {{
-      GenerateASTCPartitionTree(Footprint::Get4x4()),
-      GenerateASTCPartitionTree(Footprint::Get5x4()),
-      GenerateASTCPartitionTree(Footprint::Get5x5()),
-      GenerateASTCPartitionTree(Footprint::Get6x5()),
-      GenerateASTCPartitionTree(Footprint::Get6x6()),
-      GenerateASTCPartitionTree(Footprint::Get8x5()),
-      GenerateASTCPartitionTree(Footprint::Get8x6()),
-      GenerateASTCPartitionTree(Footprint::Get8x8()),
-      GenerateASTCPartitionTree(Footprint::Get10x5()),
-      GenerateASTCPartitionTree(Footprint::Get10x6()),
-      GenerateASTCPartitionTree(Footprint::Get10x8()),
-      GenerateASTCPartitionTree(Footprint::Get10x10()),
-      GenerateASTCPartitionTree(Footprint::Get12x10()),
-      GenerateASTCPartitionTree(Footprint::Get12x12()),
+      new std::array<ASTC_PARTITION::PartitionTree, Footprint::NumValidFootprints()> {{
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get4x4()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get5x4()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get5x5()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get6x5()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get6x6()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get8x5()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get8x6()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get8x8()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get10x5()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get10x6()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get10x8()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get10x10()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get12x10()),
+      ASTC_PARTITION::GenerateASTCPartitionTree(Footprint::Get12x12()),
     }};
 
-  const PartitionTree& parts_vptree = kASTCPartitionTrees->at(index);
+  const ASTC_PARTITION::PartitionTree& parts_vptree = kASTCPartitionTrees->at(index);
   std::vector<const Partition*> results;
   parts_vptree.Search(candidate, k, &results, nullptr);
   return results;
