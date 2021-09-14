@@ -1,1 +1,2 @@
+#include "Windowing/SdlWindow.cpp"
 #include "Windowing/Win32Window.cpp"

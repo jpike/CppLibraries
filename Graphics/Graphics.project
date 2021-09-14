@@ -7,6 +7,8 @@
 #include "Graphics/Modeling/WavefrontMaterial.cpp"
 #include "Graphics/Modeling/WavefrontObjectModel.cpp"
 
+#include "Graphics/OpenGL/OpenGLGraphicsDevice.cpp"
+
 #include "Graphics/Bitmap.cpp"
 #include "Graphics/Camera.cpp"
 #include "Graphics/Color.cpp"

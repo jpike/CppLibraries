@@ -15,16 +15,16 @@ IF NOT "%1" == "" (
 )
 
 REM DEFINE COMPILER OPTIONS.
-SET COMMON_COMPILER_OPTIONS=/EHsc /WX /W4 /TP /std:c++latest /Fo:ImGui_%build_mode%
+SET COMMON_COMPILER_OPTIONS=/EHsc /WX /W4 /TP /std:c++latest /Fo:gl3w_%build_mode%
 SET DEBUG_COMPILER_OPTIONS=%COMMON_COMPILER_OPTIONS% /Z7 /Od /MTd
 SET RELEASE_COMPILER_OPTIONS=%COMMON_COMPILER_OPTIONS% /O2 /MT
 
 REM DEFINE FILES TO COMPILE/LINK.
-SET COMPILATION_FILE="ImGui.project"
+SET COMPILATION_FILE="gl3w.project"
 SET LIBRARY_PARENT_DIR=".."
 
 REM CREATE THE COMMAND LINE OPTIONS FOR THE FILES TO COMPILE/LINK.
-SET INCLUDE_DIRS=/I %LIBRARY_PARENT_DIR% /I ..\..\ThirdParty\SDL /I ..\..\ThirdParty\Bgfx\bgfx\include /I ..\..\ThirdParty\Bgfx\bx\include /I ..\..\ThirdParty\Bgfx\bx\include\compat\msvc /I ..\..\ThirdParty\Bgfx\bgfx\examples\common\imgui /I ..\..\ThirdParty\gl3w
+SET INCLUDE_DIRS=/I "."
 SET PROJECT_FILES_DIRS_AND_LIBS=%COMPILATION_FILE% %INCLUDE_DIRS%
 
 REM BUILD THE PROGRAM BASED ON THE BUILD MODE.
@@ -34,8 +34,8 @@ IF "%build_mode%"=="release" (
     cl.exe %DEBUG_COMPILER_OPTIONS% %PROJECT_FILES_DIRS_AND_LIBS%
 )
     
-lib.exe "ImGui_%build_mode%.obj"
+lib.exe "gl3w_%build_mode%.obj"
 
-ECHO Done building ImGui_%build_mode%.lib.
+ECHO Done building gl3w_%build_mode%.lib.
 
 @ECHO ON
