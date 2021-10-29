@@ -27,6 +27,7 @@ namespace GRAPHICS
 #if _WIN32
         static std::shared_ptr<Bitmap> Load(const std::filesystem::path& filepath);
 #endif
+        static std::shared_ptr<Bitmap> LoadPng(const std::filesystem::path& filepath);
         explicit Bitmap(
             const unsigned int width_in_pixels,
             const unsigned int height_in_pixels,

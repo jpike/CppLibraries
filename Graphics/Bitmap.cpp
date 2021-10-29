@@ -2,6 +2,7 @@
 #if _WIN32
 #include <Windows.h>
 #endif
+#include "stb/stb_image.h"
 #include "Graphics/Bitmap.h"
 
 namespace GRAPHICS
@@ -83,6 +84,74 @@ namespace GRAPHICS
         return bitmap;
     }
 #endif
+
+    /// Attempts to load a bitmap from a PNG file at the specified filepath.
+    /// @param[in]  filepath - The path to the PNG file to load as a bitmap.
+    /// @return The bitmap, if loaded successfully; null otherwise.
+    std::shared_ptr<Bitmap> Bitmap::LoadPng(const std::filesystem::path& filepath)
+    {
+        // LOAD THE IMAGE DATA FROM FILE.
+        int width_in_pixels = 0;
+        int height_in_pixels = 0;
+        int actual_pixel_component_count = 0;
+        // 4 components per-pixel are needed for compatibility with our supported color formats.
+        constexpr int REQUIRED_PIXEL_COMPONENT_COUNT = 4;
+        uint8_t* pixels = stbi_load(
+            filepath.string().c_str(), 
+            &width_in_pixels, 
+            &height_in_pixels, 
+            &actual_pixel_component_count, 
+            REQUIRED_PIXEL_COMPONENT_COUNT);
+        if (pixels)
+        {
+            // CONVERT THE PIXELS TO A PROPER BITMAP.
+            auto bitmap = std::make_shared<Bitmap>(
+                static_cast<unsigned int>(width_in_pixels),
+                static_cast<unsigned int>(height_in_pixels),
+                // This is the color format of the pixels returned by STB library.
+                ColorFormat::RGBA);
+
+            for (int pixel_y = 0; pixel_y < height_in_pixels; ++pixel_y)
+            {
+                // CALCULATE THE INDEX OF THE FIRST ELEMENT IN THE REQUESTED ROW.
+                int pixel_row_index = pixel_y * width_in_pixels;
+
+                for (int pixel_x = 0; pixel_x < width_in_pixels; ++pixel_x)
+                {
+                    // MOVE OVER TO THE REQUESTED ELEMENT IN THE ROW.
+                    int pixel_start_element_index = pixel_row_index + pixel_x;
+
+                    // FORM THE CURRENT COLOR.
+                    int current_pixel_red_component_index = pixel_start_element_index;
+                    uint8_t red = pixels[current_pixel_red_component_index];
+
+                    int current_pixel_green_component_index = current_pixel_red_component_index + 1;
+                    uint8_t green = pixels[current_pixel_green_component_index];
+
+                    int current_pixel_blue_component_index = current_pixel_green_component_index + 1;
+                    uint8_t blue = pixels[current_pixel_blue_component_index];
+
+                    int current_pixel_alpha_component_index = current_pixel_blue_component_index + 1;
+                    uint8_t alpha = pixels[current_pixel_alpha_component_index];
+
+                    Color color(red, green, blue, alpha);
+
+                    // WRITE THE CURRENT COLOR TO THE BITMAP.
+                    bitmap->WritePixel(pixel_x, pixel_y, color);
+                }
+            }
+
+            // FREE THE MEMORY USED FOR THE RAW FILE DATA.
+            stbi_image_free(pixels);
+
+            return bitmap;
+        }
+        else
+        {
+            // INDICATE THE IMAGE COULD NOT BE LOADED.
+            return nullptr;
+        }
+    }
 
     /// Constructor.
     /// @param[in]  width_in_pixels - The width of the bitmap.
