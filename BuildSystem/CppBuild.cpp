@@ -1,5 +1,96 @@
 #pragma once
 
+/// Defines utilities for a simple C++ build system.  Currently only supports Windows.
+///
+/// The primary goals of this file is to provide a way to build multiple C++ projects
+/// that may have dependencies on each other in a way that:
+/// - Does not require installing a bunch of extra tools
+///     (i.e. basically compiler + linker + what comes in the OS + this file)
+/// - Allows taking advantage of features of a more sophisticated programming language
+///     like C++ as opposed to batch/shell scripts.
+///
+/// A future goal may include performance (faster builds) but nothing explicitly has
+/// been done specifically to provide performance features.
+///
+/// This file was inspired by a variety of sources:
+/// - After having wrestled with a lot of different build tools, I was pleased with the
+///     relative simplicity of the single "batch" (.bat) file unity (single-translation-unit)
+///     builds as used in places like Handmade Hero (https://handmadehero.org/), including
+///     minimizing the additional stuff to install/learn.
+/// - While .bat files are suitable for single projects, when trying to manage a bunch of them
+///     for connecting multiple libraries, etc. together, becomes kind of unmaintainable,
+///     especially for the awkard batch language (and shell/bash is not much better).
+///     It would be better to leverage the abilities of more powerful languages - and namely
+///     the same language as the core code being built to avoid having to learn some other
+///     awkward language.  Newer programming languages like Jai, Zig, and Rust have features
+///     like this.  Why not C++?
+/// - Tricks like https://coderwall.com/p/e1htcg/self-compiling-source-code allow basically
+///     having command-line-executable shell/batch scripts that can also contain C++ code.
+///
+/// While this file can be used however you want, it is primarily designed to be usable in
+/// a "self-compiling" script such as a batch file that looks something like the following:
+/// \code
+/// #if 0
+/// 
+/// @ECHO OFF
+/// 
+/// REM MAKE SURE THE COMPILER IS IN THE PATH.
+/// REM These build utilities expect these tools to already be in the PATH.
+/// REM In the future, it might be possible to incorporate finding the compiler, etc.
+/// REM in these build utilities.
+/// REM Ex. Run vcvarsall.bat, etc. if needed.
+/// 
+/// REM BUILD THE C++ BUILD PROGRAM.
+/// REM For exception handling flag - https://docs.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model?view=msvc-160
+/// REM /TP is needed to have this batch file treated as a .cpp file - https://docs.microsoft.com/en-us/cpp/build/reference/tc-tp-tc-tp-specify-source-file-type?view=msvc-160
+/// cl.exe /std:c++latest /EHsc /TP build.bat
+/// 
+/// REM BUILD THE PROJECT
+/// build.exe
+/// 
+/// @ECHO ON
+/// EXIT /B
+/// 
+/// #endif
+/// 
+/// #include <filesystem>
+/// #include "CppBuild.cpp"
+/// 
+/// int main()
+/// {
+///     // DEFINE THE PATH TO THE WORKSPACE.
+///     // A "workspace" effectively defines the root folder that contains the codebase.
+///     // It allows using relative paths that can be resolved from this root folder.
+///     // The path is converted to an absolute path to ensure it remains correct in all commands.
+///     std::filesystem::path workspace_folder_path = std::filesystem::absolute(".");
+/// 
+///     // DEFINE THE BUILD TO ADD PROJECTS TO.
+///     Build build;
+/// 
+///     // DEFINE THE PROJECT TO BE BUILT.
+///     Project example_library = 
+///     {
+///         .Type = ProjectType::LIBRARY,
+///         .Name = "ExampleLibrary",
+///         .CodeFolderPath = workspace_folder_path / "ExampleLibrary",
+///         .UnityBuildFilepath = workspace_folder_path / "ExampleLibrary/ExampleLibrary.project"
+///     };
+///     build.Add(example_library);
+///
+///     // ... Additional projects can be added here ...
+/// 
+///     // RUN THE BUILD.
+///     int build_exit_code = build.Run(workspace_folder_path);
+///     return build_exit_code;
+/// }
+/// \endcode
+///
+/// This file is designed to be copied around and #included in your custom build scripts for ease-of-use
+/// (hence a bunch of different classes directly in this file).  However, as you can see from the above, 
+/// there are some limitations such as need explicit separate compilation/running of the "build" executable.
+/// This will probably never be "perfect" since we have to live within the limitations that C++ gives us, 
+/// but even with these limitations, this model has at least been better for me than alternatives.
+
 #include <chrono>
 #include <cstddef>
 #include <cstdlib>
@@ -10,13 +101,19 @@
 #include <string>
 #include <vector>
 
+/// A timer to allow timing execution of different parts of the build system.
 template<typename ClockType = std::chrono::high_resolution_clock>
 class Timer
 {
 public:
+    /// Gets a string representing the current local time.
+    /// @return A string for the current time.
     static std::string CurrentTimeString()
     {
+        // GET THE CURRENT TIME.
         auto now = ClockType::to_time_t(ClockType::now());
+
+        // CONVERT THE TIME TO A READABLE STRING.
         std::stringstream time_string_stream;
         time_string_stream << std::ctime(&now);
         std::string time_string = time_string_stream.str();
@@ -25,33 +122,36 @@ public:
         return time_string;
     }
 
-    explicit Timer(const std::string& name) :
-        Name(name),
+    /// Constructor to start the timer.
+    explicit Timer() :
         StartTime(ClockType::now())
     {}
 
-    ~Timer()
-    {
-        //std::cout << GetElapsedTimeText() << std::endl;
-    }
-
+    /// Gets text describing the elapsed time.
+    /// @return Text describing the elapsed time.
     std::string GetElapsedTimeText() const
     {
+        // CALCULATE THE ELAPSED TIME.
         auto current_time = ClockType::now();
         auto elapsed_time = current_time - StartTime;
+
+        // CONVERT THE ELAPSED TIME TO READABLE STRING.
+        // Time is printed in several units to enable better assessing of performance and understanding of measurements.
+        // Tabs separate the different unit-based printouts for easier readability.
         std::string elapsed_time_text = (
-            /// @todo Name + ": " +
             std::to_string(elapsed_time.count()) + "\t" +
             std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count()) + "ms\t" +
             std::to_string(std::chrono::duration_cast<std::chrono::seconds>(elapsed_time).count()) + "s");
         return elapsed_time_text;
     }
 
-    std::string Name = {};
+    /// The start time of the timer, according to the particular clock.
     std::chrono::time_point<ClockType> StartTime = {};
 };
 
+/// A timer using the highest resolution clock possible.
 using HighResolutionTimer = Timer<std::chrono::high_resolution_clock>;
+/// A timer using the system "wall clock time" clock.
 using SystemClockTimer = Timer<std::chrono::system_clock>;
 
 /// A command that can be executed on the command line.
@@ -92,7 +192,7 @@ public:
 
         // EXECUTE THE COMMAND.
         std::string command_string = command.str();
-        SystemClockTimer command_timer(command_string);
+        SystemClockTimer command_timer;
         std::cout << SystemClockTimer::CurrentTimeString() << " - Executing: " << command_string << std::endl;
         int return_code = std::system(command_string.c_str());
         std::cout 
@@ -122,42 +222,55 @@ enum class ProjectType
 class Project
 {
 public:
+    /// Adds include folder paths for this project to the specified command line arguments.
+    /// @param[in,out]  command_line_arguments - The command line arguments to add include path arguments to.
     void AddIncludeFolderPaths(std::vector<std::string>& command_line_arguments) const
     {
+        // ADD INCLUDE PATHS FROM ALL LIBRARIES.
         for (const Project* library : Libraries)
         {
-            // ADD DIRECTORIES FROM THE IMMEDIATE LIBRARY.
+            // ADD FOLDERS FROM THE IMMEDIATE LIBRARY.
             command_line_arguments.push_back("/I");
             command_line_arguments.push_back(library->CodeFolderPath.string());
+            // Parent folder paths are also added since projects will often have their names as the
+            // code folder, and it is often desirable to have that name usable in #include statements.
             command_line_arguments.push_back("/I");
             command_line_arguments.push_back(library->CodeFolderPath.parent_path().string());
 
-            // ADD DIRECTORIES FROM ADDITIONAL DEPENDENCIES.
+            // ADD FOLDERS FROM ADDITIONAL DEPENDENCIES.
             library->AddIncludeFolderPaths(command_line_arguments);
         }
     }
 
+    /// Adds linker (lib) folder paths for this project to the specified command line arguments.
+    /// @param[in,out]  command_line_arguments - The command line arguments to add linker path arguments to.
     void AddLinkerFolderPaths(std::vector<std::string>& command_line_arguments) const
     {
+        // ADD LINKER PATHS FROM ALL LIBRARIES.
         for (const Project* library : Libraries)
         {
-            // ADD DIRECTORIES FROM THE IMMEDIATE LIBRARY.
+            // ADD FOLDERS FROM THE IMMEDIATE LIBRARY.
             if (!library->CodeFolderPath.empty())
             {
                 command_line_arguments.push_back("/LIBPATH:" + library->CodeFolderPath.string());
             }
 
-            // ADD DIRECTORIES FROM ADDITIONAL DEPENDENCIES.
+            // ADD FOLDERS FROM ADDITIONAL DEPENDENCIES.
             library->AddLinkerFolderPaths(command_line_arguments);
         }
     }
 
+    /// Gets all linker library inputs for this project.
+    /// @return The names of linker library inputs (library files).
     std::vector<std::string> GetLinkerLibraryInputs() const
     {
+        // INCLUDE EXPLICITLY SPECIFIED LIBRARY NAMES.
         std::vector<std::string> linker_library_names = LinkerLibraryNames;
 
+        // ADD ALL LIBRARIES FROM DEPENDENCIES.
         for (const Project* library : Libraries)
         {
+            // ADD ALL DEPENDENCIES FROM THE CURRENT LIBRARY.
             std::vector<std::string> dependency_libraries = library->GetLinkerLibraryInputs();
             for (const std::string& linker_input : dependency_libraries)
             {
@@ -169,9 +282,14 @@ public:
     }
 
     /// Builds the project.
-    void Build(const std::filesystem::path& build_folder_path)
+    /// @param[in]  build_root_folder_path - The path to root build folder in which to place outputs from building the project.
+    ///     Build outputs for this project will be placed in a subfolder named for the build variant.
+    /// @param[in]  build_variant - The variant to build (ex. "debug" or "release").  This affects build options and the output folder.
+    /// @return A return code from building the project; returned to provide greater visibility into specific failures.
+    int Build(const std::filesystem::path& build_root_folder_path, const std::string& build_variant)
     {
-        SystemClockTimer command_timer(Name);
+        // PROVIDE VISIBILITY INTO THIS PROJECT'S BUILD BEING STARTED.
+        SystemClockTimer command_timer;
         std::cout << SystemClockTimer::CurrentTimeString() << " - Starting build of: " << Name << std::endl;
 
         // CHECK IF ANY BUILDING NEEDS TO BE DONE.
@@ -180,7 +298,7 @@ public:
         if (!build_file_exists)
         {
             std::cout << SystemClockTimer::CurrentTimeString() << " - Nothing to build for: " << Name << std::endl;
-            return;
+            return EXIT_SUCCESS;
         }
 
         // DEFINE COMMON COMPILER OPTIONS.
@@ -192,11 +310,22 @@ public:
             "/W4",
             "/TP",
             "/std:c++latest",
-            /// @todo   Separate out debug/release options.
-            "/Z7",
-            "/Od",
-            "/MTd"
         };
+
+        // ADD COMPILATION OPTIONS BASED ON THE BUILD VARIANT.
+        bool is_release = ("release" == build_variant);
+        if (is_release)
+        {
+            common_compiler_options.push_back("/O2");
+            common_compiler_options.push_back("/MT");
+        }
+        else
+        {
+            // Assume a debug variant.
+            common_compiler_options.push_back("/Z7");
+            common_compiler_options.push_back("/Od");
+            common_compiler_options.push_back("/MTd");
+        }
 
         // FORM THE COMMAND FOR COMPILING THE PROJECT.
         Command compilation_command = 
@@ -205,7 +334,9 @@ public:
         };
         compilation_command.Components.push_back(UnityBuildFilepath.string());
 
-        std::filesystem::path output_filepath = build_folder_path / Name;
+        // Ensure all output files are named based on the project.
+        std::filesystem::path build_variant_output_path = build_root_folder_path / build_variant;
+        std::filesystem::path output_filepath = build_variant_output_path / Name;
         compilation_command.Components.push_back("/Fo:" + output_filepath.string());
         compilation_command.Components.push_back("/Fd:" + output_filepath.string());
         if (ProjectType::PROGRAM == Type)
@@ -213,11 +344,13 @@ public:
             compilation_command.Components.push_back("/Fe:" + output_filepath.string());
         }
 
+        // Ensure the project's files can be included.
         compilation_command.Components.push_back("/I");
         compilation_command.Components.push_back(CodeFolderPath.string());
         compilation_command.Components.push_back("/I");
         compilation_command.Components.push_back(CodeFolderPath.parent_path().string());
 
+        // Ensure all additional files can be included.
         for (const std::filesystem::path& include_path : AdditionalIncludeFolderPaths)
         {
             compilation_command.Components.push_back("/I");
@@ -226,8 +359,17 @@ public:
 
         AddIncludeFolderPaths(compilation_command.Components);
 
-        if (ProjectType::PROGRAM == Type)
+        // Additional options may be needed based on type of project.
+        if (ProjectType::LIBRARY == Type)
         {
+            // Compile-only, without linking.
+            // Needed to avoid "fatal error LNK1561: entry point must be defined" and a non-zero return code
+            // that would cause builds to fail.
+            compilation_command.Components.push_back("/c");
+        }
+        else if (ProjectType::PROGRAM == Type)
+        {
+            // ADD ALL LINKER INPUTS.
             std::vector<std::string> linker_library_inputs = GetLinkerLibraryInputs();
             if (!linker_library_inputs.empty())
             {
@@ -237,17 +379,26 @@ public:
                     compilation_command.Components.push_back(library_input);
                 }
 
-                compilation_command.Components.push_back("/LIBPATH:" + build_folder_path.string());
+                // Appropriate library paths should also be added.
+                compilation_command.Components.push_back("/LIBPATH:" + build_variant_output_path.string());
                 AddLinkerFolderPaths(compilation_command.Components);
             }
         }
 
-        compilation_command.Execute();
+        // COMPILETHE PROJECT.
+        int compilation_command_return_code = compilation_command.Execute();
+        bool compilation_command_succeeded = (EXIT_SUCCESS == compilation_command_return_code);
+        if (!compilation_command_succeeded)
+        {
+            return compilation_command_return_code;
+        }
 
+        // CREATE A LIBRARY FILE IF APPLICABLE.
+        int build_return_code = compilation_command_return_code;
         if (ProjectType::LIBRARY == Type)
         {
             std::string obj_filename = Name + ".obj";
-            std::filesystem::path output_obj_filepath = build_folder_path / obj_filename;
+            std::filesystem::path output_obj_filepath = build_variant_output_path / obj_filename;
             Command create_library_command = 
             {
                 .Components = 
@@ -255,14 +406,16 @@ public:
                     "lib.exe", output_obj_filepath.string()
                 }
             };
-            create_library_command.Execute();
+            build_return_code = create_library_command.Execute();
         }
             
+        // COMMUNICATE THE RESULTS OF THE BUILD.
         std::cout 
             << SystemClockTimer::CurrentTimeString() 
             << " - Build of " << Name 
-            << " finished"
+            << " finished with return code " << build_return_code
             << " after " << command_timer.GetElapsedTimeText() << std::endl;
+        return build_return_code;
     }
 
     /// The type of the project.
@@ -281,46 +434,6 @@ public:
     std::vector<std::string> LinkerLibraryNames = {};
 };
 
-/// The Microsoft Visual C++ compiler.
-class VisualCppCompiler
-{
-public:
-    /// Ensures the Visual C++ compiler is configured for x64 builds.
-    static void ConfigureForX64()
-    {
-        // CHECK IF A VISUAL C++ INSTALL FOLDER HAS BEEN SET.
-        const std::string VISUAL_CPP_INSTALL_FOLDER_ENVIRONMENT_VARIABLE_NAME = "VCINSTALLDIR";
-        const char* visual_cpp_install_folder_path = std::getenv(VISUAL_CPP_INSTALL_FOLDER_ENVIRONMENT_VARIABLE_NAME.c_str());
-        bool visual_cpp_install_folder_exists = (nullptr != visual_cpp_install_folder_path);
-
-        // CHECK IF THE APPROPRIATE CPU ARCHITECTURE HAS BEEN SET.
-        const std::string X64_CPU_ARCHITECTURE = "x64";
-        const std::string VISUAL_CPP_TARGET_CPU_ARCHITECTURE_ENVIRONMENT_VARIABLE_NAME = "VSCMD_ARG_TGT_ARCH";
-        const char* visual_cpp_target_cpu_architecture = std::getenv(VISUAL_CPP_TARGET_CPU_ARCHITECTURE_ENVIRONMENT_VARIABLE_NAME.c_str());
-        bool x64_cpu_architecture_set = (nullptr != visual_cpp_target_cpu_architecture) && (X64_CPU_ARCHITECTURE == std::string(visual_cpp_target_cpu_architecture));
-
-        // CHECK IF THE C++ COMPILER CAN BE FOUND.
-        Command check_cpp_compiler_command = 
-        {
-            .Components = { "WHERE", "cl.exe" }
-        };
-        int check_cpp_compiler_command_return_code = check_cpp_compiler_command.Execute();
-        bool cpp_compiler_in_path = (EXIT_SUCCESS == check_cpp_compiler_command_return_code);
-
-        // ENSURE THE C++ COMPILER IS PROPERLY CONFIGURED.
-        bool cpp_compiler_configured = (visual_cpp_install_folder_exists && x64_cpu_architecture_set && cpp_compiler_in_path);
-        if (!cpp_compiler_configured)
-        {
-            // RUN A COMMAND TO CONFIGURE THE COMPILER.
-            Command configure_cpp_compiler_command = 
-            {
-                .Components = { "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Auxiliary/Build/vcvarsall.bat", X64_CPU_ARCHITECTURE }
-            };
-            configure_cpp_compiler_command.Execute();
-        }
-    }
-};
-
 /// A build that can encompass multiple projects.
 class Build
 {
@@ -333,30 +446,53 @@ public:
     }
 
     /// Runs the build to build all projects.
-    void Run(const std::filesystem::path& workspace_folder_path)
+    /// @param[in]  workspace_folder_path - The root folder for the workspace in which the build is occurring.
+    /// @param[in]  build_variant - The variant to build (ex. "debug" or "release").  This affects build options and the output folder.
+    /// @return A return code from the build.  This will generally be a code from build commands executed.
+    int Run(const std::filesystem::path& workspace_folder_path, const std::string& build_variant)
     {
         // INDICATE THE BUILD IS STARTING.
-        SystemClockTimer build_timer("Build");
-        std::cout << SystemClockTimer::CurrentTimeString() << " - Starting build..." << std::endl;
+        SystemClockTimer build_timer;
+        std::cout << SystemClockTimer::CurrentTimeString() << " - Starting " << build_variant << " build..." << std::endl;
 
-        // ENSURE THE COMPILER IS PROPERLY CONFIGURED.
-        /// @todo   Does not work for preserving environment on command line.  VisualCppCompiler::ConfigureForX64();
-
-        // ENSURE THE BUILD FOLDER EXISTS.
+        // ENSURE THE BUILD VARIANT FOLDER EXISTS.
         std::filesystem::path build_folder_path = workspace_folder_path / "build";
-        std::filesystem::create_directories(build_folder_path);
+        std::filesystem::path build_variant_folder_output_path = build_folder_path / build_variant;
+        std::filesystem::create_directories(build_variant_folder_output_path);
 
         // BUILD EACH PROJECT.
+        bool all_projects_built_successfully = true;
+        int last_project_return_code = EXIT_SUCCESS;
         for (Project& project : Projects)
         {
-            project.Build(build_folder_path);
+            // BUILD THE CURRENT PROJECT.
+            last_project_return_code = project.Build(build_folder_path, build_variant);
+            bool project_build_succeeded = (EXIT_SUCCESS == last_project_return_code);
+            if (!project_build_succeeded)
+            {
+                // STOP EARLY TO PROVIDE EASIER VISIBILITY INTO THE FAILURE.
+                all_projects_built_successfully = false;
+                break;
+            }
         }
 
-        // INDICATE THE BUILD HAS COMPLETED.
-        std::cout 
-            << SystemClockTimer::CurrentTimeString() 
-            << " - Build complete after " << build_timer.GetElapsedTimeText()
-            << std::endl;
+        // INDICATE THE RESULT OF THE BUILD.
+        if (all_projects_built_successfully)
+        {
+            std::cout
+                << SystemClockTimer::CurrentTimeString()
+                << " - Build (" << build_variant << ") completed successfully after " << build_timer.GetElapsedTimeText()
+                << std::endl;
+        }
+        else
+        {
+            std::cout
+                << SystemClockTimer::CurrentTimeString()
+                << " - Build (" << build_variant << ") failed after " << build_timer.GetElapsedTimeText()
+                << std::endl;
+        }
+
+        return last_project_return_code;
     }
 
     /// The projects in the build.
