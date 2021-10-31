@@ -4,9 +4,6 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
-#include "Math/Math.project"
-#include "Graphics/Graphics.project"
-
 #include "Containers/testing/Array2DTests.h"
 #include "Graphics/testing/CameraTests.cpp"
 #include "Graphics/testing/Object3DTests.cpp"
