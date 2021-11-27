@@ -244,8 +244,8 @@ int fpp_dooptions(struct Global *global, struct fppTag *tags)
       global->wflag++;
       break;
     case FPPTAG_INPUT_NAME:
-      strcpy(global->work, tags->data);    /* Remember input filename */
-      global->first_file=tags->data;
+      strcpy(global->work, (char*)tags->data);    /* Remember input filename */
+      global->first_file=(char*)tags->data;
       break;
 	case FPPTAG_DEPENDS:
       global->depends=(void (*)(char *, void *))tags->data;
@@ -345,7 +345,7 @@ ReturnCode fpp_initdefines(struct Global *global)
      * Define __DATE__ as today's date.
      */
     dp = fpp_defendel(global, "__DATE__", FPP_FALSE);
-    tp = malloc(32);
+    tp = (char*)malloc(32);
     if(!tp || !dp)
       return(FPP_OUT_OF_MEMORY);
     dp->repl = tp;
@@ -361,7 +361,7 @@ ReturnCode fpp_initdefines(struct Global *global)
      * Define __TIME__ as this moment's time.
      */
     dp = fpp_defendel(global, "__TIME__", FPP_FALSE);
-    tp = malloc(11);
+    tp = (char*)malloc(11);
     if(!tp || !dp)
       return(FPP_OUT_OF_MEMORY);
     dp->repl = tp;

@@ -7,20 +7,25 @@ REM This currently cannot be done via the C++ build system as just using std::sy
 REM does not result in appropriate environment variables being preserved.
 IF NOT DEFINED VCINSTALLDIR (
     ECHO "Visual Studio tools not configured...Configuring for x64..."
-    CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
-    IF %ERRORLEVEL% NEQ 0 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-    IF %ERRORLEVEL% NEQ 0 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
+    CALL "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+    REM TODO: Figure out why Visual Studio 2022 is returning 9009 instead of 0 here.
+    IF %ERRORLEVEL% NEQ 9009 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+    IF %ERRORLEVEL% NEQ 9009 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+    IF %ERRORLEVEL% NEQ 9009 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
 )
 
 IF "%VSCMD_ARG_TGT_ARCH%"=="x86" (
     ECHO "Incorrect Visual Studio target architecture...Reconfiguring for x64..."
-    CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
-    IF %ERRORLEVEL% NEQ 0 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-    IF %ERRORLEVEL% NEQ 0 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
+    CALL "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+    REM TODO: Figure out why Visual Studio 2022 is returning 9009 instead of 0 here.
+    IF %ERRORLEVEL% NEQ 9009 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+    IF %ERRORLEVEL% NEQ 9009 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+    IF %ERRORLEVEL% NEQ 9009 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
 )
 
 ECHO "Double-checking for compiler..."
 WHERE cl.exe
+IF %ERRORLEVEL% NEQ 0 CALL "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 IF %ERRORLEVEL% NEQ 0 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 IF %ERRORLEVEL% NEQ 0 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
 IF %ERRORLEVEL% NEQ 0 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
@@ -151,7 +156,16 @@ int main()
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty",
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/khronos",
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/dxsdk/include",
-        }
+        },
+        .Libraries = 
+        {
+            &windows_api,
+            &open_gl,
+        },
+        .LinkerLibraryNames = 
+        {
+            "Bgfx.lib" 
+        },
     };
     build.Add(bgfx_library);
 
@@ -246,7 +260,11 @@ int main()
         .Type = ProjectType::LIBRARY,
         .Name = "Windowing",
         .CodeFolderPath = workspace_folder_path / "Windowing",
-        .UnityBuildFilepath = workspace_folder_path / "Windowing/Windowing.project"
+        .UnityBuildFilepath = workspace_folder_path / "Windowing/Windowing.project",
+        .Libraries =
+        {
+            &sdl_library
+        }
     };
     build.Add(windowing_library);
 

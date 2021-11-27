@@ -258,73 +258,73 @@ typename FilterIterator<SubIterator, Predicate>::Range MakeFilterIteratorRange(
       MakeFilterIterator(end, end, predicate));
 }
 
-template <typename VT, bool IC>
-inline UptrVectorIterator<VT, IC>& UptrVectorIterator<VT, IC>::operator++() {
+template <typename ValueType, bool IC>
+inline UptrVectorIterator<ValueType, IC>& UptrVectorIterator<ValueType, IC>::operator++() {
   ++iterator_;
   return *this;
 }
 
-template <typename VT, bool IC>
-inline UptrVectorIterator<VT, IC> UptrVectorIterator<VT, IC>::operator++(int) {
+template <typename ValueType, bool IC>
+inline UptrVectorIterator<ValueType, IC> UptrVectorIterator<ValueType, IC>::operator++(int) {
   auto it = *this;
   ++(*this);
   return it;
 }
 
-template <typename VT, bool IC>
-inline UptrVectorIterator<VT, IC>& UptrVectorIterator<VT, IC>::operator--() {
+template <typename ValueType, bool IC>
+inline UptrVectorIterator<ValueType, IC>& UptrVectorIterator<ValueType, IC>::operator--() {
   --iterator_;
   return *this;
 }
 
-template <typename VT, bool IC>
-inline UptrVectorIterator<VT, IC> UptrVectorIterator<VT, IC>::operator--(int) {
+template <typename ValueType, bool IC>
+inline UptrVectorIterator<ValueType, IC> UptrVectorIterator<ValueType, IC>::operator--(int) {
   auto it = *this;
   --(*this);
   return it;
 }
 
-template <typename VT, bool IC>
-inline bool UptrVectorIterator<VT, IC>::operator==(
+template <typename ValueType, bool IC>
+inline bool UptrVectorIterator<ValueType, IC>::operator==(
     const UptrVectorIterator& that) const {
   return container_ == that.container_ && iterator_ == that.iterator_;
 }
 
-template <typename VT, bool IC>
-inline bool UptrVectorIterator<VT, IC>::operator!=(
+template <typename ValueType, bool IC>
+inline bool UptrVectorIterator<ValueType, IC>::operator!=(
     const UptrVectorIterator& that) const {
   return !(*this == that);
 }
 
-template <typename VT, bool IC>
-inline ptrdiff_t UptrVectorIterator<VT, IC>::operator-(
+template <typename ValueType, bool IC>
+inline ptrdiff_t UptrVectorIterator<ValueType, IC>::operator-(
     const UptrVectorIterator& that) const {
   assert(container_ == that.container_);
   return iterator_ - that.iterator_;
 }
 
-template <typename VT, bool IC>
-inline bool UptrVectorIterator<VT, IC>::operator<(
+template <typename ValueType, bool IC>
+inline bool UptrVectorIterator<ValueType, IC>::operator<(
     const UptrVectorIterator& that) const {
   assert(container_ == that.container_);
   return iterator_ < that.iterator_;
 }
 
-template <typename VT, bool IC>
+template <typename ValueType, bool IC>
 template <bool IsConstForMethod>
 inline
-    typename std::enable_if<!IsConstForMethod, UptrVectorIterator<VT, IC>>::type
-    UptrVectorIterator<VT, IC>::InsertBefore(Uptr value) {
+    typename std::enable_if<!IsConstForMethod, UptrVectorIterator<ValueType, IC>>::type
+    UptrVectorIterator<ValueType, IC>::InsertBefore(Uptr value) {
   auto index = iterator_ - container_->begin();
   container_->insert(iterator_, std::move(value));
   return UptrVectorIterator(container_, container_->begin() + index);
 }
 
-template <typename VT, bool IC>
+template <typename ValueType, bool IC>
 template <bool IsConstForMethod>
 inline
-    typename std::enable_if<!IsConstForMethod, UptrVectorIterator<VT, IC>>::type
-    UptrVectorIterator<VT, IC>::InsertBefore(UptrVector* values) {
+    typename std::enable_if<!IsConstForMethod, UptrVectorIterator<ValueType, IC>>::type
+    UptrVectorIterator<ValueType, IC>::InsertBefore(UptrVector* values) {
   const auto pos = iterator_ - container_->begin();
   const auto origsz = container_->size();
   container_->resize(origsz + values->size());
@@ -334,11 +334,11 @@ inline
   return UptrVectorIterator(container_, container_->begin() + pos);
 }
 
-template <typename VT, bool IC>
+template <typename ValueType, bool IC>
 template <bool IsConstForMethod>
 inline
-    typename std::enable_if<!IsConstForMethod, UptrVectorIterator<VT, IC>>::type
-    UptrVectorIterator<VT, IC>::Erase() {
+    typename std::enable_if<!IsConstForMethod, UptrVectorIterator<ValueType, IC>>::type
+    UptrVectorIterator<ValueType, IC>::Erase() {
   auto index = iterator_ - container_->begin();
   (void)container_->erase(iterator_);
   return UptrVectorIterator(container_, container_->begin() + index);

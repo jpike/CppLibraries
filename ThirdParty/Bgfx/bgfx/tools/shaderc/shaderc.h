@@ -153,6 +153,8 @@ namespace bgfx
 	bool compilePSSLShader(const Options& _options, uint32_t _version, const std::string& _code, bx::WriterI* _writer);
 	bool compileSPIRVShader(const Options& _options, uint32_t _version, const std::string& _code, bx::WriterI* _writer);
 
+	int compileShader(int _argc, const char* _argv[]);
+
 	const char* getPsslPreamble();
 
 } // namespace bgfx

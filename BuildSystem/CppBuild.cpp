@@ -226,18 +226,25 @@ public:
     /// @param[in,out]  command_line_arguments - The command line arguments to add include path arguments to.
     void AddIncludeFolderPaths(std::vector<std::string>& command_line_arguments) const
     {
+        // ENSURE THE PROJECT'S FILES CAN BE INCLUDED.
+        command_line_arguments.push_back("/I");
+        command_line_arguments.push_back(CodeFolderPath.string());
+        // Parent folder paths are also added since projects will often have their names as the
+            // code folder, and it is often desirable to have that name usable in #include statements.
+        command_line_arguments.push_back("/I");
+        command_line_arguments.push_back(CodeFolderPath.parent_path().string());
+
+        // ENSURE ALL ADDITIONAL FILES CAN BE INCLUDED FROM EXPLICIT DIRECTORIES.
+        for (const std::filesystem::path& include_path : AdditionalIncludeFolderPaths)
+        {
+            command_line_arguments.push_back("/I");
+            command_line_arguments.push_back(include_path.string());
+        }
+
         // ADD INCLUDE PATHS FROM ALL LIBRARIES.
         for (const Project* library : Libraries)
         {
-            // ADD FOLDERS FROM THE IMMEDIATE LIBRARY.
-            command_line_arguments.push_back("/I");
-            command_line_arguments.push_back(library->CodeFolderPath.string());
-            // Parent folder paths are also added since projects will often have their names as the
-            // code folder, and it is often desirable to have that name usable in #include statements.
-            command_line_arguments.push_back("/I");
-            command_line_arguments.push_back(library->CodeFolderPath.parent_path().string());
-
-            // ADD FOLDERS FROM ADDITIONAL DEPENDENCIES.
+            // ADD FOLDERS FROM THE DEPENDENCY.
             library->AddIncludeFolderPaths(command_line_arguments);
         }
     }
@@ -246,6 +253,12 @@ public:
     /// @param[in,out]  command_line_arguments - The command line arguments to add linker path arguments to.
     void AddLinkerFolderPaths(std::vector<std::string>& command_line_arguments) const
     {
+        // ADD EXPLICIT ADDITIONAL LIBRARY FOLDER PATHS.
+        for (const std::filesystem::path& library_folder_path : AdditionalLibraryFolderPaths)
+        {
+            command_line_arguments.push_back("/LIBPATH:" + library_folder_path.string());
+        }
+
         // ADD LINKER PATHS FROM ALL LIBRARIES.
         for (const Project* library : Libraries)
         {
@@ -327,6 +340,12 @@ public:
             common_compiler_options.push_back("/MTd");
         }
 
+        // ADD ANY CUSTOM COMPILER FLAGS.
+        for (const std::string& compiler_option : CustomCompilerFlags)
+        {
+            common_compiler_options.push_back(compiler_option);
+        }
+
         // FORM THE COMMAND FOR COMPILING THE PROJECT.
         Command compilation_command = 
         {
@@ -344,19 +363,7 @@ public:
             compilation_command.Components.push_back("/Fe:" + output_filepath.string());
         }
 
-        // Ensure the project's files can be included.
-        compilation_command.Components.push_back("/I");
-        compilation_command.Components.push_back(CodeFolderPath.string());
-        compilation_command.Components.push_back("/I");
-        compilation_command.Components.push_back(CodeFolderPath.parent_path().string());
-
-        // Ensure all additional files can be included.
-        for (const std::filesystem::path& include_path : AdditionalIncludeFolderPaths)
-        {
-            compilation_command.Components.push_back("/I");
-            compilation_command.Components.push_back(include_path.string());
-        }
-
+        // Ensure all appropriate files can be included.
         AddIncludeFolderPaths(compilation_command.Components);
 
         // Additional options may be needed based on type of project.
@@ -385,7 +392,7 @@ public:
             }
         }
 
-        // COMPILETHE PROJECT.
+        // COMPILE THE PROJECT.
         int compilation_command_return_code = compilation_command.Execute();
         bool compilation_command_succeeded = (EXIT_SUCCESS == compilation_command_return_code);
         if (!compilation_command_succeeded)
@@ -428,10 +435,14 @@ public:
     std::filesystem::path UnityBuildFilepath = "";
     /// Additional include directory paths.
     std::vector<std::filesystem::path> AdditionalIncludeFolderPaths = {};
+    /// Additional library directory paths.
+    std::vector<std::filesystem::path> AdditionalLibraryFolderPaths = {};
     /// Libraries this project uses.
     std::vector<Project*> Libraries = {};
     /// Additional linker library names for the project.
     std::vector<std::string> LinkerLibraryNames = {};
+    /// Custom compiler flags for the project.
+    std::vector<std::string> CustomCompilerFlags = {};
 };
 
 /// A build that can encompass multiple projects.

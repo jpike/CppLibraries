@@ -168,7 +168,7 @@ void fpp_scanid(struct Global *global,
   do
     {
       if (ct == global->tokenbsize)
-        global->tokenbuf = realloc(global->tokenbuf, 1 +
+        global->tokenbuf = (char*)realloc(global->tokenbuf, 1 +
                                    (global->tokenbsize *= 2));
       global->tokenbuf[ct++] = c;
       c = fpp_get(global);
@@ -487,7 +487,7 @@ char *fpp_savestring(struct Global *global, char *text)
    */
   char *result;
   (void)global; // BK - not used but causes warning.
-  result = malloc(strlen(text) + 1);
+  result = (char*)malloc(strlen(text) + 1);
   strcpy(result, text);
   return (result);
 }
@@ -552,7 +552,7 @@ DEFBUF *fpp_lookid(struct Global *global,
   ct = 0;
   do {
     if (ct == global->tokenbsize)
-      global->tokenbuf = realloc(global->tokenbuf, 1 + (global->tokenbsize *= 2));
+      global->tokenbuf = (char*)realloc(global->tokenbuf, 1 + (global->tokenbsize *= 2));
     global->tokenbuf[ct++] = c;         /* Store token byte     */
     nhash += c;                         /* Update hash value    */
     c = fpp_get(global);
@@ -574,7 +574,7 @@ DEFBUF *fpp_lookid(struct Global *global,
 
 DEFBUF *fpp_defendel(struct Global *global,
                  char *name,
-                 int delete)            /* FPP_TRUE to delete a symbol */
+                 int delete_symbol)            /* FPP_TRUE to delete a symbol */
 {
   /*
    * Enter this name in the lookup table (delete = FPP_FALSE)
@@ -610,7 +610,7 @@ DEFBUF *fpp_defendel(struct Global *global,
     }
     prevp = &dp->link;
   }
-  if (!delete) {
+  if (!delete_symbol) {
     dp = (DEFBUF *) malloc(sizeof (DEFBUF) + size);
     dp->link = *prevp;
     *prevp = dp;

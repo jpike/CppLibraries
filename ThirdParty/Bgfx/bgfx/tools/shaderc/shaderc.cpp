@@ -271,7 +271,7 @@ namespace bgfx
 		NULL
 	};
 
-	const char* s_uniformTypeName[] =
+	const char* shader_c_uniformTypeName[] =
 	{
 		"int",  "int",
 		NULL,   NULL,
@@ -279,7 +279,7 @@ namespace bgfx
 		"mat3", "float3x3",
 		"mat4", "float4x4",
 	};
-	BX_STATIC_ASSERT(BX_COUNTOF(s_uniformTypeName) == UniformType::Count*2);
+	BX_STATIC_ASSERT(BX_COUNTOF(shader_c_uniformTypeName) == UniformType::Count*2);
 
 	static const char* s_allowedVertexShaderInputs[] =
 	{
@@ -402,23 +402,26 @@ namespace bgfx
 		return _glsl; // centroid, noperspective
 	}
 
+#if 0
 	const char* getUniformTypeName(UniformType::Enum _enum)
 	{
 		uint32_t idx = _enum & ~(kUniformFragmentBit|kUniformSamplerBit);
 		if (idx < UniformType::Count)
 		{
-			return s_uniformTypeName[idx];
+			return shader_c_uniformTypeName[idx];
 		}
 
 		return "Unknown uniform type?!";
 	}
+#endif
 
+#if 0
 	UniformType::Enum nameToUniformTypeEnum(const char* _name)
 	{
 		for (uint32_t ii = 0; ii < UniformType::Count*2; ++ii)
 		{
-			if (NULL != s_uniformTypeName[ii]
-			&&  0 == bx::strCmp(_name, s_uniformTypeName[ii]) )
+			if (NULL != shader_c_uniformTypeName[ii]
+			&&  0 == bx::strCmp(_name, shader_c_uniformTypeName[ii]) )
 			{
 				return UniformType::Enum(ii/2);
 			}
@@ -426,6 +429,7 @@ namespace bgfx
 
 		return UniformType::Count;
 	}
+#endif
 
 	int32_t writef(bx::WriterI* _writer, const char* _format, ...)
 	{
@@ -1473,19 +1477,27 @@ namespace bgfx
 			}
 			else if (profile->lang == ShadingLang::Metal)
 			{
+#if METAL_SHADERS
 				compiled = compileMetalShader(_options, BX_MAKEFOURCC('M', 'T', 'L', 0), input, _writer);
+#endif
 			}
 			else if (profile->lang == ShadingLang::SpirV)
 			{
+#if SPIRV_SHADERS
 				compiled = compileSPIRVShader(_options, profile->id, input, _writer);
+#endif
 			}
 			else if (profile->lang == ShadingLang::PSSL)
 			{
+#if PSSL_SHADERS
 				compiled = compilePSSLShader(_options, 0, input, _writer);
+#endif
 			}
 			else
 			{
+#if HLSL_SHADERS
 				compiled = compileHLSLShader(_options, profile->id, input, _writer);
+#endif
 			}
 		}
 		else if ('c' == _options.shaderType) // Compute
@@ -1505,7 +1517,9 @@ namespace bgfx
 				{
 					if (profile->lang != ShadingLang::PSSL)
 					{
+#if PSSL_SHADERS
 						preprocessor.writef(getPsslPreamble() );
+#endif
 					}
 
 					preprocessor.writef(
@@ -1622,7 +1636,9 @@ namespace bgfx
 							code += _comment;
 							code += preprocessor.m_preprocessed;
 
+#if GLSL_SHADERS
 							compiled = compileGLSLShader(cmdLine, essl, code, writer);
+#endif
 #endif // 0
 						}
 						else
@@ -1632,19 +1648,27 @@ namespace bgfx
 
 							if (profile->lang == ShadingLang::Metal)
 							{
+#if METAL_SHADERS
 								compiled = compileMetalShader(_options, BX_MAKEFOURCC('M', 'T', 'L', 0), code, _writer);
+#endif
 							}
 							else if (profile->lang == ShadingLang::SpirV)
 							{
+#if SPIRV_SHADERS
 								compiled = compileSPIRVShader(_options, profile->id, code, _writer);
+#endif
 							}
 							else if (profile->lang == ShadingLang::PSSL)
 							{
+#if PSSL_SHADERS
 								compiled = compilePSSLShader(_options, 0, code, _writer);
+#endif
 							}
 							else
 							{
+#if HLSL_SHADERS
 								compiled = compileHLSLShader(_options, profile->id, code, _writer);
+#endif
 							}
 						}
 					}
@@ -1765,7 +1789,9 @@ namespace bgfx
 				{
 					if (profile->lang == ShadingLang::PSSL)
 					{
+#if PSSL_SHADERS
 						preprocessor.writef(getPsslPreamble() );
+#endif
 					}
 
 					preprocessor.writef(
@@ -2495,7 +2521,9 @@ namespace bgfx
 									glsl_profile |= 0x80000000;
 								}
 
+#if GLSL_SHADERS
 								compiled = compileGLSLShader(_options, glsl_profile, code, _writer);
+#endif
 							}
 						}
 						else
@@ -2505,19 +2533,27 @@ namespace bgfx
 
 							if (profile->lang == ShadingLang::Metal)
 							{
+#if METAL_SHADERS
 								compiled = compileMetalShader(_options, BX_MAKEFOURCC('M', 'T', 'L', 0), code, _writer);
+#endif
 							}
 							else if (profile->lang == ShadingLang::SpirV)
 							{
+#if SPIRV_SHADERS
 								compiled = compileSPIRVShader(_options, profile->id, code, _writer);
+#endif
 							}
 							else if (profile->lang == ShadingLang::PSSL)
 							{
+#if PSSL_SHADERS
 								compiled = compilePSSLShader(_options, 0, code, _writer);
+#endif
 							}
 							else
 							{
+#if HLSL_SHADERS
 								compiled = compileHLSLShader(_options, profile->id, code, _writer);
+#endif
 							}
 						}
 					}
@@ -2790,7 +2826,9 @@ namespace bgfx
 
 } // namespace bgfx
 
+#if SHADER_C_MAIN
 int main(int _argc, const char* _argv[])
 {
 	return bgfx::compileShader(_argc, _argv);
 }
+#endif

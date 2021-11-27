@@ -189,11 +189,11 @@ ReturnCode fpp_cppmain(struct Global *global)
 
   /* Initialize for reading tokens */
   global->tokenbsize = 50;
-  global->tokenbuf = malloc(global->tokenbsize + 1);
+  global->tokenbuf = (char*)malloc(global->tokenbsize + 1);
   if(!global->tokenbuf)
     return(FPP_OUT_OF_MEMORY);
 
-  global->functionname = malloc(global->tokenbsize + 1);
+  global->functionname = (char*)malloc(global->tokenbsize + 1);
   if(!global->functionname)
     return(FPP_OUT_OF_MEMORY);
   global->functionname[0] = '\0';
