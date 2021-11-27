@@ -37,7 +37,7 @@
 #include "ir_rvalue_visitor.h"
 #include "glsl_types.h"
 
-namespace {
+namespace OPT_STRUCTURE_SPLITTING {
 
 static bool debug = false;
 
@@ -308,13 +308,13 @@ ir_structure_splitting_visitor::visit_leave(ir_assignment *ir)
 bool
 do_structure_splitting(exec_list *instructions)
 {
-   ir_structure_reference_visitor refs;
+   OPT_STRUCTURE_SPLITTING::ir_structure_reference_visitor refs;
 
    visit_list_elements(&refs, instructions);
 
    /* Trim out variables we can't split. */
-   foreach_in_list_safe(variable_entry, entry, &refs.variable_list) {
-      if (debug) {
+   foreach_in_list_safe(OPT_STRUCTURE_SPLITTING::variable_entry, entry, &refs.variable_list) {
+      if (OPT_STRUCTURE_SPLITTING::debug) {
 	 printf("structure %s@%p: decl %d, whole_access %d\n",
 		entry->var->name, (void *) entry->var, entry->declaration,
 		entry->whole_structure_access);
@@ -333,7 +333,7 @@ do_structure_splitting(exec_list *instructions)
    /* Replace the decls of the structures to be split with their split
     * components.
     */
-   foreach_in_list_safe(variable_entry, entry, &refs.variable_list) {
+   foreach_in_list_safe(OPT_STRUCTURE_SPLITTING::variable_entry, entry, &refs.variable_list) {
       const struct glsl_type *type = entry->var->type;
 
       entry->mem_ctx = ralloc_parent(entry->var);
@@ -357,7 +357,7 @@ do_structure_splitting(exec_list *instructions)
       entry->var->remove();
    }
 
-   ir_structure_splitting_visitor split(&refs.variable_list);
+   OPT_STRUCTURE_SPLITTING::ir_structure_splitting_visitor split(&refs.variable_list);
    visit_list_elements(&split, instructions);
 
    ralloc_free(mem_ctx);

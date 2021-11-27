@@ -137,6 +137,90 @@ int main()
     };
     build.Add(imgui_library);
 
+    Project fcpp_library = 
+    {
+        .Type = ProjectType::LIBRARY,
+        .Name = "Fcpp",
+        .CodeFolderPath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/fcpp",
+        .UnityBuildFilepath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/fcpp/Fcpp.project",
+        .CustomCompilerFlags = 
+        {
+            "/Zc:strictStrings-",
+        }
+    };
+    build.Add(fcpp_library);
+
+    Project glsl_optimizer_glcpp_common_library = 
+    {
+        .Type = ProjectType::LIBRARY,
+        .Name = "GlslOptimizer-glcpp-common",
+        .CodeFolderPath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/glsl/glcpp",
+        .UnityBuildFilepath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/GlslOptimizer-glcpp.project",
+        .AdditionalIncludeFolderPaths = 
+        {
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/include",
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src",
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/mesa",
+        },
+    };
+    build.Add(glsl_optimizer_glcpp_common_library);
+
+    Project glsl_optimizer_glcpp_lexer_library = 
+    {
+        .Type = ProjectType::LIBRARY,
+        .Name = "GlslOptimizer-glcpp-lexer",
+        .CodeFolderPath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/glsl/glcpp",
+        .UnityBuildFilepath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/glsl/glcpp/glcpp-lex.c",
+        .AdditionalIncludeFolderPaths = 
+        {
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/include",
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src",
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/mesa",
+        },
+        .CustomCompilerFlags = 
+        {
+            "/TC",
+            "/wd4005",
+            "/wd4996"
+        },
+    };
+    build.Add(glsl_optimizer_glcpp_lexer_library);
+
+    Project glsl_optimizer_glcpp_parser_library = 
+    {
+        .Type = ProjectType::LIBRARY,
+        .Name = "GlslOptimizer-glcpp-parser",
+        .CodeFolderPath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/glsl/glcpp",
+        .UnityBuildFilepath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/glsl/glcpp/glcpp-parse.c",
+        .AdditionalIncludeFolderPaths = 
+        {
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/include",
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src",
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/mesa",
+        },
+        .CustomCompilerFlags = 
+        {
+            "/TC",
+            "/wd4702",
+            "/wd4996"
+        },
+    };
+    build.Add(glsl_optimizer_glcpp_parser_library);
+
+    Project glsl_optimizer_glsl_library = 
+    {
+        .Type = ProjectType::LIBRARY,
+        .Name = "GlslOptimizer-glsl",
+        .CodeFolderPath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/glsl",
+        .UnityBuildFilepath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/GlslOptimizer-glsl.project",
+        .AdditionalIncludeFolderPaths = 
+        {
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/include",
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/mesa",
+        },
+    };
+    build.Add(glsl_optimizer_glsl_library);
+
     Project bgfx_library = 
     {
         .Type = ProjectType::LIBRARY,

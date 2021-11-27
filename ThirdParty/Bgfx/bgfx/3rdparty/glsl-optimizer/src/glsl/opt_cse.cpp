@@ -42,9 +42,10 @@
 
 using namespace ir_builder;
 
-static bool debug = false;
 
-namespace {
+namespace OPT_CSE {
+
+static bool debug = false;
 
 /**
  * This is the record of an available expression for common subexpression
@@ -164,8 +165,6 @@ public:
 private:
    ir_rvalue *val;
 };
-
-} /* unnamed namespace */
 
 static void
 dump_ae(exec_list *ae)
@@ -404,6 +403,8 @@ cse_visitor::visit_enter(ir_call *)
    return visit_continue_with_parent;
 }
 
+} /* unnamed namespace */
+
 /**
  * Does a (uniform-value) constant subexpression elimination pass on the code
  * present in the instruction stream.
@@ -411,7 +412,7 @@ cse_visitor::visit_enter(ir_call *)
 bool
 do_cse(exec_list *instructions)
 {
-   cse_visitor v(instructions);
+   OPT_CSE::cse_visitor v(instructions);
 
    visit_list_elements(&v, instructions);
 

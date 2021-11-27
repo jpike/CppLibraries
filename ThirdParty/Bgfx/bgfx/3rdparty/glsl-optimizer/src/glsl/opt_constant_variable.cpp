@@ -37,7 +37,7 @@
 #include "ir_optimization.h"
 #include "glsl_types.h"
 
-namespace {
+namespace OPT_CONSTANT_VARIABLE {
 
 struct assignment_entry {
    exec_node link;
@@ -57,8 +57,6 @@ public:
 
    exec_list list;
 };
-
-} /* unnamed namespace */
 
 static struct assignment_entry *
 get_assignment_entry(ir_variable *var, exec_list *list)
@@ -177,6 +175,7 @@ ir_constant_variable_visitor::visit_enter(ir_function_signature *ir)
    return visit_continue_with_parent;
 }
 
+} /* unnamed namespace */
 
 /**
  * Does a copy propagation pass on the code present in the instruction stream.
@@ -185,14 +184,14 @@ bool
 do_constant_variable(exec_list *instructions)
 {
    bool progress = false;
-   ir_constant_variable_visitor v;
+   OPT_CONSTANT_VARIABLE::ir_constant_variable_visitor v;
 
    v.run(instructions);
 
    while (!v.list.is_empty()) {
 
-      struct assignment_entry *entry;
-      entry = exec_node_data(struct assignment_entry, v.list.head, link);
+      struct OPT_CONSTANT_VARIABLE::assignment_entry *entry;
+      entry = exec_node_data(struct OPT_CONSTANT_VARIABLE::assignment_entry, v.list.head, link);
 
       if (entry->assignment_count == 1 && entry->constval && entry->our_scope) {
 	 entry->var->constant_value = entry->constval;

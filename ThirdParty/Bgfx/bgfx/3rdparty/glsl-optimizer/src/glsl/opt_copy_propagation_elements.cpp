@@ -47,9 +47,10 @@
 #include "ir_optimization.h"
 #include "glsl_types.h"
 
-static bool debug = false;
 
-namespace {
+namespace OPT_COPY_PROPAGATION_ELEMENTS {
+
+static bool debug = false;
 
 class acp_entry : public exec_node
 {
@@ -136,8 +137,6 @@ public:
    /* Context for allocating new shader nodes. */
    void *shader_mem_ctx;
 };
-
-} /* unnamed namespace */
 
 ir_visitor_status
 ir_copy_propagation_elements_visitor::visit_enter(ir_function_signature *ir)
@@ -494,10 +493,12 @@ ir_copy_propagation_elements_visitor::add_copy(ir_assignment *ir)
    this->acp->push_tail(entry);
 }
 
+} /* unnamed namespace */
+
 bool
 do_copy_propagation_elements(exec_list *instructions)
 {
-   ir_copy_propagation_elements_visitor v;
+   OPT_COPY_PROPAGATION_ELEMENTS::ir_copy_propagation_elements_visitor v;
 
    visit_list_elements(&v, instructions);
 

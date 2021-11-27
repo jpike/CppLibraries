@@ -38,7 +38,7 @@
 #include "ir_optimization.h"
 #include "glsl_types.h"
 
-namespace {
+namespace OPT_COPY_PROPAGATION {
 
 class acp_entry : public exec_node
 {
@@ -109,8 +109,6 @@ public:
    void *mem_ctx;
 };
 
-} /* unnamed namespace */
-
 ir_visitor_status
 ir_copy_propagation_visitor::visit_enter(ir_function_signature *ir)
 {
@@ -167,7 +165,7 @@ ir_copy_propagation_visitor::visit(ir_dereference_variable *ir)
 
    ir_variable *var = ir->var;
 
-   foreach_in_list(acp_entry, entry, this->acp) {
+   foreach_in_list(OPT_COPY_PROPAGATION::acp_entry, entry, this->acp) {
       if (var == entry->lhs) {
 	 ir->var = entry->rhs;
 	 this->progress = true;
@@ -217,8 +215,8 @@ ir_copy_propagation_visitor::handle_if_block(exec_list *instructions)
    this->killed_all = false;
 
    /* Populate the initial acp with a copy of the original */
-   foreach_in_list(acp_entry, a, orig_acp) {
-      this->acp->push_tail(new(this->mem_ctx) acp_entry(a->lhs, a->rhs));
+   foreach_in_list(OPT_COPY_PROPAGATION::acp_entry, a, orig_acp) {
+      this->acp->push_tail(new(this->mem_ctx) OPT_COPY_PROPAGATION::acp_entry(a->lhs, a->rhs));
    }
 
    visit_list_elements(this, instructions);
@@ -289,7 +287,7 @@ ir_copy_propagation_visitor::kill(ir_variable *var)
    assert(var != NULL);
 
    /* Remove any entries currently in the ACP for this kill. */
-   foreach_in_list_safe(acp_entry, entry, acp) {
+   foreach_in_list_safe(OPT_COPY_PROPAGATION::acp_entry, entry, acp) {
       if (entry->lhs == var || entry->rhs == var) {
 	 entry->remove();
       }
@@ -307,7 +305,7 @@ ir_copy_propagation_visitor::kill(ir_variable *var)
 void
 ir_copy_propagation_visitor::add_copy(ir_assignment *ir)
 {
-   acp_entry *entry;
+   OPT_COPY_PROPAGATION::acp_entry *entry;
 
    if (ir->condition)
       return;
@@ -329,12 +327,14 @@ ir_copy_propagation_visitor::add_copy(ir_assignment *ir)
 		  // it might eventually leave our rvalue node with a different precision
 		  // than rhs. Which would trip up platforms that need strict casts (like Metal).
 		  if (lhs_var->data.precision == rhs_var->data.precision || lhs_var->data.precision==glsl_precision_undefined) {
-			entry = new(this->mem_ctx) acp_entry(lhs_var, rhs_var);
+			entry = new(this->mem_ctx) OPT_COPY_PROPAGATION::acp_entry(lhs_var, rhs_var);
 			this->acp->push_tail(entry);
 		  }
       }
    }
 }
+
+} /* unnamed namespace */
 
 /**
  * Does a copy propagation pass on the code present in the instruction stream.
@@ -342,7 +342,7 @@ ir_copy_propagation_visitor::add_copy(ir_assignment *ir)
 bool
 do_copy_propagation(exec_list *instructions)
 {
-   ir_copy_propagation_visitor v;
+   OPT_COPY_PROPAGATION::ir_copy_propagation_visitor v;
 
    visit_list_elements(&v, instructions);
 

@@ -2410,7 +2410,7 @@ apply_image_qualifier_to_variable(const struct ast_type_qualifier *qual,
                              "used on image function parameters");
          }
 
-         if (qual->image_base_type != base_type->sampler_type) {
+         if (qual->image_base_type != static_cast<glsl_base_type>(base_type->sampler_type)) {
             _mesa_glsl_error(loc, state, "format qualifier doesn't match the "
                              "base data type of the image");
          }
@@ -5446,7 +5446,7 @@ public:
 
    virtual ir_visitor_status visit(ir_dereference_variable *ir)
    {
-      if (ir->var->data.mode == mode && ir->var->get_interface_type() == block) {
+      if (static_cast<ir_variable_mode>(ir->var->data.mode) == mode && ir->var->get_interface_type() == block) {
          found = true;
          return visit_stop;
       }
@@ -5852,7 +5852,7 @@ ast_interface_block::hir(exec_list *instructions,
             ir_variable *const var = node->as_variable();
             if (var != NULL &&
                 var->get_interface_type() == earlier_per_vertex &&
-                var->data.mode == var_mode) {
+                static_cast<ir_variable_mode>(var->data.mode) == var_mode) {
                if (var->data.how_declared == ir_var_declared_normally) {
                   _mesa_glsl_error(&loc, state,
                                    "redeclaration of gl_PerVertex cannot "
@@ -5905,8 +5905,8 @@ ast_gs_input_layout::hir(exec_list *instructions,
    /* If any shader inputs occurred before this declaration and did not
     * specify an array size, their size is determined now.
     */
-   foreach_in_list(ir_instruction, node, instructions) {
-      ir_variable *var = node->as_variable();
+   foreach_in_list(ir_instruction, instruction_node, instructions) {
+      ir_variable *var = instruction_node->as_variable();
       if (var == NULL || var->data.mode != ir_var_shader_in)
          continue;
 
@@ -6023,8 +6023,8 @@ detect_conflicting_assignments(struct _mesa_glsl_parse_state *state,
    YYLTYPE loc;
    memset(&loc, 0, sizeof(loc));
 
-   foreach_in_list(ir_instruction, node, instructions) {
-      ir_variable *var = node->as_variable();
+   foreach_in_list(ir_instruction, instruction_node, instructions) {
+      ir_variable *var = instruction_node->as_variable();
 
       if (!var || !var->data.assigned)
          continue;
@@ -6113,10 +6113,10 @@ remove_per_vertex_blocks(exec_list *instructions,
    /* Remove any ir_variable declarations that refer to the interface block
     * we're removing.
     */
-   foreach_in_list_safe(ir_instruction, node, instructions) {
-      ir_variable *const var = node->as_variable();
+   foreach_in_list_safe(ir_instruction, instruction_node, instructions) {
+      ir_variable *const var = instruction_node->as_variable();
       if (var != NULL && var->get_interface_type() == per_vertex &&
-          var->data.mode == mode) {
+          static_cast<ir_variable_mode>(var->data.mode) == mode) {
          state->symbols->disable_variable(var->name);
          var->remove();
       }

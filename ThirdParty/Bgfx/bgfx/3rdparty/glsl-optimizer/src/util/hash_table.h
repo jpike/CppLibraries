@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * Copyright © 2009,2012 Intel Corporation
  *

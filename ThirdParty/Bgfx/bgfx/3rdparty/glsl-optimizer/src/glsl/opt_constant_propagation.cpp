@@ -41,7 +41,7 @@
 #include "ir_optimization.h"
 #include "glsl_types.h"
 
-namespace {
+namespace OPT_CONSTANT_PROPAGATION {
 
 class acp_entry : public exec_node
 {
@@ -158,7 +158,7 @@ ir_constant_propagation_visitor::handle_rvalue(ir_rvalue **rvalue)
 
    for (unsigned int i = 0; i < type->components(); i++) {
       int channel;
-      acp_entry *found = NULL;
+      OPT_CONSTANT_PROPAGATION::acp_entry *found = NULL;
 
       if (swiz) {
 	 switch (i) {
@@ -172,7 +172,7 @@ ir_constant_propagation_visitor::handle_rvalue(ir_rvalue **rvalue)
 	 channel = i;
       }
 
-      foreach_in_list(acp_entry, entry, this->acp) {
+      foreach_in_list(OPT_CONSTANT_PROPAGATION::acp_entry, entry, this->acp) {
 	 if (entry->var == deref->var && entry->write_mask & (1 << channel)) {
 	    found = entry;
 	    break;
@@ -260,7 +260,7 @@ ir_constant_propagation_visitor::visit_leave(ir_assignment *ir)
        * optimization pass will convert it to a simple assignment with the
        * correct mask.
        */
-      kill_mask = ~0;
+      kill_mask = static_cast<unsigned>(~0);
    }
    kill(ir->lhs->variable_referenced(), kill_mask);
 
@@ -319,8 +319,8 @@ ir_constant_propagation_visitor::handle_if_block(exec_list *instructions)
    this->killed_all = false;
 
    /* Populate the initial acp with a constant of the original */
-   foreach_in_list(acp_entry, a, orig_acp) {
-      this->acp->push_tail(new(this->mem_ctx) acp_entry(a));
+   foreach_in_list(OPT_CONSTANT_PROPAGATION::acp_entry, a, orig_acp) {
+      this->acp->push_tail(new(this->mem_ctx) OPT_CONSTANT_PROPAGATION::acp_entry(a));
    }
 
    visit_list_elements(this, instructions);
@@ -396,7 +396,7 @@ ir_constant_propagation_visitor::kill(ir_variable *var, unsigned write_mask)
       return;
 
    /* Remove any entries currently in the ACP for this kill. */
-   foreach_in_list_safe(acp_entry, entry, this->acp) {
+   foreach_in_list_safe(OPT_CONSTANT_PROPAGATION::acp_entry, entry, this->acp) {
       if (entry->var == var) {
 	 entry->write_mask &= ~write_mask;
 	 if (entry->write_mask == 0)
@@ -424,7 +424,7 @@ ir_constant_propagation_visitor::kill(ir_variable *var, unsigned write_mask)
 void
 ir_constant_propagation_visitor::add_constant(ir_assignment *ir)
 {
-   acp_entry *entry;
+   OPT_CONSTANT_PROPAGATION::acp_entry *entry;
 
    if (ir->condition)
       return;
@@ -444,7 +444,7 @@ ir_constant_propagation_visitor::add_constant(ir_assignment *ir)
    if (!deref->var->type->is_vector() && !deref->var->type->is_scalar())
       return;
 
-   entry = new(this->mem_ctx) acp_entry(deref->var, ir->write_mask, constant);
+   entry = new(this->mem_ctx) OPT_CONSTANT_PROPAGATION::acp_entry(deref->var, ir->write_mask, constant);
    this->acp->push_tail(entry);
 }
 
@@ -456,7 +456,7 @@ ir_constant_propagation_visitor::add_constant(ir_assignment *ir)
 bool
 do_constant_propagation(exec_list *instructions)
 {
-   ir_constant_propagation_visitor v;
+   OPT_CONSTANT_PROPAGATION::ir_constant_propagation_visitor v;
 
    visit_list_elements(&v, instructions);
 

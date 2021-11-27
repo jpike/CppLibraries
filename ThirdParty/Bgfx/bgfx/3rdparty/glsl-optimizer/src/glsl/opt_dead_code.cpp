@@ -33,7 +33,10 @@
 #include "glsl_types.h"
 #include "util/hash_table.h"
 
-static bool debug = false;
+namespace OPT_DEAD_CODE
+{
+    static bool debug = false;
+}
 
 /**
  * Do a dead code pass over instructions and everything that instructions
@@ -64,7 +67,7 @@ do_dead_code(exec_list *instructions, bool uniform_locations_assigned)
        */
       assert(entry->referenced_count >= entry->assigned_count);
 
-      if (debug) {
+      if (OPT_DEAD_CODE::debug) {
 	 printf("%s@%p: %d refs, %d assigns, %sdeclared in our scope\n",
 		entry->var->name, (void *) entry->var,
 		entry->referenced_count, entry->assigned_count,
@@ -85,7 +88,7 @@ do_dead_code(exec_list *instructions, bool uniform_locations_assigned)
 	    entry->assign->remove();
 	    progress = true;
 
-	    if (debug) {
+	    if (OPT_DEAD_CODE::debug) {
 	       printf("Removed assignment to %s@%p\n",
 		      entry->var->name, (void *) entry->var);
 	    }
@@ -128,7 +131,7 @@ do_dead_code(exec_list *instructions, bool uniform_locations_assigned)
 	 entry->var->remove();
 	 progress = true;
 
-	 if (debug) {
+	 if (OPT_DEAD_CODE::debug) {
 	    printf("Removed declaration of %s@%p\n",
 		   entry->var->name, (void *) entry->var);
 	 }

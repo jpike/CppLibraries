@@ -877,7 +877,7 @@ glsl_type::std140_base_alignment(bool row_major) const
    }
 
    assert(!"not reached");
-   return -1;
+   return static_cast<unsigned>(-1);
 }
 
 unsigned
@@ -1004,7 +1004,7 @@ glsl_type::std140_size(bool row_major) const
    }
 
    assert(!"not reached");
-   return -1;
+   return static_cast<unsigned>(-1);
 }
 
 

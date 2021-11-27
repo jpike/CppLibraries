@@ -38,9 +38,10 @@
 #include "ir_optimization.h"
 #include "glsl_types.h"
 
-static bool debug = false;
 
-namespace {
+namespace OPT_DEAD_CODE_LOCAL {
+
+static bool debug = false;
 
 class assignment_entry : public exec_node
 {
@@ -165,7 +166,7 @@ process_assignment(void *ctx, ir_assignment *ir, exec_list *assignments)
 {
    ir_variable *var = NULL;
    bool progress = false;
-   kill_for_derefs_visitor v(assignments);
+   OPT_DEAD_CODE_LOCAL::kill_for_derefs_visitor v(assignments);
 
    /* Kill assignment entries for things used to produce this assignment. */
    ir->rhs->accept(&v);
@@ -175,7 +176,7 @@ process_assignment(void *ctx, ir_assignment *ir, exec_list *assignments)
 
    /* Kill assignment enties used as array indices.
     */
-   array_index_visit::run(ir->lhs, &v);
+   OPT_DEAD_CODE_LOCAL::array_index_visit::run(ir->lhs, &v);
    var = ir->lhs->variable_referenced();
    assert(var);
 
@@ -189,16 +190,16 @@ process_assignment(void *ctx, ir_assignment *ir, exec_list *assignments)
       if (deref_var && (deref_var->var->type->is_scalar() ||
 			deref_var->var->type->is_vector())) {
 
-	 if (debug)
+	 if (OPT_DEAD_CODE_LOCAL::debug)
 	    printf("looking for %s.0x%01x to remove\n", var->name,
 		   ir->write_mask);
 
-	 foreach_in_list_safe(assignment_entry, entry, assignments) {
+	 foreach_in_list_safe(OPT_DEAD_CODE_LOCAL::assignment_entry, entry, assignments) {
 	    if (entry->lhs != var)
 	       continue;
 
 	    int remove = entry->unused & ir->write_mask;
-	    if (debug) {
+	    if (OPT_DEAD_CODE_LOCAL::debug) {
 	       printf("%s 0x%01x - 0x%01x = 0x%01x\n",
 		      var->name,
 		      entry->ir->write_mask,
@@ -207,7 +208,7 @@ process_assignment(void *ctx, ir_assignment *ir, exec_list *assignments)
 	    if (remove) {
 	       progress = true;
 
-	       if (debug) {
+	       if (OPT_DEAD_CODE_LOCAL::debug) {
 		  printf("rewriting:\n  ");
 		  entry->ir->print();
 		  printf("\n");
@@ -239,7 +240,7 @@ process_assignment(void *ctx, ir_assignment *ir, exec_list *assignments)
 		  entry->ir->rhs = new(mem_ctx) ir_swizzle(entry->ir->rhs,
 							   components,
 							   channels);
-		  if (debug) {
+		  if (OPT_DEAD_CODE_LOCAL::debug) {
 		     printf("to:\n  ");
 		     entry->ir->print();
 		     printf("\n");
@@ -251,11 +252,11 @@ process_assignment(void *ctx, ir_assignment *ir, exec_list *assignments)
 	 /* We did a whole-variable assignment.  So, any instruction in
 	  * the assignment list with the same LHS is dead.
 	  */
-	 if (debug)
+	 if (OPT_DEAD_CODE_LOCAL::debug)
 	    printf("looking for %s to remove\n", var->name);
-	 foreach_in_list_safe(assignment_entry, entry, assignments) {
+	 foreach_in_list_safe(OPT_DEAD_CODE_LOCAL::assignment_entry, entry, assignments) {
 	    if (entry->lhs == var) {
-	       if (debug)
+	       if (OPT_DEAD_CODE_LOCAL::debug)
 		  printf("removing %s\n", var->name);
 	       entry->ir->remove();
 	       entry->remove();
@@ -266,14 +267,14 @@ process_assignment(void *ctx, ir_assignment *ir, exec_list *assignments)
    }
 
    /* Add this instruction to the assignment list available to be removed. */
-   assignment_entry *entry = new(ctx) assignment_entry(var, ir);
+   OPT_DEAD_CODE_LOCAL::assignment_entry *entry = new(ctx) OPT_DEAD_CODE_LOCAL::assignment_entry(var, ir);
    assignments->push_tail(entry);
 
-   if (debug) {
+   if (OPT_DEAD_CODE_LOCAL::debug) {
       printf("add %s\n", var->name);
 
       printf("current entries\n");
-      foreach_in_list(assignment_entry, entry, assignments) {
+      foreach_in_list(OPT_DEAD_CODE_LOCAL::assignment_entry, entry, assignments) {
 	 printf("    %s (0x%01x)\n", entry->lhs->name, entry->unused);
       }
    }
@@ -298,7 +299,7 @@ dead_code_local_basic_block(ir_instruction *first,
 	ir = ir_next, ir_next = (ir_instruction *)ir->next) {
       ir_assignment *ir_assign = ir->as_assignment();
 
-      if (debug) {
+      if (OPT_DEAD_CODE_LOCAL::debug) {
 	 ir->print();
 	 printf("\n");
       }
@@ -306,7 +307,7 @@ dead_code_local_basic_block(ir_instruction *first,
       if (ir_assign) {
 	 progress = process_assignment(ctx, ir_assign, &assignments) || progress;
       } else {
-	 kill_for_derefs_visitor kill(&assignments);
+		  OPT_DEAD_CODE_LOCAL::kill_for_derefs_visitor kill(&assignments);
 	 ir->accept(&kill);
       }
 

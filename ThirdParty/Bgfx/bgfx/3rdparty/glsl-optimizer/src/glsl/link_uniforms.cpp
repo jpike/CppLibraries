@@ -494,7 +494,7 @@ private:
             this->shader_shadow_samplers |= shadow << i;
          }
       } else {
-         uniform->sampler[shader_type].index = ~0;
+         uniform->sampler[shader_type].index = static_cast<uint8_t>(~0);
          uniform->sampler[shader_type].active = false;
       }
    }
@@ -512,7 +512,7 @@ private:
          this->next_image += MAX2(1, uniform->array_elements);
 
       } else {
-         uniform->image[shader_type].index = ~0;
+         uniform->image[shader_type].index = static_cast<uint8_t>(~0);
          uniform->image[shader_type].active = false;
       }
    }
