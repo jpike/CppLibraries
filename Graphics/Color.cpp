@@ -255,7 +255,7 @@ namespace GRAPHICS
         uint8_t red = GetRedAsUint8();
         uint8_t green = GetGreenAsUint8();
         uint8_t blue = GetBlueAsUint8();
-        uint8_t alpha = GetRedAsUint8();
+        uint8_t alpha = GetAlphaAsUint8();
 
         // PACK ACCORDING TO THE COLOR FORMAT.
         switch (color_format)

@@ -87,8 +87,9 @@ namespace GRAPHICS
 
     /// Attempts to load a bitmap from a PNG file at the specified filepath.
     /// @param[in]  filepath - The path to the PNG file to load as a bitmap.
+    /// @param[in]  color_format - The color format to use for the resulting image.
     /// @return The bitmap, if loaded successfully; null otherwise.
-    std::shared_ptr<Bitmap> Bitmap::LoadPng(const std::filesystem::path& filepath)
+    std::shared_ptr<Bitmap> Bitmap::LoadPng(const std::filesystem::path& filepath, const GRAPHICS::ColorFormat color_format)
     {
         // LOAD THE IMAGE DATA FROM FILE.
         int width_in_pixels = 0;
@@ -108,8 +109,7 @@ namespace GRAPHICS
             auto bitmap = std::make_shared<Bitmap>(
                 static_cast<unsigned int>(width_in_pixels),
                 static_cast<unsigned int>(height_in_pixels),
-                // This is the color format of the pixels returned by STB library.
-                ColorFormat::RGBA);
+                color_format);
 
             for (int pixel_y = 0; pixel_y < height_in_pixels; ++pixel_y)
             {
@@ -119,7 +119,7 @@ namespace GRAPHICS
                 for (int pixel_x = 0; pixel_x < width_in_pixels; ++pixel_x)
                 {
                     // MOVE OVER TO THE REQUESTED ELEMENT IN THE ROW.
-                    int pixel_start_element_index = pixel_row_index + pixel_x;
+                    int pixel_start_element_index = (pixel_row_index + pixel_x) * REQUIRED_PIXEL_COMPONENT_COUNT;
 
                     // FORM THE CURRENT COLOR.
                     int current_pixel_red_component_index = pixel_start_element_index;
