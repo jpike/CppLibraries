@@ -1,5 +1,5 @@
 #include <cctype>
-#include "String/String.h"
+#include "String/String.hpp"
 
 namespace STRING
 {

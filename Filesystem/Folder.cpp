@@ -20,7 +20,7 @@ namespace FILESYSTEM
     }
 
     /// Constructor.
-    /// @param[in]  path - THe path of the folder.  Assumed to be valid.
+    /// @param[in]  path - The path of the folder.  Assumed to be valid.
     Folder::Folder(const std::filesystem::path& path) :
         Path(path)
     {}

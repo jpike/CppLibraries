@@ -1,3 +1,5 @@
+/// This filename ends with a .hpp extension to avoid conflicts with official C++ standard library "string" headers.
+
 #pragma once
 
 #include <deque>

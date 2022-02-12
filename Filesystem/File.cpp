@@ -14,6 +14,24 @@ namespace FILESYSTEM
         std::string binary_data(beginning_of_file, end_of_file);
         return binary_data;
     }
+
+    /// Writes a binary file.
+    /// @param[in]  binary_data - The binary data to write.
+    /// @param[in]  path - The path of the file to write.
+    void File::WriteBinary(const std::string_view binary_data, const std::filesystem::path& path)
+    {
+        std::ofstream binary_file(path, std::ios::binary);
+        binary_file.write(binary_data.data(), binary_data.size());
+    }
+
+    /// Writes a text file.
+    /// @param[in]  text - The text to write.
+    /// @param[in]  path - The path of the file to write.
+    void File::WriteText(const std::string_view text, const std::filesystem::path& path)
+    {
+        std::ofstream text_file(path);
+        text_file.write(text.data(), text.size());
+    }
     
     /// Constructor.
     /// @param[in]  path - The path to the file.

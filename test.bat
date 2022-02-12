@@ -8,7 +8,9 @@ REM RUN DEBUG VERSIONS OF TESTERS.
 PUSHD "build/debug"
     ContainersTests.exe
     ErrorHandlingTests.exe
+    FilesystemTests.exe
     GraphicsTests.exe
+    StringTests.exe
     CppLibraryTests.exe
 POPD
 
@@ -16,7 +18,9 @@ REM RUN RELEASE VERSIONS OF TESTERS.
 PUSHD "build/release"
     ContainersTests.exe
     ErrorHandlingTests.exe
+    FilesystemTests.exe
     GraphicsTests.exe
+    StringTests.exe
     CppLibraryTests.exe
 POPD
 

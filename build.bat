@@ -318,6 +318,20 @@ int main()
     };
     build.Add(filesystem_library);
 
+    Project filesystem_tests = 
+    {
+        .Type = ProjectType::PROGRAM,
+        .Name = "FilesystemTests",
+        .CodeFolderPath = workspace_folder_path / "Filesystem/testing",
+        .UnityBuildFilepath = workspace_folder_path / "Filesystem/testing/FilesystemTests.cpp",
+        .Libraries = 
+        { 
+            &catch_library,
+            &filesystem_library 
+        },
+    };
+    build.Add(filesystem_tests);
+
     Project input_control_library = 
     {
         .Type = ProjectType::LIBRARY,
@@ -352,6 +366,20 @@ int main()
         .UnityBuildFilepath = workspace_folder_path / "String/String.project"
     };
     build.Add(string_library);
+
+    Project string_tests = 
+    {
+        .Type = ProjectType::PROGRAM,
+        .Name = "StringTests",
+        .CodeFolderPath = workspace_folder_path / "String/testing",
+        .UnityBuildFilepath = workspace_folder_path / "String/testing/StringTests.cpp",
+        .Libraries = 
+        { 
+            &catch_library,
+            &string_library 
+        },
+    };
+    build.Add(string_tests);
 
     Project windowing_library = 
     {

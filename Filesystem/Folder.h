@@ -1,5 +1,6 @@
 #pragma once
 
+#include <compare>
 #include <filesystem>
 #include <optional>
 #include <vector>
@@ -14,6 +15,9 @@ namespace FILESYSTEM
         // CONSTRUCTION.
         static std::optional<Folder> GetIfExists(const std::filesystem::path& path);
         explicit Folder(const std::filesystem::path& path);
+
+        // OPERATORS.
+        auto operator<=>(const Folder&) const = default;
 
         // OTHER PUBLIC METHODS.
         std::vector<Folder> Subfolders() const;
