@@ -181,6 +181,24 @@ namespace ARRAY_2D_TESTS
         REQUIRE(NEW_HEIGHT == actual_height);
     }
 
+    TEST_CASE("An array can be filled with a particular value.", "[Array2D]")
+    {
+        // CREATE A 2D ARRAY.
+        constexpr unsigned int WIDTH = 4;
+        constexpr unsigned int HEIGHT = 3;
+        CONTAINERS::Array2D<int> array_2d(WIDTH, HEIGHT);
+
+        // FILL THE ARRAY WITH A PARTICULAR VALUE.
+        constexpr int FILL_VALUE = 7;
+        array_2d.Fill(FILL_VALUE);
+
+        // VERIFY THAT THE ARRAY WAS PROPERLY FILLED.
+        constexpr unsigned int TOTAL_ELEMENT_COUNT = WIDTH * HEIGHT;
+        const std::vector<int> EXPECTED_VALUES(TOTAL_ELEMENT_COUNT, FILL_VALUE);
+        std::vector<int> actual_values = array_2d.ValuesInColumnMajorOrder();
+        REQUIRE(EXPECTED_VALUES == actual_values);
+    }
+
     TEST_CASE("An element's value can be modified.", "[Array2D]")
     {
         // CREATE A 2D ARRAY.
@@ -317,5 +335,58 @@ namespace ARRAY_2D_TESTS
 
         // VALIDATE THAT AN EXCEPTION WAS THROWN.
         REQUIRE(exception_thrown);
+    }
+
+    TEST_CASE("Values can be obtained in row-major order.", "[Array2D]")
+    {
+        // CREATE A 2D ARRAY.
+        constexpr unsigned int WIDTH = 3;
+        constexpr unsigned int HEIGHT = 2;
+        const std::initializer_list<int> DATA_IN_ROW_MAJOR_ORDER =
+        {
+            1, 2, 3,
+            4, 5, 6
+        };
+        CONTAINERS::Array2D<int> array_2d(WIDTH, HEIGHT, DATA_IN_ROW_MAJOR_ORDER);
+
+        // VERIFY DATA CAN BE OBTAINED IN ROW-MAJOR ORDER.
+        constexpr unsigned int TOTAL_ELEMENT_COUNT = WIDTH * HEIGHT;
+        const std::vector<int> EXPECTED_DATA_IN_ROW_MAJOR_ORDER = DATA_IN_ROW_MAJOR_ORDER;
+        const int* actual_data_in_row_major_order = array_2d.ValuesInRowMajorOrder();
+        for (unsigned int index = 0; index < TOTAL_ELEMENT_COUNT; ++index)
+        {
+            int expected_current_value = EXPECTED_DATA_IN_ROW_MAJOR_ORDER.at(index);
+            int actual_current_value = actual_data_in_row_major_order[index];
+            REQUIRE(expected_current_value == actual_current_value);
+        }
+    }
+
+    TEST_CASE("Values can be obtained in column-major order.", "[Array2D]")
+    {
+        // CREATE A 2D ARRAY.
+        constexpr unsigned int WIDTH = 3;
+        constexpr unsigned int HEIGHT = 2;
+        const std::initializer_list<int> DATA_IN_ROW_MAJOR_ORDER =
+        {
+            1, 2, 3,
+            4, 5, 6
+        };
+        CONTAINERS::Array2D<int> array_2d(WIDTH, HEIGHT, DATA_IN_ROW_MAJOR_ORDER);
+
+        // VERIFY DATA CAN BE OBTAINED IN COLUMN-MAJOR ORDER.
+        constexpr unsigned int TOTAL_ELEMENT_COUNT = WIDTH * HEIGHT;
+        const std::vector<int> EXPECTED_DATA_IN_COLUMN_MAJOR_ORDER = 
+        {
+            1, 4,
+            2, 5, 
+            3, 6
+        };
+        std::vector<int> actual_data_in_column_major_order = array_2d.ValuesInColumnMajorOrder();
+        for (unsigned int index = 0; index < TOTAL_ELEMENT_COUNT; ++index)
+        {
+            int expected_current_value = EXPECTED_DATA_IN_COLUMN_MAJOR_ORDER.at(index);
+            int actual_current_value = actual_data_in_column_major_order.at(index);
+            REQUIRE(expected_current_value == actual_current_value);
+        }
     }
 }
