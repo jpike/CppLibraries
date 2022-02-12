@@ -294,6 +294,20 @@ int main()
     };
     build.Add(error_handling_library);
 
+    Project error_handling_tests = 
+    {
+        .Type = ProjectType::PROGRAM,
+        .Name = "ErrorHandlingTests",
+        .CodeFolderPath = workspace_folder_path / "ErrorHandling/testing",
+        .UnityBuildFilepath = workspace_folder_path / "ErrorHandling/testing/ErrorHandlingTests.cpp",
+        .Libraries = 
+        { 
+            &catch_library,
+            &error_handling_library 
+        },
+    };
+    build.Add(error_handling_tests);
+
     Project filesystem_library = 
     {
         .Type = ProjectType::LIBRARY,

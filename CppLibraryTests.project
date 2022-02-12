@@ -5,5 +5,7 @@
 #include <catch.hpp>
 
 #include "Containers/testing/Array2DTests.h"
+#include "Containers/testing/ContainerTests.h"
+#include "ErrorHandling/testing/NullCheckingTests.h"
 #include "Graphics/testing/CameraTests.cpp"
 #include "Graphics/testing/Object3DTests.cpp"
