@@ -15,4 +15,5 @@
 #include "Math/testing/AngleTests.h"
 #include "Math/testing/NumberTests.h"
 #include "Math/testing/RandomNumberGeneratorTests.h"
+#include "Math/testing/Vector2Tests.h"
 #include "String/testing/StringTests.h"

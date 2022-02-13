@@ -3,3 +3,4 @@
 #include "AngleTests.h"
 #include "NumberTests.h"
 #include "RandomNumberGeneratorTests.h"
+#include "Vector2Tests.h"

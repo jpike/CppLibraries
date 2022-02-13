@@ -141,7 +141,7 @@ namespace MATH
     template <typename ComponentType>
     Vector2<ComponentType> Vector2<ComponentType>::operator+ (const Vector2<ComponentType>& rhs) const
     {
-        MATH::Vector2f resulting_vector;
+        MATH::Vector2<ComponentType> resulting_vector;
         resulting_vector.X = this->X + rhs.X;
         resulting_vector.Y = this->Y + rhs.Y;
         return resulting_vector;
@@ -166,7 +166,7 @@ namespace MATH
     template <typename ComponentType>
     Vector2<ComponentType> Vector2<ComponentType>::operator- (const Vector2<ComponentType>& rhs) const
     {
-        MATH::Vector2f resulting_vector;
+        MATH::Vector2<ComponentType> resulting_vector;
         resulting_vector.X = this->X - rhs.X;
         resulting_vector.Y = this->Y - rhs.Y;
         return resulting_vector;
