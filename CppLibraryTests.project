@@ -12,4 +12,7 @@
 #include "Filesystem/testing/FolderTests.h"
 #include "Graphics/testing/CameraTests.cpp"
 #include "Graphics/testing/Object3DTests.cpp"
+#include "Math/testing/AngleTests.h"
+#include "Math/testing/NumberTests.h"
+#include "Math/testing/RandomNumberGeneratorTests.h"
 #include "String/testing/StringTests.h"

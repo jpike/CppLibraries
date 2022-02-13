@@ -78,8 +78,8 @@ namespace MATH
     NumberType Number::IncrementAndWrapWithinRange(const NumberType value, const NumberType min_value, const NumberType max_value)
     {
         // CHECK IF THE VALUE IS LESS THAN THE MIN OF THE RANGE.
-        bool value_less_than_max = (value < min_value);
-        if (value_less_than_max)
+        bool value_less_than_min = (value < min_value);
+        if (value_less_than_min)
         {
             // RETURN THE MIN VALUE.
             // If the number is less than the min of the range, it needs to be clamped

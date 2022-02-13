@@ -74,7 +74,7 @@ namespace MATH
     template <typename ValueType>
     typename Angle<ValueType>::Radians Angle<ValueType>::Radians::operator+(const typename Angle<ValueType>::Radians rhs) const
     {
-        Angle<ValueType>::Radians radian_sum = this->Value + rhs.Value;
+        Angle<ValueType>::Radians radian_sum(this->Value + rhs.Value);
         return radian_sum;
     }
 
@@ -84,7 +84,7 @@ namespace MATH
     template <typename ValueType>
     typename Angle<ValueType>::Radians Angle<ValueType>::Radians::operator-(const typename Angle<ValueType>::Radians rhs) const
     {
-        Angle<ValueType>::Radians radian_difference = this->Value - rhs.Value;
+        Angle<ValueType>::Radians radian_difference(this->Value - rhs.Value);
         return radian_difference;
     }
 
@@ -94,7 +94,7 @@ namespace MATH
     template <typename ValueType>
     typename Angle<ValueType>::Radians Angle<ValueType>::Radians::operator*(const typename Angle<ValueType>::Radians rhs) const
     {
-        Angle<ValueType>::Radians radian_product = this->Value * rhs.Value;
+        Angle<ValueType>::Radians radian_product(this->Value * rhs.Value);
         return radian_product;
     }
 
@@ -104,7 +104,7 @@ namespace MATH
     template <typename ValueType>
     typename Angle<ValueType>::Radians Angle<ValueType>::Radians::operator/(const typename Angle<ValueType>::Radians rhs) const
     {
-        Angle<ValueType>::Radians radian_quotient = this->Value / rhs.Value;
+        Angle<ValueType>::Radians radian_quotient(this->Value / rhs.Value);
         return radian_quotient;
     }
 
@@ -131,7 +131,7 @@ namespace MATH
     template <typename ValueType>
     typename Angle<ValueType>::Degrees Angle<ValueType>::Degrees::operator+(const typename Angle<ValueType>::Degrees rhs) const
     {
-        Angle<ValueType>::Degrees degree_sum = this->Value + rhs.Value;
+        Angle<ValueType>::Degrees degree_sum(this->Value + rhs.Value);
         return degree_sum;
     }
 
@@ -141,7 +141,7 @@ namespace MATH
     template <typename ValueType>
     typename Angle<ValueType>::Degrees Angle<ValueType>::Degrees::operator-(const typename Angle<ValueType>::Degrees rhs) const
     {
-        Angle<ValueType>::Degrees degree_difference = this->Value - rhs.Value;
+        Angle<ValueType>::Degrees degree_difference(this->Value - rhs.Value);
         return degree_difference;
     }
 
@@ -151,7 +151,7 @@ namespace MATH
     template <typename ValueType>
     typename Angle<ValueType>::Degrees Angle<ValueType>::Degrees::operator*(const typename Angle<ValueType>::Degrees rhs) const
     {
-        Angle<ValueType>::Degrees degree_product = this->Value * rhs.Value;
+        Angle<ValueType>::Degrees degree_product(this->Value * rhs.Value);
         return degree_product;
     }
 
@@ -161,7 +161,7 @@ namespace MATH
     template <typename ValueType>
     typename Angle<ValueType>::Degrees Angle<ValueType>::Degrees::operator/(const typename Angle<ValueType>::Degrees rhs) const
     {
-        Angle<ValueType>::Degrees degree_quotient = this->Value / rhs.Value;
+        Angle<ValueType>::Degrees degree_quotient(this->Value / rhs.Value);
         return degree_quotient;
     }
 

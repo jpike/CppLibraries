@@ -350,6 +350,20 @@ int main()
     };
     build.Add(math_library);
 
+    Project math_tests = 
+    {
+        .Type = ProjectType::PROGRAM,
+        .Name = "MathTests",
+        .CodeFolderPath = workspace_folder_path / "Math/testing",
+        .UnityBuildFilepath = workspace_folder_path / "Math/testing/MathTests.cpp",
+        .Libraries = 
+        { 
+            &catch_library,
+            &math_library 
+        },
+    };
+    build.Add(math_tests);
+
     Project memory_library = 
     {
         .Type = ProjectType::LIBRARY,
