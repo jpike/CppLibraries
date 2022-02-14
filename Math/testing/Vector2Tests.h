@@ -5,7 +5,7 @@
 /// A namespace for testing the code in the corresponding class.
 namespace VECTOR_2_TESTS
 {
-    TEST_CASE("A vector can be scaled.", "[Vector2]")
+    TEST_CASE("A 2D vector can be scaled.", "[Vector2]")
     {
         constexpr unsigned int SCALE_FACTOR = 3;
         MATH::Vector2ui vector(2, 4);
@@ -14,7 +14,7 @@ namespace VECTOR_2_TESTS
         REQUIRE(12 == scaled_vector.Y);
     }
 
-    TEST_CASE("A vector can be normalized to unit length.", "[Vector2]")
+    TEST_CASE("A 2D vector can be normalized to unit length.", "[Vector2]")
     {
         MATH::Vector2f original_vector(2.0f, 5.0f);
         MATH::Vector2f normalized_vector = MATH::Vector2f::Normalize(original_vector);
@@ -26,7 +26,7 @@ namespace VECTOR_2_TESTS
         REQUIRE(1.0f == normalized_vector_length);
     }
 
-    TEST_CASE("The dot product can be computed.", "[Vector2]")
+    TEST_CASE("The dot product can be computed for a 2D vector.", "[Vector2]")
     {
         MATH::Vector2ui vector_1(1, 2);
         MATH::Vector2ui vector_2(3, 4);
@@ -36,7 +36,7 @@ namespace VECTOR_2_TESTS
         REQUIRE(11 == actual_dot_product);
     }
 
-    TEST_CASE("Equal vectors are equal.", "[Vector2]")
+    TEST_CASE("Equal 2D vectors are equal.", "[Vector2]")
     {
         MATH::Vector2ui vector_1(1, 2);
         MATH::Vector2ui vector_2(1, 2);
@@ -48,7 +48,7 @@ namespace VECTOR_2_TESTS
         REQUIRE(!vectors_unequal);
     }
 
-    TEST_CASE("Unqqual vectors are not equal.", "[Vector2]")
+    TEST_CASE("Unequal 2D vectors are not equal.", "[Vector2]")
     {
         MATH::Vector2ui vector_1(1, 2);
         MATH::Vector2ui vector_2(3, 4);
@@ -60,7 +60,7 @@ namespace VECTOR_2_TESTS
         REQUIRE(vectors_unequal);
     }
 
-    TEST_CASE("Vectors can be added.", "[Vector2]")
+    TEST_CASE("2D vectors can be added.", "[Vector2]")
     {
         MATH::Vector2ui vector_1(1, 2);
         MATH::Vector2ui vector_2(3, 4);
@@ -74,7 +74,7 @@ namespace VECTOR_2_TESTS
         REQUIRE(6 == vector_1.Y);
     }
 
-    TEST_CASE("Vectors can be subtracted.", "[Vector2]")
+    TEST_CASE("2D vectors can be subtracted.", "[Vector2]")
     {
         MATH::Vector2ui smaller_vector(1, 2);
         MATH::Vector2ui larger_vector(3, 5);
@@ -84,7 +84,7 @@ namespace VECTOR_2_TESTS
         REQUIRE(3 == difference.Y);
     }
 
-    TEST_CASE("The length can be computed.", "[Vector2]")
+    TEST_CASE("The length can be computed for a 2D vector.", "[Vector2]")
     {
         MATH::Vector2f original_vector(2.0f, 5.0f);
         float actual_length = original_vector.Length();

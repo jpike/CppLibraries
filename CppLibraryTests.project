@@ -16,4 +16,6 @@
 #include "Math/testing/NumberTests.h"
 #include "Math/testing/RandomNumberGeneratorTests.h"
 #include "Math/testing/Vector2Tests.h"
+#include "Math/testing/Vector3Tests.h"
+#include "Math/testing/Vector4Tests.h"
 #include "String/testing/StringTests.h"

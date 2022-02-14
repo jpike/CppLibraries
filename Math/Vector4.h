@@ -215,7 +215,7 @@ namespace MATH
         resulting_vector.X = this->X - rhs.X;
         resulting_vector.Y = this->Y - rhs.Y;
         resulting_vector.Z = this->Z - rhs.Z;
-        resulting_vector.W = this->Z - rhs.W;
+        resulting_vector.W = this->W - rhs.W;
         return resulting_vector;
     }
 
