@@ -16,7 +16,7 @@ namespace GRAPHICS
     /// Creates viewing transformations for the specified parameters.
     /// @param[in]  camera - The camera used for viewing.
     /// @param[in]  output_plane - The 2D plane onto which the final image will be viewed.
-    ViewingTransformations::ViewingTransformations(const Camera& camera, const Bitmap& output_plane)
+    ViewingTransformations::ViewingTransformations(const Camera& camera, const IMAGES::Bitmap& output_plane)
     {
         // INITIALIZE PROPERTIES FROM THE CAMERA.
         CameraViewTransform = camera.ViewTransform();

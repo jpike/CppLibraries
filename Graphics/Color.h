@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "Graphics/ColorFormat.h"
 
+/// Holds computer graphics code.
 namespace GRAPHICS
 {
     /// An RGBA color.  Can be represented either with floating-point components

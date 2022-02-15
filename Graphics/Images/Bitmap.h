@@ -7,8 +7,8 @@
 #include "Graphics/Color.h"
 #include "Graphics/ColorFormat.h"
 
-/// Holds computer graphics code.
-namespace GRAPHICS
+/// Holds computer graphics code related to images (specifically different image file formats).
+namespace GRAPHICS::IMAGES
 {
     /// A 2D rectangular bitmap.
     /// The general concept of a bitmap image (https://en.wikipedia.org/wiki/Bitmap)
@@ -36,8 +36,10 @@ namespace GRAPHICS
         // DIMENSIONS.
         unsigned int GetWidthInPixels() const;
         unsigned int GetHeightInPixels() const;
+        unsigned int GetRowByteCount() const;
 
         // OTHER ACCESSORS.
+        GRAPHICS::ColorFormat GetColorFormat() const;
         const uint32_t* GetRawData() const;
         GRAPHICS::Color GetPixel(const unsigned int x, const unsigned int y) const;
 

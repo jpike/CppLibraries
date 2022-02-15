@@ -9,12 +9,12 @@
 
 #include "Graphics/OpenGL/OpenGLGraphicsDevice.cpp"
 
-#include "Graphics/Bitmap.cpp"
 #include "Graphics/Camera.cpp"
 #include "Graphics/Color.cpp"
 #include "Graphics/Cube.cpp"
 #include "Graphics/DepthBuffer.cpp"
 #include "Graphics/FrameTimer.cpp"
+#include "Graphics/Images/Bitmap.cpp"
 #include "Graphics/Light.cpp"
 #include "Graphics/Lighting.cpp"
 #include "Graphics/Object3D.cpp"

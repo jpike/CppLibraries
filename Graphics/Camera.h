@@ -1,7 +1,6 @@
 #pragma once
 
 #include <limits>
-#include "Graphics/Bitmap.h"
 #include "Graphics/ProjectionType.h"
 #include "Graphics/ViewingPlane.h"
 #include "Math/Angle.h"

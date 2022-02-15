@@ -21,7 +21,6 @@ namespace GRAPHICS::MODELING
         // READ IN THE DATA FROM THE .OBJ FILE.
         // Note that this reading may not yet be fully robust.
         // It only handles the absolute minimum as currently needed for basic demos.
-        constexpr char SPACE_SEPARATOR = ' ';
         /// @todo   Handle multiple materials?
         auto material = std::make_shared<Material>();
         /// @todo   Handle different shading models?

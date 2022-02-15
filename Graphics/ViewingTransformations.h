@@ -1,8 +1,8 @@
 #pragma once
 
 #include <optional>
-#include "Graphics/Bitmap.h"
 #include "Graphics/Camera.h"
+#include "Graphics/Images/Bitmap.h"
 #include "Graphics/ScreenSpaceTriangle.h"
 #include "Graphics/Triangle.h"
 #include "Math/Matrix4x4.h"
@@ -20,7 +20,7 @@ namespace GRAPHICS
     {
     public:
         explicit ViewingTransformations(const Camera& camera);
-        explicit ViewingTransformations(const Camera& camera, const Bitmap& output_plane);
+        explicit ViewingTransformations(const Camera& camera, const IMAGES::Bitmap& output_plane);
 
         std::optional<ScreenSpaceTriangle> Apply(const Triangle& world_triangle) const;
 

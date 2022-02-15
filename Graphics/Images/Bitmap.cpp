@@ -3,9 +3,9 @@
 #include <Windows.h>
 #endif
 #include "stb/stb_image.h"
-#include "Graphics/Bitmap.h"
+#include "Graphics/Images/Bitmap.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::IMAGES
 {
 #if _WIN32
     /// Attempts to load the bitmap from the specified filepath.
@@ -179,6 +179,23 @@ namespace GRAPHICS
     unsigned int Bitmap::GetHeightInPixels() const
     {
         return HeightInPixels;
+    }
+
+    /// Gets the number of bytes in a single row of the bitmap.
+    /// Also known as the stride or pitch.
+    /// @return The number of bytes per row in the bitmap.
+    unsigned int Bitmap::GetRowByteCount() const
+    {
+        constexpr unsigned int PIXEL_BYTE_COUNT = sizeof(uint32_t);
+        unsigned int row_byte_count = WidthInPixels * PIXEL_BYTE_COUNT;
+        return row_byte_count;
+    }
+
+    /// Gets the color format of pixels in the bitmap.
+    /// @return The color format of pixels in the bitmap.
+    GRAPHICS::ColorFormat Bitmap::GetColorFormat() const
+    {
+        return ColorFormat;
     }
 
     /// Retrieves a pointer to the raw pixel data of the bitmap.

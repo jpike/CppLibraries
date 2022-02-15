@@ -81,7 +81,7 @@ namespace WINDOWING
 
     /// Displays the provided bitmap in the window.
     /// @param[in]  bitmap - The bitmap to display.
-    void Win32Window::Display(const GRAPHICS::Bitmap& bitmap)
+    void Win32Window::Display(const GRAPHICS::IMAGES::Bitmap& bitmap)
     {
         // GET THE DEVICE CONTEXT.
         HDC device_context = GetDC(WindowHandle);
@@ -154,7 +154,7 @@ namespace WINDOWING
     /// @param[in]  bitmap - The bitmap to display.
     /// @param[in]  left_x - The left x offset from the left of the window in which to display the bitmap.
     /// @param[in]  top_y - The top y offset from the top of the window in which to display the bitmap.
-    void Win32Window::DisplayAt(const GRAPHICS::Bitmap& bitmap, int left_x, int top_y)
+    void Win32Window::DisplayAt(const GRAPHICS::IMAGES::Bitmap& bitmap, int left_x, int top_y)
     {
         // GET THE DEVICE CONTEXT.
         HDC device_context = GetDC(WindowHandle);

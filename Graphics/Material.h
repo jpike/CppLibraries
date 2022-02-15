@@ -2,8 +2,8 @@
 
 #include <memory>
 #include <vector>
-#include "Graphics/Bitmap.h"
 #include "Graphics/Color.h"
+#include "Graphics/Images/Bitmap.h"
 #include "Math/Vector2.h"
 
 namespace GRAPHICS
@@ -57,7 +57,7 @@ namespace GRAPHICS
         Color EmissiveColor = Color::BLACK;
 
         /// Any texture defining the look of the material.
-        std::shared_ptr<Bitmap> Texture = nullptr;
+        std::shared_ptr<IMAGES::Bitmap> Texture = nullptr;
 
         /// Any texture coordinates [0,1] for the vertices.
         std::vector<MATH::Vector2f> VertexTextureCoordinates = {};

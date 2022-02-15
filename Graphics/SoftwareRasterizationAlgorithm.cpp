@@ -13,7 +13,7 @@ namespace GRAPHICS
     /// Renders some text onto the render target.
     /// @param[in]  text - The text to render.
     /// @param[in,out]  render_target - The target to render to.
-    void SoftwareRasterizationAlgorithm::Render(const GUI::Text& text, Bitmap& render_target)
+    void SoftwareRasterizationAlgorithm::Render(const GUI::Text& text, IMAGES::Bitmap& render_target)
     {
         // MAKE SURE A FONT EXISTS.
         if (!text.Font)
@@ -60,7 +60,7 @@ namespace GRAPHICS
         const Scene& scene, 
         const Camera& camera, 
         const bool cull_backfaces, 
-        Bitmap& output_bitmap,
+        IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
     {
         // CLEAR THE BACKGROUND.
@@ -88,7 +88,7 @@ namespace GRAPHICS
         const std::optional<std::vector<Light>>& lights, 
         const Camera& camera, 
         const bool cull_backfaces, 
-        Bitmap& output_bitmap,
+        IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
     {
         // GET RE-USED TRANSFORMATIONS.
@@ -177,7 +177,7 @@ namespace GRAPHICS
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
     void SoftwareRasterizationAlgorithm::Render(
         const ScreenSpaceTriangle& triangle, 
-        Bitmap& render_target,
+        IMAGES::Bitmap& render_target,
         DepthBuffer* depth_buffer)
     {
         // GET THE VERTICES.
@@ -547,7 +547,7 @@ namespace GRAPHICS
         const MATH::Vector3f& start_vertex,
         const MATH::Vector3f& end_vertex,
         const Color& color,
-        Bitmap& render_target,
+        IMAGES::Bitmap& render_target,
         DepthBuffer* depth_buffer)
     {
         // EXTRACT COMPONENTS OF THE VERTEX.
@@ -644,7 +644,7 @@ namespace GRAPHICS
         const MATH::Vector3f& end_vertex,
         const Color& start_color,
         const Color& end_color,
-        Bitmap& render_target,
+        IMAGES::Bitmap& render_target,
         DepthBuffer* depth_buffer)
     {
         // EXTRACT COMPONENTS OF THE VERTEX.

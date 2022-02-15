@@ -7,6 +7,7 @@
 #include <optional>
 #include <SDL/SDL_syswm.h>
 #include <SDL/SDL_video.h>
+#include "Graphics/Images/Bitmap.h"
 
 namespace WINDOWING
 {
@@ -14,11 +15,16 @@ namespace WINDOWING
     class SdlWindow
     {
     public:
-        // METHODS.
+        // CREATION.
         static std::optional<SdlWindow> Create(
             const char* const title,
             const unsigned int width_in_pixels,
             const unsigned int height_in_pixels);
+
+        // RENDERING.
+        void Display(const GRAPHICS::IMAGES::Bitmap& bitmap);
+
+        // CLOSING.
         void Close();
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
