@@ -41,6 +41,7 @@ namespace GRAPHICS::IMAGES
         // OTHER ACCESSORS.
         GRAPHICS::ColorFormat GetColorFormat() const;
         const uint32_t* GetRawData() const;
+        uint32_t* GetRawData();
         GRAPHICS::Color GetPixel(const unsigned int x, const unsigned int y) const;
 
         // DRAWING.

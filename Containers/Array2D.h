@@ -48,6 +48,7 @@ namespace CONTAINERS
         T& operator()(const unsigned int x, const unsigned int y);
         const T& operator()(const unsigned int x, const unsigned int y) const;
         const T* ValuesInRowMajorOrder() const;
+        T* ValuesInRowMajorOrder();
         std::vector<T> ValuesInColumnMajorOrder() const;
 
     private:
@@ -230,6 +231,15 @@ namespace CONTAINERS
     /// @return The array values in row-major order.
     template <typename T>
     const T* Array2D<T>::ValuesInRowMajorOrder() const
+    {
+        return Data.data();
+    }
+
+    /// Gets the values in the array in row-major order
+    /// (all values for each row before the next row).
+    /// @return The array values in row-major order.
+    template <typename T>
+    T* Array2D<T>::ValuesInRowMajorOrder()
     {
         return Data.data();
     }

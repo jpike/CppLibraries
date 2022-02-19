@@ -205,6 +205,13 @@ namespace GRAPHICS::IMAGES
         return Pixels.ValuesInRowMajorOrder();
     }
 
+    /// Retrieves a pointer to the raw pixel data of the bitmap.
+    /// @return A pointer to the raw pixel data.
+    uint32_t* Bitmap::GetRawData()
+    {
+        return Pixels.ValuesInRowMajorOrder();
+    }
+
     /// Retrieves the pixel color at the specified coordinates.
     /// @param[in]  x - The horizontal coordinate of the pixel.
     /// @param[in]  y - The vertical coorindate of the pixel.
