@@ -89,6 +89,10 @@ int main()
         .Type = ProjectType::LIBRARY,
         .Name = "SDL",
         .CodeFolderPath = workspace_folder_path / "ThirdParty/SDL",
+        .AdditionalIncludeFolderPaths = 
+        {
+            workspace_folder_path / "ThirdParty",
+        },
         .LinkerLibraryNames = { "SDL2.lib", "SDL2main.lib" },
     };
     build.Add(sdl_library);
@@ -143,10 +147,11 @@ int main()
         .Name = "Fcpp",
         .CodeFolderPath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/fcpp",
         .UnityBuildFilepath = workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/fcpp/Fcpp.project",
+        .LinkerLibraryNames = { "Fcpp.lib" },
         .CustomCompilerFlags = 
         {
             "/Zc:strictStrings-",
-        }
+        },
     };
     build.Add(fcpp_library);
 
@@ -162,6 +167,7 @@ int main()
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src",
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/mesa",
         },
+        .LinkerLibraryNames = { "GlslOptimizer-glcpp-common.lib" },
     };
     build.Add(glsl_optimizer_glcpp_common_library);
 
@@ -177,6 +183,7 @@ int main()
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src",
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/mesa",
         },
+        .LinkerLibraryNames = { "GlslOptimizer-glcpp-lexer.lib" },
         .CustomCompilerFlags = 
         {
             "/TC",
@@ -198,6 +205,7 @@ int main()
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src",
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/mesa",
         },
+        .LinkerLibraryNames = { "GlslOptimizer-glcpp-parser.lib" },
         .CustomCompilerFlags = 
         {
             "/TC",
@@ -218,6 +226,7 @@ int main()
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/include",
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/3rdparty/glsl-optimizer/src/mesa",
         },
+        .LinkerLibraryNames = { "GlslOptimizer-glsl.lib" },
     };
     build.Add(glsl_optimizer_glsl_library);
 
@@ -245,6 +254,11 @@ int main()
         {
             &windows_api,
             &open_gl,
+            &fcpp_library,
+            &glsl_optimizer_glcpp_common_library,
+            &glsl_optimizer_glcpp_lexer_library,
+            &glsl_optimizer_glcpp_parser_library,
+            &glsl_optimizer_glsl_library,
         },
         .LinkerLibraryNames = 
         {
@@ -404,7 +418,8 @@ int main()
         .Libraries =
         {
             &sdl_library
-        }
+        },
+        .LinkerLibraryNames = { "Windowing.lib" },
     };
     build.Add(windowing_library);
 
@@ -421,7 +436,10 @@ int main()
             &gl3w_library, 
             &sdl_library, 
             &stb_library,
+            &bgfx_library,
             &math_library,
+            &filesystem_library,
+            &windowing_library,
         },
         .LinkerLibraryNames = { "Graphics.lib" },
     };
@@ -450,6 +468,9 @@ int main()
         .AdditionalIncludeFolderPaths = 
         {
             workspace_folder_path / "ThirdParty",
+            workspace_folder_path / "ThirdParty/Bgfx/bgfx/include",
+            workspace_folder_path / "ThirdParty/Bgfx/bx/include",
+            workspace_folder_path / "ThirdParty/Bgfx/bx/include/compat/msvc",
             workspace_folder_path / "ThirdParty/gl3w",
         },
         .LinkerLibraryNames = { "CppLibraries.lib" },
@@ -469,21 +490,35 @@ int main()
             &gl3w_library,
             &sdl_library,
             &stb_library,
+            &bgfx_library,
             &catch_library,
             &combined_cpp_libraries 
         }
     };
     build.Add(combined_cpp_library_tests);
 
-    // BUILD DEBUG VERSIONS OF THE PROJECTS.
-    int debug_build_exit_code = build.Run(workspace_folder_path, "debug");
-    bool debug_build_succeeded = (EXIT_SUCCESS == debug_build_exit_code);
-    if (!debug_build_succeeded)
+    try
     {
-        return debug_build_exit_code;
-    }
+        // BUILD DEBUG VERSIONS OF THE PROJECTS.
+        int debug_build_exit_code = build.Run(workspace_folder_path, "debug");
+        bool debug_build_succeeded = (EXIT_SUCCESS == debug_build_exit_code);
+        if (!debug_build_succeeded)
+        {
+            return debug_build_exit_code;
+        }
 
-    // BUILD RELEASE VERSIONS OF THE PROJECT.
-    int release_build_exit_code = build.Run(workspace_folder_path, "release");
-    return release_build_exit_code;
+        // BUILD RELEASE VERSIONS OF THE PROJECT.
+        int release_build_exit_code = build.Run(workspace_folder_path, "release");
+        return release_build_exit_code;
+    }
+    catch (const std::exception& exception)
+    {
+        std::cout << "Standard exception: " << exception.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    catch (...)
+    {
+        std::cout << "Unknown exception." << std::endl;
+        return EXIT_FAILURE;
+    }
 }
