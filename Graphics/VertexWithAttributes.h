@@ -34,5 +34,3 @@ namespace GRAPHICS
         uint32_t ColorAlphaRedGreenBlue = 0;
     };
 }
-
-#endif

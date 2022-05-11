@@ -61,4 +61,53 @@ namespace GRAPHICS
         MATH::Vector3f normalized_surface_normal = MATH::Vector3f::Normalize(surface_normal);
         return normalized_surface_normal;
     }
+
+    /// Checks for an intersection between a ray and the object.
+    /// @param[in]  ray - The ray to check for intersection.
+    /// @return A ray-object intersection, if one occurred; std::nullopt otherwise.
+    std::optional<RAY_TRACING::RayObjectIntersection> Triangle::Intersect(const RAY_TRACING::Ray& ray) const
+    {
+        // GET THE TRIANGLE'S SURFACE NORMAL.
+        MATH::Vector3f surface_normal = SurfaceNormal();
+
+        // GET EACH OF THE TRIANGLES EDGES IN COUNTER-CLOCKWISE ORDER.
+        MATH::Vector3f edge_a = Vertices[1] - Vertices[0];
+        MATH::Vector3f edge_b = Vertices[2] - Vertices[1];
+        MATH::Vector3f edge_c = Vertices[0] - Vertices[2];
+
+        // CHECK FOR INTERSECTION WITH THE PLANE.
+        float distance_from_ray_to_object = MATH::Vector3f::DotProduct(surface_normal, Vertices[0]);
+        distance_from_ray_to_object -= MATH::Vector3f::DotProduct(surface_normal, ray.Origin);
+        distance_from_ray_to_object /= MATH::Vector3f::DotProduct(surface_normal, ray.Direction);
+        bool intersection_in_front_of_current_view = (distance_from_ray_to_object >= 0.0f);
+        if (!intersection_in_front_of_current_view)
+        {
+            // INDICATE THAT NO INTERSECTION OCCURRED.
+            return std::nullopt;
+        }
+
+        // CHECK FOR INTERSECTION WITHIN THE TRIANGLE.
+        MATH::Vector3f intersection_point = ray.Origin + MATH::Vector3f::Scale(distance_from_ray_to_object, ray.Direction);
+        MATH::Vector3f edge_a_for_point = intersection_point - Vertices[0];
+        MATH::Vector3f edge_b_for_point = intersection_point - Vertices[1];
+        MATH::Vector3f edge_c_for_point = intersection_point - Vertices[2];
+
+        float dot_product_for_edge_a = MATH::Vector3f::DotProduct(surface_normal, MATH::Vector3f::CrossProduct(edge_a, edge_a_for_point));
+        float dot_product_for_edge_b = MATH::Vector3f::DotProduct(surface_normal, MATH::Vector3f::CrossProduct(edge_b, edge_b_for_point));
+        float dot_product_for_edge_c = MATH::Vector3f::DotProduct(surface_normal, MATH::Vector3f::CrossProduct(edge_c, edge_c_for_point));
+
+        bool intersects_triangle = (dot_product_for_edge_a >= 0.0f) && (dot_product_for_edge_b >= 0.0f) && (dot_product_for_edge_c >= 0.0f);
+        if (!intersects_triangle)
+        {
+            // INDICATE THAT NO INTERSECTION OCCURRED.
+            return std::nullopt;
+        }
+
+        // RETURN INFORMATION ABOUT THE INTERSECTION.
+        RAY_TRACING::RayObjectIntersection intersection;
+        intersection.Ray = &ray;
+        intersection.DistanceFromRayToObject = distance_from_ray_to_object;
+        intersection.Triangle = this;
+        return intersection;
+    }
 }

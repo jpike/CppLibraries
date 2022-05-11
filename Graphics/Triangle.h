@@ -5,6 +5,8 @@
 #include <memory>
 #include <optional>
 #include "Graphics/Material.h"
+#include "Graphics/RayTracing/Ray.h"
+#include "Graphics/RayTracing/RayObjectIntersection.h"
 #include "Math/Vector3.h"
 
 namespace GRAPHICS
@@ -24,6 +26,7 @@ namespace GRAPHICS
 
         // OTHER METHODS.
         MATH::Vector3f SurfaceNormal() const;
+        std::optional<RAY_TRACING::RayObjectIntersection> Intersect(const RAY_TRACING::Ray& ray) const;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The material of the triangle.

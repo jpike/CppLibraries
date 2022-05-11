@@ -1,7 +1,9 @@
 #pragma once
 
 #include <limits>
+#include "Graphics/Images/Bitmap.h"
 #include "Graphics/ProjectionType.h"
+#include "Graphics/RayTracing/Ray.h"
 #include "Graphics/ViewingPlane.h"
 #include "Math/Angle.h"
 #include "Math/CoordinateFrame.h"
@@ -36,6 +38,11 @@ namespace GRAPHICS
         // TRANSFORM METHODS.
         MATH::Matrix4x4f ViewTransform() const;
         MATH::Matrix4x4f ProjectionTransform() const;
+
+        // RAY TRACING METHODS.
+        RAY_TRACING::Ray ViewingRay(
+            const MATH::Vector2ui& pixel_coordinates,
+            const GRAPHICS::IMAGES::Bitmap& viewing_plane) const;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The type of projection the camera is currently using.
