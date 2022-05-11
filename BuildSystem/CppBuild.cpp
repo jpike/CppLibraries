@@ -9,8 +9,11 @@
 /// - Allows taking advantage of features of a more sophisticated programming language
 ///     like C++ as opposed to batch/shell scripts.
 ///
-/// A future goal may include performance (faster builds) but nothing explicitly has
-/// been done specifically to provide performance features.
+/// Some minor enhancements for performance (faster builds) have been made using the C++
+/// standard library's std::async() functionality.  However, only the simplest usage of
+/// this functionality has been implemented - it's possible that further performance gains
+/// could be achieved.  If parallel building is not working or not desirable, then
+/// SERIAL_BUILD can be defined as a true value to revert back to serial builds.
 ///
 /// This file was inspired by a variety of sources:
 /// - After having wrestled with a lot of different build tools, I was pleased with the
@@ -96,9 +99,13 @@
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
+#include <future>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
+#include <thread>
+#include <unordered_map>
 #include <vector>
 
 /// A timer to allow timing execution of different parts of the build system.
@@ -445,13 +452,46 @@ public:
     std::vector<std::string> CustomCompilerFlags = {};
 };
 
+/// A task for building a single project.
+class BuildTask
+{
+public:
+    /// Creates a build task for the project.
+    /// @param[in]  project - The project to build.
+    /// @param[in]  build_folder_path - The path to the root build folder under which to put build outputs.
+    /// @param[in]  build_variant - The variant to build (ex. "debug" or "release").  This affects build options and the output folder.
+    static BuildTask Create(Project* project, const std::filesystem::path& build_folder_path, const std::string& build_variant)
+    {
+        BuildTask build_task;
+        build_task.Project = project;
+
+        // START THE TASK FOR BUILDING THE PROJECT.
+        build_task.ReturnCodeBeingWaitedOn = std::async(
+            std::launch::async,
+            // It is important that these parameters be captured by value as the memory for parameter will differ later.
+            [project, build_folder_path, build_variant]() -> int
+            {
+                return project->Build(build_folder_path, build_variant);
+            });
+
+        return build_task;
+    }
+
+    /// The project being built.
+    Project* Project = nullptr;
+    /// The future result of the build task.
+    std::future<int> ReturnCodeBeingWaitedOn = {};
+    /// The actual return code, once the task has completed.
+    std::optional<int> ReturnCode = std::nullopt;
+};
+
 /// A build that can encompass multiple projects.
 class Build
 {
 public:
     /// Adds a project to be built.
     /// @param[in]  project - The project to add.
-    void Add(const Project& project)
+    void Add(Project* project)
     {
         Projects.push_back(project);
     }
@@ -471,13 +511,17 @@ public:
         std::filesystem::path build_variant_folder_output_path = build_folder_path / build_variant;
         std::filesystem::create_directories(build_variant_folder_output_path);
 
-        // BUILD EACH PROJECT.
+        // PREPARE FOR BUILDING ALL PROJECTS.
+        // These variables are needed for reporting final results.
         bool all_projects_built_successfully = true;
         int last_project_return_code = EXIT_SUCCESS;
-        for (Project& project : Projects)
+
+#if SERIAL_BUILD
+        // BUILD EACH PROJECT.
+        for (Project* project : Projects)
         {
             // BUILD THE CURRENT PROJECT.
-            last_project_return_code = project.Build(build_folder_path, build_variant);
+            last_project_return_code = project->Build(build_folder_path, build_variant);
             bool project_build_succeeded = (EXIT_SUCCESS == last_project_return_code);
             if (!project_build_succeeded)
             {
@@ -486,6 +530,152 @@ public:
                 break;
             }
         }
+#else
+        // PROVIDE VISIBILITY INTO THE NUMBER OF THREADS SUPPORTED.
+        // While the number of threads won't be explicitly used when spawning parallel build tasks,
+        // this is printed to just provide general insight.
+        unsigned int supported_thread_count = std::thread::hardware_concurrency();
+        std::cout << supported_thread_count << " threads supported." << std::endl;
+
+        // KICK OF BUILDS OF ANY PROJECTS WITHOUT ANY DEPENDENCIES.
+        std::cout << "Starting to build projects without dependencies..." << std::endl;
+        std::unordered_map<Project*, BuildTask> in_progress_build_tasks_by_project;
+        std::vector<Project*> remaining_projects_to_build;
+        for (Project* project : Projects)
+        {
+            // DETERMINE IF THE PROJECT HAS DEPENDENCIES.
+            bool project_has_dependencies = !project->Libraries.empty();
+            if (project_has_dependencies)
+            {
+                // TRACK THE PROJECT AS NEEDING TO BE BUILT LATER.
+                remaining_projects_to_build.emplace_back(project);
+            }
+            else
+            {
+                // GO AHEAD AND START BUILDING THE PROJECT IF IT HAS NO DEPENDENCIES
+                BuildTask build_task = BuildTask::Create(project, build_folder_path, build_variant);
+                in_progress_build_tasks_by_project[project] = std::move(build_task);
+            }
+        }
+
+        // FINISH KICKING OF BUILD OF ANY REMAINING PROJECTS.
+        std::cout << "Starting to build remaining projects with dependencies..." << std::endl;
+        std::unordered_map<Project*, BuildTask> completed_build_tasks_by_project;
+        while (!remaining_projects_to_build.empty())
+        {
+            // CHECK FOR ANY COMPLETED BUILD TASKS.
+            for (auto project_with_build_task = in_progress_build_tasks_by_project.begin(); project_with_build_task != in_progress_build_tasks_by_project.end(); )
+            {
+                // CHECK IF THE BUILD TASK HAS RECENTLY COMPLETED.
+                bool build_task_recently_completed = project_with_build_task->second.ReturnCodeBeingWaitedOn.valid();
+                if (build_task_recently_completed)
+                {
+                    // GET THE RETURN CODE FROM THE BUILD TASK.
+                    last_project_return_code = project_with_build_task->second.ReturnCodeBeingWaitedOn.get();
+                    project_with_build_task->second.ReturnCode = last_project_return_code;
+
+                    // MOVE THE BUILD TASK TO THE COMPLETED LIST.
+                    completed_build_tasks_by_project[project_with_build_task->first] = std::move(project_with_build_task->second);
+
+                    // PROGRESS TO THE NEXT IN-PROGRESS BUILD TASK.
+                    project_with_build_task = in_progress_build_tasks_by_project.erase(project_with_build_task);
+
+                    // CHECK IF THE BUILD TASK SUCCEEDED.
+                    bool build_task_succeeded = (EXIT_SUCCESS == last_project_return_code);
+                    if (!build_task_succeeded)
+                    {
+                        // CLEAR THE REMAINING PROJECTS TO BUILD TO EXIT OUT OF THE ABOVE LOOP EARLY.
+                        // This allows simplifying error handling below.
+                        remaining_projects_to_build.clear();
+                        all_projects_built_successfully = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    ++project_with_build_task;
+                }
+            }
+
+            // KICK OFF BUILD TASKS FOR ANY REMAINING PROJECTS WHOSE DEPENDENCIES HAVE FINISHED BEING BUILT.
+            for (auto remaining_project_to_build = remaining_projects_to_build.begin(); remaining_project_to_build != remaining_projects_to_build.end(); )
+            {
+                // CHECK IF ALL DEPENDENCIES FOR THE PROJECT HAVE BEEN BUILT.
+                std::size_t built_dependency_count = 0;
+                for (Project* dependency : (*remaining_project_to_build)->Libraries)
+                {
+                    // COUNT THE DEPENDENCY IF IT HAS FINISHED BEING BUILT SUCCESSFULLY.
+                    bool dependency_build_task_completed = completed_build_tasks_by_project.contains(dependency);
+                    if (dependency_build_task_completed)
+                    {
+                        BuildTask& dependency_build_task = completed_build_tasks_by_project[dependency];
+                        bool dependency_built_successfully = (EXIT_SUCCESS == dependency_build_task.ReturnCode);
+                        if (dependency_built_successfully)
+                        {
+                            ++built_dependency_count;
+                        }
+                    }
+                }
+
+                // START BUILDING THE CURRENT PROJECT IF ALL DEPENDENCIES HAVE BEEN BUILT.
+                std::size_t total_dependency_count = (*remaining_project_to_build)->Libraries.size();
+                bool all_dependencies_built = (built_dependency_count >= total_dependency_count);
+                if (all_dependencies_built)
+                {
+                    // START BUILDING THIS PROJECT.
+                    BuildTask build_task = BuildTask::Create(*remaining_project_to_build, build_folder_path, build_variant);
+                    in_progress_build_tasks_by_project[*remaining_project_to_build] = std::move(build_task);
+
+                    // REMOVE THE PROJECT AS NEEDING TO BE BUILT.
+                    remaining_project_to_build = remaining_projects_to_build.erase(remaining_project_to_build);
+                }
+                else
+                {
+                    // MOVE TO CHECKING THE NEXT PROJECT.
+                    ++remaining_project_to_build;
+                }
+            }
+        }
+
+        // WAIT FOR ALL BUILD TASKS TO COMPLETE.
+        std::cout << "Waiting on all build tasks to complete..." << std::endl;
+        while (!in_progress_build_tasks_by_project.empty())
+        {
+            // CHECK FOR ANY COMPLETED BUILD TASKS.
+            for (auto project_with_build_task = in_progress_build_tasks_by_project.begin(); project_with_build_task != in_progress_build_tasks_by_project.end(); )
+            {
+                // CHECK IF THE BUILD TASK HAS RECENTLY COMPLETED.
+                bool build_task_recently_completed = project_with_build_task->second.ReturnCodeBeingWaitedOn.valid();
+                if (build_task_recently_completed)
+                {
+                    // GET THE RETURN CODE FROM THE BUILD TASK.
+                    last_project_return_code = project_with_build_task->second.ReturnCodeBeingWaitedOn.get();
+                    project_with_build_task->second.ReturnCode = last_project_return_code;
+
+                    // MOVE THE BUILD TASK TO THE COMPLETED LIST.
+                    completed_build_tasks_by_project[project_with_build_task->first] = std::move(project_with_build_task->second);
+
+                    // PROGRESS TO THE NEXT IN-PROGRESS BUILD TASK.
+                    project_with_build_task = in_progress_build_tasks_by_project.erase(project_with_build_task);
+
+                    // CHECK IF THE BUILD TASK SUCCEEDED.
+                    bool build_task_succeeded = (EXIT_SUCCESS == last_project_return_code);
+                    if (!build_task_succeeded)
+                    {
+                        // CLEAR THE REMAINING PROJECTS TO BUILD TO EXIT OUT OF THE ABOVE LOOP EARLY.
+                        // This allows simplifying error handling below.
+                        in_progress_build_tasks_by_project.clear();
+                        all_projects_built_successfully = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    ++project_with_build_task;
+                }
+            }
+        }
+#endif
 
         // INDICATE THE RESULT OF THE BUILD.
         if (all_projects_built_successfully)
@@ -508,5 +698,5 @@ public:
 
     /// The projects in the build.
     /// @todo   How to handle dependency ordering!
-    std::vector<Project> Projects = {};
+    std::vector<Project*> Projects = {};
 };

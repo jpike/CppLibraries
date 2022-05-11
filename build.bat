@@ -64,7 +64,7 @@ int main()
         .Name = "WindowsApi",
         .LinkerLibraryNames = { "user32.lib", "gdi32.lib" }
     };
-    build.Add(windows_api);
+    build.Add(&windows_api);
 
     Project open_gl = 
     {
@@ -72,7 +72,7 @@ int main()
         .Name = "OpenGL",
         .LinkerLibraryNames = { "opengl32.lib" }
     };
-    build.Add(open_gl);
+    build.Add(&open_gl);
 
     Project gl3w_library = 
     {
@@ -82,7 +82,7 @@ int main()
         .UnityBuildFilepath = workspace_folder_path / "ThirdParty/gl3w/gl3w.project",
         .LinkerLibraryNames = { "gl3w.lib" },
     };
-    build.Add(gl3w_library);
+    build.Add(&gl3w_library);
 
     Project sdl_library = 
     {
@@ -95,7 +95,7 @@ int main()
         },
         .LinkerLibraryNames = { "SDL2.lib", "SDL2main.lib" },
     };
-    build.Add(sdl_library);
+    build.Add(&sdl_library);
 
     Project stb_library = 
     {
@@ -105,7 +105,7 @@ int main()
         .UnityBuildFilepath = workspace_folder_path / "ThirdParty/stb/stb.project",
         .LinkerLibraryNames = { "stb.lib" },
     };
-    build.Add(stb_library);
+    build.Add(&stb_library);
 
     Project catch_library = 
     {
@@ -113,7 +113,7 @@ int main()
         .Name = "Catch",
         .CodeFolderPath = workspace_folder_path / "ThirdParty/Catch",
     };
-    build.Add(catch_library);
+    build.Add(&catch_library);
 
     Project gsl_library = 
     {
@@ -121,7 +121,7 @@ int main()
         .Name = "GSL",
         .CodeFolderPath = workspace_folder_path / "ThirdParty/GSL/include",
     };
-    build.Add(gsl_library);
+    build.Add(&gsl_library);
 
     Project pugixml_library = 
     {
@@ -130,7 +130,7 @@ int main()
         .CodeFolderPath = workspace_folder_path / "ThirdParty/pugixml",
         .UnityBuildFilepath = workspace_folder_path / "ThirdParty/pugixml/pugixml.cpp",
     };
-    build.Add(pugixml_library);
+    build.Add(&pugixml_library);
 
     Project imgui_library = 
     {
@@ -139,7 +139,7 @@ int main()
         .CodeFolderPath = workspace_folder_path / "ThirdParty/imgui",
         .UnityBuildFilepath = workspace_folder_path / "ThirdParty/imgui/ImGui.project",
     };
-    build.Add(imgui_library);
+    build.Add(&imgui_library);
 
     Project fcpp_library = 
     {
@@ -153,7 +153,7 @@ int main()
             "/Zc:strictStrings-",
         },
     };
-    build.Add(fcpp_library);
+    build.Add(&fcpp_library);
 
     Project glsl_optimizer_glcpp_common_library = 
     {
@@ -169,7 +169,7 @@ int main()
         },
         .LinkerLibraryNames = { "GlslOptimizer-glcpp-common.lib" },
     };
-    build.Add(glsl_optimizer_glcpp_common_library);
+    build.Add(&glsl_optimizer_glcpp_common_library);
 
     Project glsl_optimizer_glcpp_lexer_library = 
     {
@@ -191,7 +191,7 @@ int main()
             "/wd4996"
         },
     };
-    build.Add(glsl_optimizer_glcpp_lexer_library);
+    build.Add(&glsl_optimizer_glcpp_lexer_library);
 
     Project glsl_optimizer_glcpp_parser_library = 
     {
@@ -213,7 +213,7 @@ int main()
             "/wd4996"
         },
     };
-    build.Add(glsl_optimizer_glcpp_parser_library);
+    build.Add(&glsl_optimizer_glcpp_parser_library);
 
     Project glsl_optimizer_glsl_library = 
     {
@@ -228,7 +228,7 @@ int main()
         },
         .LinkerLibraryNames = { "GlslOptimizer-glsl.lib" },
     };
-    build.Add(glsl_optimizer_glsl_library);
+    build.Add(&glsl_optimizer_glsl_library);
 
     Project bgfx_library = 
     {
@@ -265,7 +265,7 @@ int main()
             "Bgfx.lib" 
         },
     };
-    build.Add(bgfx_library);
+    build.Add(&bgfx_library);
 
     // DEFINE CUSTOM PROJECTS FOR THE BUILD.
     Project containers_library = 
@@ -274,7 +274,7 @@ int main()
         .Name = "Containers",
         .CodeFolderPath = workspace_folder_path / "Containers",
     };
-    build.Add(containers_library);
+    build.Add(&containers_library);
 
     Project containers_tests = 
     {
@@ -288,7 +288,7 @@ int main()
             &containers_library 
         },
     };
-    build.Add(containers_tests);
+    build.Add(&containers_tests);
 
     Project debugging_library = 
     {
@@ -296,7 +296,7 @@ int main()
         .Name = "Debugging",
         .CodeFolderPath = workspace_folder_path / "Debugging",
     };
-    build.Add(debugging_library);
+    build.Add(&debugging_library);
 
     Project error_handling_library = 
     {
@@ -306,7 +306,7 @@ int main()
         .UnityBuildFilepath = workspace_folder_path / "ErrorHandling/ErrorHandling.project",
         .LinkerLibraryNames = { "ErrorHandling.lib" },
     };
-    build.Add(error_handling_library);
+    build.Add(&error_handling_library);
 
     Project error_handling_tests = 
     {
@@ -320,7 +320,7 @@ int main()
             &error_handling_library 
         },
     };
-    build.Add(error_handling_tests);
+    build.Add(&error_handling_tests);
 
     Project filesystem_library = 
     {
@@ -330,7 +330,7 @@ int main()
         .UnityBuildFilepath = workspace_folder_path / "Filesystem/Filesystem.project",
         .LinkerLibraryNames = { "Filesystem.lib" },
     };
-    build.Add(filesystem_library);
+    build.Add(&filesystem_library);
 
     Project filesystem_tests = 
     {
@@ -344,7 +344,7 @@ int main()
             &filesystem_library 
         },
     };
-    build.Add(filesystem_tests);
+    build.Add(&filesystem_tests);
 
     Project input_control_library = 
     {
@@ -352,7 +352,7 @@ int main()
         .Name = "InputControl",
         .CodeFolderPath = workspace_folder_path / "InputControl",
     };
-    build.Add(input_control_library);
+    build.Add(&input_control_library);
 
     Project math_library = 
     {
@@ -362,7 +362,7 @@ int main()
         .UnityBuildFilepath = workspace_folder_path / "Math/Math.project",
         .LinkerLibraryNames = { "Math.lib" },
     };
-    build.Add(math_library);
+    build.Add(&math_library);
 
     Project math_tests = 
     {
@@ -376,7 +376,7 @@ int main()
             &math_library 
         },
     };
-    build.Add(math_tests);
+    build.Add(&math_tests);
 
     Project memory_library = 
     {
@@ -384,7 +384,7 @@ int main()
         .Name = "Memory",
         .CodeFolderPath = workspace_folder_path / "Memory",
     };
-    build.Add(memory_library);
+    build.Add(&memory_library);
 
     Project string_library = 
     {
@@ -393,7 +393,7 @@ int main()
         .CodeFolderPath = workspace_folder_path, /// @todo  This is hacked to avoid confusion with String.h for official string headers.
         .UnityBuildFilepath = workspace_folder_path / "String/String.project"
     };
-    build.Add(string_library);
+    build.Add(&string_library);
 
     Project string_tests = 
     {
@@ -407,7 +407,7 @@ int main()
             &string_library 
         },
     };
-    build.Add(string_tests);
+    build.Add(&string_tests);
 
     Project windowing_library = 
     {
@@ -421,7 +421,7 @@ int main()
         },
         .LinkerLibraryNames = { "Windowing.lib" },
     };
-    build.Add(windowing_library);
+    build.Add(&windowing_library);
 
     Project graphics_library = 
     {
@@ -443,7 +443,7 @@ int main()
         },
         .LinkerLibraryNames = { "Graphics.lib" },
     };
-    build.Add(graphics_library);
+    build.Add(&graphics_library);
 
     Project graphics_tests = 
     {
@@ -457,7 +457,7 @@ int main()
             &graphics_library 
         }
     };
-    build.Add(graphics_tests);
+    build.Add(&graphics_tests);
 
     Project combined_cpp_libraries = 
     {
@@ -475,7 +475,7 @@ int main()
         },
         .LinkerLibraryNames = { "CppLibraries.lib" },
     };
-    build.Add(combined_cpp_libraries);
+    build.Add(&combined_cpp_libraries);
 
     Project combined_cpp_library_tests = 
     {
@@ -495,7 +495,7 @@ int main()
             &combined_cpp_libraries 
         }
     };
-    build.Add(combined_cpp_library_tests);
+    build.Add(&combined_cpp_library_tests);
 
     try
     {
