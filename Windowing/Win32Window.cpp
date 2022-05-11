@@ -79,6 +79,28 @@ namespace WINDOWING
         WindowHandle(window_handle)
     {}
 
+    /// Gets the width of the window's display area.
+    /// @return The width of the window's display area, in pixels.
+    unsigned int Win32Window::GetWidthInPixels() const
+    {
+        RECT client_rectangle = {};
+        GetClientRect(WindowHandle, &client_rectangle);
+
+        LONG width_in_pixels = client_rectangle.right - client_rectangle.left;
+        return static_cast<unsigned int>(width_in_pixels);
+    }
+
+    /// Gets the height of the window's display area.
+    /// @return The height of the window's display area, in pixels.
+    unsigned int Win32Window::GetHeightInPixels() const
+    {
+        RECT client_rectangle = {};
+        GetClientRect(WindowHandle, &client_rectangle);
+
+        LONG height_in_pixels = client_rectangle.bottom - client_rectangle.top;
+        return static_cast<unsigned int>(height_in_pixels);
+    }
+
     /// Displays the provided bitmap in the window.
     /// @param[in]  bitmap - The bitmap to display.
     void Win32Window::Display(const GRAPHICS::IMAGES::Bitmap& bitmap)

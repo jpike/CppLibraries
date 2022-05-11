@@ -4,28 +4,34 @@
 // the larger windowing library to be used without SDL.
 #if __has_include(<SDL/SDL.h>)
 
-#include <optional>
+#include <memory>
 #include <SDL/SDL_syswm.h>
 #include <SDL/SDL_video.h>
+#include "Graphics/Hardware/IGraphicsDevice.h"
 #include "Graphics/Images/Bitmap.h"
+#include "Windowing/IWindow.h"
 
 namespace WINDOWING
 {
     /// A window using the SDL library.
-    class SdlWindow
+    class SdlWindow : public IWindow
     {
     public:
-        // CREATION.
-        static std::optional<SdlWindow> Create(
+        // CREATION/DESTRUCTION.
+        static std::unique_ptr<SdlWindow> Create(
             const char* const title,
             const unsigned int width_in_pixels,
-            const unsigned int height_in_pixels);
+            const unsigned int height_in_pixels,
+            const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType graphics_device_type);
+        virtual ~SdlWindow();
+        void Close();
+
+        // DIMENSIONS.
+        unsigned int GetWidthInPixels() const override;
+        unsigned int GetHeightInPixels() const override;
 
         // RENDERING.
-        void Display(const GRAPHICS::IMAGES::Bitmap& bitmap);
-
-        // CLOSING.
-        void Close();
+        void Display(const GRAPHICS::IMAGES::Bitmap& bitmap) override;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The underlying SDL window.

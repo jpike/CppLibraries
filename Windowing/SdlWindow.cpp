@@ -12,26 +12,32 @@ namespace WINDOWING
     /// @param[in]  title - The title to display in the window's title bar.
     /// @param[in]  width_in_pixels - The width (in pixels) of the client rendering area of the window.
     /// @param[in]  height_in_pixels - The height (in pixels) of the client rendering area of the window.
+    /// @param[in]  graphics_device_type - The type of graphics device to be used for rendering to the window.
     /// @return The window, if successfully created; null if not.
-    std::optional<SdlWindow> SdlWindow::Create(
+    std::unique_ptr<SdlWindow> SdlWindow::Create(
         const char* title,
         const unsigned int width_in_pixels,
-        const unsigned int height_in_pixels)
+        const unsigned int height_in_pixels,
+        const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType graphics_device_type)
     {
         // TRY TO CREATE THE WINDOW.
         /// @todo   Allow switching between OpenGL, Direct3D, etc.
-        constexpr SDL_WindowFlags WINDOW_SETTINGS = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+        SDL_WindowFlags window_settings = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+        if (GRAPHICS::HARDWARE::IGraphicsDevice::OPEN_GL & graphics_device_type)
+        {
+            window_settings = (SDL_WindowFlags)(window_settings | SDL_WINDOW_OPENGL);
+        }
         SDL_Window* sdl_window = SDL_CreateWindow(
             title,
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
             width_in_pixels,
             height_in_pixels,
-            WINDOW_SETTINGS);
+            window_settings);
         ASSERT_THEN_IF_NOT(sdl_window)
         {
             // INDICATE THAT THE WINDOW COULD NOT BE CREATED.
-            return std::nullopt;
+            return nullptr;
         }
 
         // GET ADDITIONAL INFORMATION ABOUT THE WINDOW.
@@ -41,19 +47,44 @@ namespace WINDOWING
         ASSERT_THEN_IF_NOT(window_info_obtained)
         {
             // INDICATE THAT THE WINDOW COULD NOT BE CREATED.
-            return std::nullopt;
+            return nullptr;
         }
 
         // RETURN THE CREATED WINDOW.
-        SdlWindow window =
-        {
-            .UnderlyingWindow = sdl_window,
-            .AdditionalInfo = window_info,
-            .WidthInPixels = width_in_pixels,
-            .HeightInPixels = height_in_pixels,
-            .IsOpen = true
-        };
+        auto window = std::make_unique<SdlWindow>();
+        window->UnderlyingWindow = sdl_window;
+        window->AdditionalInfo = window_info;
+        window->WidthInPixels = width_in_pixels;
+        window->HeightInPixels = height_in_pixels;
+        window->IsOpen = true;
         return window;
+    }
+
+    /// Closes the window.
+    SdlWindow::~SdlWindow()
+    {
+        Close();
+    }
+
+    /// Closes the window.
+    void SdlWindow::Close()
+    {
+        SDL_DestroyWindow(UnderlyingWindow);
+        UnderlyingWindow = nullptr;
+    }
+
+    /// Gets the width of the window's display area.
+    /// @return The width of the window's display area, in pixels.
+    unsigned int SdlWindow::GetWidthInPixels() const
+    {
+        return WidthInPixels;
+    }
+
+    /// Gets the height of the window's display area.
+    /// @return The height of the window's display area, in pixels.
+    unsigned int SdlWindow::GetHeightInPixels() const
+    {
+        return HeightInPixels;
     }
 
     /// Displays a bitmap in the window, stretching to fill the window if necessary.
@@ -119,12 +150,6 @@ namespace WINDOWING
         int surface_display_return_code = SDL_UpdateWindowSurface(UnderlyingWindow);
         bool surface_displayed_successfully = (0 == surface_display_return_code);
         assert(surface_displayed_successfully);
-    }
-
-    /// Closes the window.
-    void SdlWindow::Close()
-    {
-        SDL_DestroyWindow(UnderlyingWindow);
     }
 }
 
