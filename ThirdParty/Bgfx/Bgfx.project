@@ -6,3 +6,16 @@
 #include "bx/src/amalgamated.cpp"
 #include "bimg/src/amalgamated.cpp"
 #include "bgfx/src/amalgamated.cpp"
+
+
+#define GLSL_SHADERS 1
+#if GLSL_SHADERS
+#include "bgfx/tools/shaderc/shaderc_glsl.cpp"
+#endif
+
+#define HLSL_SHADERS 1
+#if HLSL_SHADERS
+#include "bgfx/tools/shaderc/shaderc_hlsl.cpp"
+#endif
+
+#include "bgfx/tools/shaderc/shaderc.cpp"

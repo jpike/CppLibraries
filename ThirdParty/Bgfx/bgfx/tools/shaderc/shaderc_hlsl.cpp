@@ -281,8 +281,6 @@ namespace bgfx { namespace hlsl
 		// see reference for magic values: https://msdn.microsoft.com/en-us/library/ff552891(VS.85).aspx
 		const uint32_t D3DSIO_COMMENT = 0x0000FFFE;
 		const uint32_t D3DSIO_END = 0x0000FFFF;
-		const uint32_t D3DSI_OPCODE_MASK = 0x0000FFFF;
-		const uint32_t D3DSI_COMMENTSIZE_MASK = 0x7FFF0000;
 		const uint32_t CTAB_CONSTANT = MAKEFOURCC('C', 'T', 'A', 'B');
 
 		// parse the shader blob for the constant table

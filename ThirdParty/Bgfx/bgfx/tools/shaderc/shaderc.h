@@ -68,6 +68,7 @@ namespace bgfx
 
 	bx::StringView nextWord(bx::StringView& _parse);
 
+#if UNIFORM_FRAGMENT_MASK_DEFINED_ELSEWHERE
 	constexpr uint8_t kUniformFragmentBit  = 0x10;
 	constexpr uint8_t kUniformSamplerBit   = 0x20;
 	constexpr uint8_t kUniformReadOnlyBit  = 0x40;
@@ -78,6 +79,7 @@ namespace bgfx
 		| kUniformReadOnlyBit
 		| kUniformCompareBit
 		;
+#endif
 
 	const char* getUniformTypeName(UniformType::Enum _enum);
 	UniformType::Enum nameToUniformTypeEnum(const char* _name);
