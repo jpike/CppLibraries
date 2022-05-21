@@ -41,6 +41,8 @@ namespace MATH
     };
 
     // DEFINE COMMON VECTOR2 TYPES.
+    /// A vector composed of 2 signed integer components.
+    typedef Vector2<int> Vector2i;
     /// A vector composed of 2 unsigned integer components.
     typedef Vector2<unsigned int> Vector2ui;
     /// A vector composed of 2 float components.
