@@ -49,11 +49,6 @@ namespace GRAPHICS
         /// The type of shading for the material.
         ShadingType Shading = ShadingType::WIREFRAME;
 
-        /// The vertex colors for shading.
-        /// Expected to be in counter-clockwise vertex order, and the number of vertex colors
-        /// can vary to handle different kinds of polygonal shapes.
-        std::vector<Color> VertexColors = {};
-
         /// The ambient color of the material.
         Color AmbientColor = Color::BLACK;
         /// The diffuse color of the material.
@@ -69,9 +64,6 @@ namespace GRAPHICS
 
         /// Any texture defining the look of the material.
         std::shared_ptr<IMAGES::Bitmap> Texture = nullptr;
-
-        /// Any texture coordinates [0,1] for the vertices.
-        std::vector<MATH::Vector2f> VertexTextureCoordinates = {};
 
         // This code is only compiled in if the bgfx library is available to allow
 // the larger graphics library to be used without bgfx.

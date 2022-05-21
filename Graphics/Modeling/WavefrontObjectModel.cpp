@@ -238,6 +238,8 @@ namespace GRAPHICS::MODELING
 
         std::unordered_map<std::string, GRAPHICS::Material> current_materials;
 
+        std::shared_ptr<GRAPHICS::Material> current_material = nullptr;
+
         // Note that this reading may not yet be fully robust.
         // It only handles the absolute minimum as currently needed for basic demos.
         constexpr char SPACE_SEPARATOR = ' ';
@@ -310,7 +312,7 @@ namespace GRAPHICS::MODELING
                     current_mesh = GRAPHICS::MODELING::Mesh();
                 }
 
-                current_mesh->Material = current_materials[material_name];
+                current_material = std::make_shared<GRAPHICS::Material>(current_materials[material_name]);
 
                 continue;
             }
@@ -523,16 +525,7 @@ namespace GRAPHICS::MODELING
                     third_vertex
                 };
 
-                /// @todo
-                current_mesh->Material.VertexColors.push_back(GRAPHICS::Color::WHITE);
-                current_mesh->Material.VertexColors.push_back(GRAPHICS::Color::WHITE);
-                current_mesh->Material.VertexColors.push_back(GRAPHICS::Color::WHITE);
-
-                current_mesh->Material.VertexTextureCoordinates.push_back(first_vertex_texture_coordinates);
-                current_mesh->Material.VertexTextureCoordinates.push_back(second_vertex_texture_coordinates);
-                current_mesh->Material.VertexTextureCoordinates.push_back(third_vertex_texture_coordinates);
-
-                triangle.Material = std::make_shared<GRAPHICS::Material>(current_mesh->Material);
+                triangle.Material = current_material;
 
                 current_mesh->Triangles.push_back(triangle);
 

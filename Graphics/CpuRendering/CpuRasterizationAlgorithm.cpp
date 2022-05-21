@@ -451,10 +451,9 @@ namespace GRAPHICS::CPU_RENDERING
                             if (ShadingType::TEXTURED == triangle.Material->Shading)
                             {
                                 // INTERPOLATE THE TEXTURE COORDINATES.
-                                /// @todo   Replace with texture coordinates on actual vertices.
-                                const MATH::Vector2f& first_texture_coordinate = triangle.Material->VertexTextureCoordinates[0];
-                                const MATH::Vector2f& second_texture_coordinate = triangle.Material->VertexTextureCoordinates[1];
-                                const MATH::Vector2f& third_texture_coordinate = triangle.Material->VertexTextureCoordinates[2];
+                                const MATH::Vector2f& first_texture_coordinate = first_vertex.TextureCoordinates;
+                                const MATH::Vector2f& second_texture_coordinate = second_vertex.TextureCoordinates;
+                                const MATH::Vector2f& third_texture_coordinate = third_vertex.TextureCoordinates;
 
                                 MATH::Vector2f interpolated_texture_coordinate;
                                 interpolated_texture_coordinate.X = (

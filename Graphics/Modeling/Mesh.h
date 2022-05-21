@@ -29,8 +29,5 @@ namespace GRAPHICS::MODELING
         /// The vertex buffer allocated for the mesh.
         bgfx::VertexBufferHandle VertexBuffer = { bgfx::kInvalidHandle };
 #endif
-        /// The material used for rendering this mesh.
-        /// @todo   This does not really belong here?
-        Material Material = {};
     };
 }

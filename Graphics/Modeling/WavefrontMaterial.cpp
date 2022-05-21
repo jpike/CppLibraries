@@ -182,12 +182,6 @@ namespace GRAPHICS::MODELING
                 // UPDATE THE ALPHA FOR ALL COLORS.
                 float alpha = Color::MAX_FLOAT_COLOR_COMPONENT;
                 line_data >> alpha;
-                /// @todo   Using this for the material color is just a hack for now.
-                /// Adding duplicates to handle triangles for some cases.
-                for (auto& color : material->VertexColors)
-                {
-                    color.Alpha = alpha;
-                }
 
                 material->AmbientColor.Alpha = alpha;
                 material->DiffuseColor.Alpha = alpha;
