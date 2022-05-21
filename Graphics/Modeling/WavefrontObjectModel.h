@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <optional>
+#include "Graphics/Modeling/Model.h"
 #include "Graphics/Object3D.h"
 
 /// Holds code related to 3D models in computer graphics.
@@ -16,5 +17,6 @@ namespace GRAPHICS::MODELING
     {
     public:
         static std::optional<Object3D> Load(const std::filesystem::path& obj_filepath);
+        static std::optional<GRAPHICS::MODELING::Model> LoadAsSingle3DModel(const std::filesystem::path& filepath);
     };
 }
