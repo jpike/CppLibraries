@@ -131,18 +131,16 @@ namespace GRAPHICS::CPU_RENDERING
                 for (std::size_t vertex_index = 0; vertex_index < Triangle::VERTEX_COUNT; ++vertex_index)
                 {
                     // SHADE THE CURRENT VERTEX.
-                    const MATH::Vector3f& world_vertex = world_space_triangle.Vertices[vertex_index];
-                    const Color& base_vertex_color = screen_space_triangle->Material->VertexColors[vertex_index];
+                    const VertexWithAttributes& current_world_vertex = world_space_triangle.Vertices[vertex_index];
 
                     Color final_vertex_color = SHADING::Shading::Compute(
-                        world_vertex,
+                        current_world_vertex,
                         unit_surface_normal,
-                        base_vertex_color,
                         *screen_space_triangle->Material,
                         camera.WorldPosition,
                         lights);
 
-                    screen_space_triangle->VertexColors[vertex_index] = final_vertex_color;
+                    screen_space_triangle->Vertices[vertex_index].Color = final_vertex_color;
                 }
 
                 // RENDER THE FINAL SCREEN SPACE TRIANGLE.
@@ -164,12 +162,12 @@ namespace GRAPHICS::CPU_RENDERING
         for (std::size_t vertex_index = 0; vertex_index < triangle_vertex_count; ++vertex_index)
         {
             // TRANFORM THE CURRENT LOCAL VERTEX INTO WORLD SPACE.
-            const MATH::Vector3f& local_vertex = local_triangle.Vertices[vertex_index];
+            const MATH::Vector3f& local_vertex = local_triangle.Vertices[vertex_index].Position;
             MATH::Vector4f local_homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(local_vertex);
 
             MATH::Vector4f world_homogeneous_vertex = world_transform * local_homogeneous_vertex;
-            MATH::Vector3f& world_vertex = world_space_triangle.Vertices[vertex_index];
-            world_vertex = MATH::Vector3f(world_homogeneous_vertex.X, world_homogeneous_vertex.Y, world_homogeneous_vertex.Z);
+            VertexWithAttributes& world_vertex = world_space_triangle.Vertices[vertex_index];
+            world_vertex.Position = MATH::Vector3f(world_homogeneous_vertex.X, world_homogeneous_vertex.Y, world_homogeneous_vertex.Z);
         }
 
         return world_space_triangle;
@@ -186,26 +184,19 @@ namespace GRAPHICS::CPU_RENDERING
     {
         // GET THE VERTICES.
         // They're needed for all kinds of shading.
-        const MATH::Vector3f& first_vertex = triangle.VertexPositions[0];
-        const MATH::Vector3f& second_vertex = triangle.VertexPositions[1];
-        const MATH::Vector3f& third_vertex = triangle.VertexPositions[2];
+        const VertexWithAttributes& first_vertex = triangle.Vertices[0];
+        const VertexWithAttributes& second_vertex = triangle.Vertices[1];
+        const VertexWithAttributes& third_vertex = triangle.Vertices[2];
 
         // RENDER THE TRIANGLE BASED ON SHADING TYPE.
         switch (triangle.Material->Shading)
         {
             case ShadingType::WIREFRAME:
             {
-                // GET THE VERTEX COLORS.
-                Color vertex_0_wireframe_color = triangle.VertexColors[0];
-                Color vertex_1_wireframe_color = triangle.VertexColors[1];
-                Color vertex_2_wireframe_color = triangle.VertexColors[2];
-
                 // DRAW THE FIRST EDGE.
                 DrawLineWithInterpolatedColor(
                     first_vertex,
                     second_vertex,
-                    vertex_0_wireframe_color,
-                    vertex_1_wireframe_color,
                     render_target,
                     depth_buffer);
 
@@ -213,8 +204,6 @@ namespace GRAPHICS::CPU_RENDERING
                 DrawLineWithInterpolatedColor(
                     second_vertex,
                     third_vertex,
-                    vertex_1_wireframe_color,
-                    vertex_2_wireframe_color,
                     render_target,
                     depth_buffer);
 
@@ -222,8 +211,6 @@ namespace GRAPHICS::CPU_RENDERING
                 DrawLineWithInterpolatedColor(
                     third_vertex,
                     first_vertex,
-                    vertex_2_wireframe_color,
-                    vertex_0_wireframe_color,
                     render_target,
                     depth_buffer);
                 break;
@@ -232,22 +219,22 @@ namespace GRAPHICS::CPU_RENDERING
             {
                 // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
                 float top_vertex_signed_distance_from_bottom_edge = (
-                    ((second_vertex.Y - third_vertex.Y) * first_vertex.X) +
-                    ((third_vertex.X - second_vertex.X) * first_vertex.Y) +
-                    (second_vertex.X * third_vertex.Y) -
-                    (third_vertex.X * second_vertex.Y));
+                    ((second_vertex.Position.Y - third_vertex.Position.Y) * first_vertex.Position.X) +
+                    ((third_vertex.Position.X - second_vertex.Position.X) * first_vertex.Position.Y) +
+                    (second_vertex.Position.X * third_vertex.Position.Y) -
+                    (third_vertex.Position.X * second_vertex.Position.Y));
                 float right_vertex_signed_distance_from_left_edge = (
-                    ((second_vertex.Y - first_vertex.Y) * third_vertex.X) +
-                    ((first_vertex.X - second_vertex.X) * third_vertex.Y) +
-                    (second_vertex.X * first_vertex.Y) -
-                    (first_vertex.X * second_vertex.Y));
+                    ((second_vertex.Position.Y - first_vertex.Position.Y) * third_vertex.Position.X) +
+                    ((first_vertex.Position.X - second_vertex.Position.X) * third_vertex.Position.Y) +
+                    (second_vertex.Position.X * first_vertex.Position.Y) -
+                    (first_vertex.Position.X * second_vertex.Position.Y));
 
                 // GET THE BOUNDING RECTANGLE OF THE TRIANGLE.
                 /// @todo   Create rectangle class.
-                float min_x = std::min({ first_vertex.X, second_vertex.X, third_vertex.X });
-                float max_x = std::max({ first_vertex.X, second_vertex.X, third_vertex.X });
-                float min_y = std::min({ first_vertex.Y, second_vertex.Y, third_vertex.Y });
-                float max_y = std::max({ first_vertex.Y, second_vertex.Y, third_vertex.Y });
+                float min_x = std::min({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
+                float max_x = std::max({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
+                float min_y = std::min({ first_vertex.Position.Y, second_vertex.Position.Y, third_vertex.Position.Y });
+                float max_y = std::max({ first_vertex.Position.Y, second_vertex.Position.Y, third_vertex.Position.Y });
 
                 // Endpoints are clamped to avoid trying to draw really huge lines off-screen.
                 constexpr float MIN_BITMAP_COORDINATE = 1.0f;
@@ -273,17 +260,17 @@ namespace GRAPHICS::CPU_RENDERING
                         //                /  \
                         // second_vertex /____\ third_vertex
                         float current_pixel_signed_distance_from_bottom_edge = (
-                            ((second_vertex.Y - third_vertex.Y) * x) +
-                            ((third_vertex.X - second_vertex.X) * y) +
-                            (second_vertex.X * third_vertex.Y) -
-                            (third_vertex.X * second_vertex.Y));
+                            ((second_vertex.Position.Y - third_vertex.Position.Y) * x) +
+                            ((third_vertex.Position.X - second_vertex.Position.X) * y) +
+                            (second_vertex.Position.X * third_vertex.Position.Y) -
+                            (third_vertex.Position.X * second_vertex.Position.Y));
                         float scaled_signed_distance_of_current_pixel_relative_to_bottom_edge = (current_pixel_signed_distance_from_bottom_edge / top_vertex_signed_distance_from_bottom_edge);
 
                         float current_pixel_signed_distance_from_left_edge = (
-                            ((second_vertex.Y - first_vertex.Y) * x) +
-                            ((first_vertex.X - second_vertex.X) * y) +
-                            (second_vertex.X * first_vertex.Y) -
-                            (first_vertex.X * second_vertex.Y));
+                            ((second_vertex.Position.Y - first_vertex.Position.Y) * x) +
+                            ((first_vertex.Position.X - second_vertex.Position.X) * y) +
+                            (second_vertex.Position.X * first_vertex.Position.Y) -
+                            (first_vertex.Position.X * second_vertex.Position.Y));
                         float scaled_signed_distance_of_current_pixel_relative_to_left_edge = (current_pixel_signed_distance_from_left_edge / right_vertex_signed_distance_from_left_edge);
 
                         float scaled_signed_distance_of_current_pixel_relative_to_right_edge = (
@@ -311,9 +298,9 @@ namespace GRAPHICS::CPU_RENDERING
                         if (pixel_in_triangle)
                         {
                             float interpolated_z = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex.Z) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex.Z) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex.Z));
+                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex.Position.Z) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex.Position.Z) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex.Position.Z));
 
                             // Apply depth buffering filtering if applicable.
                             unsigned int current_pixel_x = static_cast<unsigned int>(std::round(x));
@@ -332,7 +319,7 @@ namespace GRAPHICS::CPU_RENDERING
 
                             // GET THE COLOR.
                             /// @todo   Assuming all vertices have the same color here.
-                            Color face_color = triangle.VertexColors[0];
+                            Color face_color = triangle.Vertices[0].Color;
 
                             // DRAW THE COLORED PIXEL.
                             // The coordinates need to be rounded to integer in order
@@ -357,22 +344,22 @@ namespace GRAPHICS::CPU_RENDERING
             {
                 // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
                 float top_vertex_signed_distance_from_bottom_edge = (
-                    ((second_vertex.Y - third_vertex.Y) * first_vertex.X) +
-                    ((third_vertex.X - second_vertex.X) * first_vertex.Y) +
-                    (second_vertex.X * third_vertex.Y) -
-                    (third_vertex.X * second_vertex.Y));
+                    ((second_vertex.Position.Y - third_vertex.Position.Y) * first_vertex.Position.X) +
+                    ((third_vertex.Position.X - second_vertex.Position.X) * first_vertex.Position.Y) +
+                    (second_vertex.Position.X * third_vertex.Position.Y) -
+                    (third_vertex.Position.X * second_vertex.Position.Y));
                 float right_vertex_signed_distance_from_left_edge = (
-                    ((second_vertex.Y - first_vertex.Y) * third_vertex.X) +
-                    ((first_vertex.X - second_vertex.X) * third_vertex.Y) +
-                    (second_vertex.X * first_vertex.Y) -
-                    (first_vertex.X * second_vertex.Y));
+                    ((second_vertex.Position.Y - first_vertex.Position.Y) * third_vertex.Position.X) +
+                    ((first_vertex.Position.X - second_vertex.Position.X) * third_vertex.Position.Y) +
+                    (second_vertex.Position.X * first_vertex.Position.Y) -
+                    (first_vertex.Position.X * second_vertex.Position.Y));
 
                 // GET THE BOUNDING RECTANGLE OF THE TRIANGLE.
                 /// @todo   Create rectangle class.
-                float min_x = std::min({ first_vertex.X, second_vertex.X, third_vertex.X });
-                float max_x = std::max({ first_vertex.X, second_vertex.X, third_vertex.X });
-                float min_y = std::min({ first_vertex.Y, second_vertex.Y, third_vertex.Y });
-                float max_y = std::max({ first_vertex.Y, second_vertex.Y, third_vertex.Y });
+                float min_x = std::min({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
+                float max_x = std::max({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
+                float min_y = std::min({ first_vertex.Position.Y, second_vertex.Position.Y, third_vertex.Position.Y });
+                float max_y = std::max({ first_vertex.Position.Y, second_vertex.Position.Y, third_vertex.Position.Y });
 
                 // Endpoints are clamped to avoid trying to draw really huge lines off-screen.
                 constexpr float MIN_BITMAP_COORDINATE = 1.0f;
@@ -398,17 +385,17 @@ namespace GRAPHICS::CPU_RENDERING
                         //                /  \
                         // second_vertex /____\ third_vertex
                         float current_pixel_signed_distance_from_bottom_edge = (
-                            ((second_vertex.Y - third_vertex.Y) * x) +
-                            ((third_vertex.X - second_vertex.X) * y) +
-                            (second_vertex.X * third_vertex.Y) -
-                            (third_vertex.X * second_vertex.Y));
+                            ((second_vertex.Position.Y - third_vertex.Position.Y) * x) +
+                            ((third_vertex.Position.X - second_vertex.Position.X) * y) +
+                            (second_vertex.Position.X * third_vertex.Position.Y) -
+                            (third_vertex.Position.X * second_vertex.Position.Y));
                         float scaled_signed_distance_of_current_pixel_relative_to_bottom_edge = (current_pixel_signed_distance_from_bottom_edge / top_vertex_signed_distance_from_bottom_edge);
 
                         float current_pixel_signed_distance_from_left_edge = (
-                            ((second_vertex.Y - first_vertex.Y) * x) +
-                            ((first_vertex.X - second_vertex.X) * y) +
-                            (second_vertex.X * first_vertex.Y) -
-                            (first_vertex.X * second_vertex.Y));
+                            ((second_vertex.Position.Y - first_vertex.Position.Y) * x) +
+                            ((first_vertex.Position.X - second_vertex.Position.X) * y) +
+                            (second_vertex.Position.X * first_vertex.Position.Y) -
+                            (first_vertex.Position.X * second_vertex.Position.Y));
                         float scaled_signed_distance_of_current_pixel_relative_to_left_edge = (current_pixel_signed_distance_from_left_edge / right_vertex_signed_distance_from_left_edge);
 
                         float scaled_signed_distance_of_current_pixel_relative_to_right_edge = (
@@ -439,9 +426,9 @@ namespace GRAPHICS::CPU_RENDERING
                             // The color needs to be interpolated with this kind of shading.
                             Color interpolated_color = GRAPHICS::Color::BLACK;
 
-                            const Color& first_vertex_color = triangle.VertexColors[0];
-                            const Color& second_vertex_color = triangle.VertexColors[1];
-                            const Color& third_vertex_color = triangle.VertexColors[2];
+                            const Color& first_vertex_color = triangle.Vertices[0].Color;
+                            const Color& second_vertex_color = triangle.Vertices[1].Color;
+                            const Color& third_vertex_color = triangle.Vertices[2].Color;
                             interpolated_color.Red = (
                                 (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex_color.Red) +
                                 (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex_color.Red) +
@@ -457,13 +444,14 @@ namespace GRAPHICS::CPU_RENDERING
                             interpolated_color.Clamp();
 
                             interpolated_z = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex.Z) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex.Z) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex.Z));
+                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex.Position.Z) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex.Position.Z) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex.Position.Z));
 
                             if (ShadingType::TEXTURED == triangle.Material->Shading)
                             {
                                 // INTERPOLATE THE TEXTURE COORDINATES.
+                                /// @todo   Replace with texture coordinates on actual vertices.
                                 const MATH::Vector2f& first_texture_coordinate = triangle.Material->VertexTextureCoordinates[0];
                                 const MATH::Vector2f& second_texture_coordinate = triangle.Material->VertexTextureCoordinates[1];
                                 const MATH::Vector2f& third_texture_coordinate = triangle.Material->VertexTextureCoordinates[2];
@@ -636,28 +624,24 @@ namespace GRAPHICS::CPU_RENDERING
         }
     }
 
-    /// Renders a line with the specified endpoints (in screen coordinates) and interpolated color.
-    /// @param[in]  start_vertex - The starting coordinate of the line.
-    /// @param[in]  end_vertex - The ending coordinate of the line.
-    /// @param[in]  start_color - The color of the line at the starting coordinate.
-    /// @param[in]  end_color - The color of the line at the ending coordinate.
+    /// Renders a line with the specified endpoints (in screen coordinates) and interpolated color from the vertices.
+    /// @param[in]  start_vertex - The starting vertex of the line.
+    /// @param[in]  end_vertex - The ending vertex of the line.
     /// @param[in,out]  render_target - The target to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
     void CpuRasterizationAlgorithm::DrawLineWithInterpolatedColor(
-        const MATH::Vector3f& start_vertex,
-        const MATH::Vector3f& end_vertex,
-        const Color& start_color,
-        const Color& end_color,
+        const VertexWithAttributes& start_vertex,
+        const VertexWithAttributes& end_vertex,
         IMAGES::Bitmap& render_target,
         DepthBuffer* depth_buffer)
     {
         // EXTRACT COMPONENTS OF THE VERTEX.
-        float start_x = start_vertex.X;
-        float start_y = start_vertex.Y;
-        float start_z = start_vertex.Z;
-        float end_x = end_vertex.X;
-        float end_y = end_vertex.Y;
-        float end_z = end_vertex.Z;
+        float start_x = start_vertex.Position.X;
+        float start_y = start_vertex.Position.Y;
+        float start_z = start_vertex.Position.Z;
+        float end_x = end_vertex.Position.X;
+        float end_y = end_vertex.Position.Y;
+        float end_z = end_vertex.Position.Z;
 
         // CLAMP ENDPOINTS TO AVOID TRYING TO DRAW REALLY HUGE LINES OFF-SCREEN.
         constexpr float MIN_BITMAP_COORDINATE = 1.0f;
@@ -728,7 +712,7 @@ namespace GRAPHICS::CPU_RENDERING
             MATH::Vector2f vector_to_current_pixel(x - start_x, y - start_y);
             float length_to_current_pixel_from_line_start = vector_to_current_pixel.Length();
             float ratio_toward_end_of_line = (length_to_current_pixel_from_line_start / line_length);
-            Color interpolated_color = Color::InterpolateRedGreenBlue(start_color, end_color, ratio_toward_end_of_line);
+            Color interpolated_color = Color::InterpolateRedGreenBlue(start_vertex.Color, end_vertex.Color, ratio_toward_end_of_line);
 
             // DRAW A PIXEL AT THE CURRENT POSITION.
             // The coordinates need to be rounded to integer in order

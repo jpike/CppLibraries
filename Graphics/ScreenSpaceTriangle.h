@@ -3,9 +3,8 @@
 #include <array>
 #include <cstddef>
 #include <memory>
-#include "Graphics/Color.h"
 #include "Graphics/Material.h"
-#include "Math/Vector3.h"
+#include "Graphics/VertexWithAttributes.h"
 
 namespace GRAPHICS
 {
@@ -22,9 +21,7 @@ namespace GRAPHICS
         /// The material of the triangle.
         std::shared_ptr<class Material> Material = nullptr;
         /// The vertices of the triangle.  Should be in counter-clockwise order.
-        /// A z-coordinate is included to support depth-testing.
-        std::array<MATH::Vector3f, VERTEX_COUNT> VertexPositions = std::array<MATH::Vector3f, VERTEX_COUNT>();
-        /// The colors of each vertex (same order as vertex positions).
-        std::array<GRAPHICS::Color, VERTEX_COUNT> VertexColors = std::array<GRAPHICS::Color, VERTEX_COUNT>();
+        /// Z position coordinats are included to support depth-testing.
+        std::array<VertexWithAttributes, VERTEX_COUNT> Vertices = std::array<VertexWithAttributes, VERTEX_COUNT>();
     };
 }

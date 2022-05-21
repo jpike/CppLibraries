@@ -32,9 +32,9 @@ namespace GRAPHICS
         triangle.Material = material;
         triangle.Vertices =
         {
-            MATH::Vector3f(top_x, top_y, z),
-            MATH::Vector3f(left_x, bottom_y, z),
-            MATH::Vector3f(right_x, bottom_y, z)
+            VertexWithAttributes { .Position = MATH::Vector3f(top_x, top_y, z) },
+            VertexWithAttributes { .Position = MATH::Vector3f(left_x, bottom_y, z) },
+            VertexWithAttributes { .Position = MATH::Vector3f(right_x, bottom_y, z) }
         };
         return triangle;
     }
@@ -42,7 +42,7 @@ namespace GRAPHICS
     /// Constructs a triangle with the given material and vertices.
     /// @param[in]  material - The material for the triangle.
     /// @param[in]  vertices - The vertices of the triangle.
-    Triangle::Triangle(const std::shared_ptr<GRAPHICS::Material>& material, const std::array<MATH::Vector3f, Triangle::VERTEX_COUNT>& vertices):
+    Triangle::Triangle(const std::shared_ptr<GRAPHICS::Material>& material, const std::array<VertexWithAttributes, Triangle::VERTEX_COUNT>& vertices):
         Material(material),
         Vertices(vertices)
     {}
@@ -55,8 +55,8 @@ namespace GRAPHICS
         // Since they're in a counter-clockwise order, the vertex for
         // the "first" edge should be the first component of the cross
         // product to get an outward-facing normal.
-        MATH::Vector3f first_edge = Vertices[1] - Vertices[0];
-        MATH::Vector3f second_edge = Vertices[2] - Vertices[0];
+        MATH::Vector3f first_edge = Vertices[1].Position - Vertices[0].Position;
+        MATH::Vector3f second_edge = Vertices[2].Position - Vertices[0].Position;
         MATH::Vector3f surface_normal = MATH::Vector3f::CrossProduct(first_edge, second_edge);
         MATH::Vector3f normalized_surface_normal = MATH::Vector3f::Normalize(surface_normal);
         return normalized_surface_normal;
@@ -71,12 +71,12 @@ namespace GRAPHICS
         MATH::Vector3f surface_normal = SurfaceNormal();
 
         // GET EACH OF THE TRIANGLES EDGES IN COUNTER-CLOCKWISE ORDER.
-        MATH::Vector3f edge_a = Vertices[1] - Vertices[0];
-        MATH::Vector3f edge_b = Vertices[2] - Vertices[1];
-        MATH::Vector3f edge_c = Vertices[0] - Vertices[2];
+        MATH::Vector3f edge_a = Vertices[1].Position - Vertices[0].Position;
+        MATH::Vector3f edge_b = Vertices[2].Position - Vertices[1].Position;
+        MATH::Vector3f edge_c = Vertices[0].Position - Vertices[2].Position;
 
         // CHECK FOR INTERSECTION WITH THE PLANE.
-        float distance_from_ray_to_object = MATH::Vector3f::DotProduct(surface_normal, Vertices[0]);
+        float distance_from_ray_to_object = MATH::Vector3f::DotProduct(surface_normal, Vertices[0].Position);
         distance_from_ray_to_object -= MATH::Vector3f::DotProduct(surface_normal, ray.Origin);
         distance_from_ray_to_object /= MATH::Vector3f::DotProduct(surface_normal, ray.Direction);
         bool intersection_in_front_of_current_view = (distance_from_ray_to_object >= 0.0f);
@@ -88,9 +88,9 @@ namespace GRAPHICS
 
         // CHECK FOR INTERSECTION WITHIN THE TRIANGLE.
         MATH::Vector3f intersection_point = ray.Origin + MATH::Vector3f::Scale(distance_from_ray_to_object, ray.Direction);
-        MATH::Vector3f edge_a_for_point = intersection_point - Vertices[0];
-        MATH::Vector3f edge_b_for_point = intersection_point - Vertices[1];
-        MATH::Vector3f edge_c_for_point = intersection_point - Vertices[2];
+        MATH::Vector3f edge_a_for_point = intersection_point - Vertices[0].Position;
+        MATH::Vector3f edge_b_for_point = intersection_point - Vertices[1].Position;
+        MATH::Vector3f edge_c_for_point = intersection_point - Vertices[2].Position;
 
         float dot_product_for_edge_a = MATH::Vector3f::DotProduct(surface_normal, MATH::Vector3f::CrossProduct(edge_a, edge_a_for_point));
         float dot_product_for_edge_b = MATH::Vector3f::DotProduct(surface_normal, MATH::Vector3f::CrossProduct(edge_b, edge_b_for_point));

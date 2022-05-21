@@ -13,9 +13,9 @@ TEST_CASE("World transform can translate a vector.", "[Object3D][WorldTransform]
     GRAPHICS::Triangle triangle;
     triangle.Vertices =
     {
-        MATH::Vector3f(0.0f, 1.0f, 0.0f),
-        MATH::Vector3f(-1.0f, -1.0f, 0.0f),
-        MATH::Vector3f(1.0f, -1.0f, 0.0f)
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 1.0f, 0.0f) },
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -1.0f, 0.0f) },
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -1.0f, 0.0f) }
     };
 
     GRAPHICS::Object3D test_object_3D;
@@ -27,7 +27,7 @@ TEST_CASE("World transform can translate a vector.", "[Object3D][WorldTransform]
     MATH::Matrix4x4f world_transform = test_object_3D.WorldTransform();
     for (const auto& vertex : triangle.Vertices)
     {
-        MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(vertex);
+        MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(vertex.Position);
         MATH::Vector4f world_vertex = world_transform * homogeneous_vertex;
         world_vertices.push_back(world_vertex);
     }
@@ -61,9 +61,9 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
     GRAPHICS::Triangle triangle;
     triangle.Vertices =
     {
-        MATH::Vector3f(0.0f, 1.0f, 0.0f), // top
-        MATH::Vector3f(-1.0f, -1.0f, 0.0f), // left
-        MATH::Vector3f(1.0f, -1.0f, 0.0f) // right
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 1.0f, 0.0f) }, // top
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -1.0f, 0.0f) }, // left
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -1.0f, 0.0f) } // right
     };
 
     // DEFINE THE DIFFERENT ROTATION ANGLES AND EXPECTED TRIANGLES.
@@ -75,18 +75,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.5f, // -1.0f / 2.0f,
                         0.86603f, // std::sqrt(3.0f) / 2.0f, 
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.36603f, //-std::sqrt(3.0f)/2.0f + 0.5f, // -1*cos(30) - -1*sin(30) = -1*sqrt(3)/2 + 1*1/2 = -sqrt(3)/2 + 1/2
                         -1.36603f, // -0.5f - std::sqrt(3.0f)/2.0f, // -1*sin(30) + -1*cos(30) = -1*1/2 -1*sqrt(3)/2 = -1/2 - sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.36603f, // std::sqrt(3.0f)/2.0f + 0.5f, // 1*cos(30) - -1*sin(30) = 1*sqrt(3)/2 - -1*1/2 = sqrt(3)/2 + 1/2
                         -0.36603f, //0.5f - std::sqrt(3.0f)/2.0f, // 1*sin(30) + -1*cos(30) = 1*1/2 + -1*sqrt(3)/2 = 1/2 - sqrt(3)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -94,18 +94,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.70711f, // -sqrt(2) / 2
                         0.70711f, // sqrt(2) / 2 
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                          0.0f, // -1*cos(45) - -1*sin(45) = -sqrt(2)/2 + sqrt(2)/2
                         -1.41421f, // -1*sin(45) + -1*cos(45) = -sqrt(2)/2 + -sqrt(2)/2 = -sqrt(2)
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.41421f, // 1*cos(45) - -1*sin(45) = sqrt(2)/2 + sqrt(2)/2 = sqrt(2)
                         0.0f, // 1*sin(45) + -1*cos(45) = sqrt(2)/2 - sqrt(2)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -113,18 +113,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.86603f, // -sqrt(3)/2
                         0.5f, // 0*sin(60) + 1*cos(60) = 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.36603f, // -1*cos(60) - -1*sin(60) = -1/2 + sqrt(3)/2
                         -1.36603f, // -1*sin(60) + -1*cos(60) = -sqrt(3)/2 - 1/2 
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.36603f, // 1*cos(60) - -1*sin(60) = 1/2 + sqrt(3)/2
                         0.36603f, // 1*sin(60) + -1*cos(60) = sqrt(3)/2 - 1/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -132,18 +132,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.0f,
                         0.0f,
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.0f, // -1*cos(90) - -1*sin(90) = 0 + 1
                         -1.0f, // -1*sin(90) + -1*cos(90) = -1 + 0
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.0f, // 1*cos(90) - -1*sin(90) = 0 + 1
                         1.0f, // 1*sin(90) + -1*cos(90) = 1 + 0
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -151,18 +151,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.86603f, // 0*cos(120) - 1*sin(120) = -sqrt(3)/2
                         -0.5f, // 0*sin(120) + 1*cos(120) = -1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.36603f, // -1*cos(120) - -1*sin(120) = 1/2 + sqrt(3)/2
                         -0.36603f, // -1*sin(120) + -1*cos(120) = -sqrt(3)/2 + 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.36603f, // 1*cos(120) - -1*sin(120) = -1/2 + sqrt(3)/2
                         1.36603f, // 1*sin(120) + -1*cos(120) = sqrt(3)/2 + 1/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -170,18 +170,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.70711f, // 0*cos(135) - 1*sin(135) = -sqrt(2)/2
                         -0.70711f, // 0*sin(135) + 1*cos(135) = -sqrt(2)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.41421f, // -1*cos(135) - -1*sin(135) = sqrt(2)/2 + sqrt(2)/2 = sqrt(2)
                         0.0f, // -1*sin(135) + -1*cos(135) = -sqrt(2)/2 + sqrt(2)/2 = 0
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.0f, // 1*cos(135) - -1*sin(135) = -sqrt(2)/2 + sqrt(2)/2 = 0
                         1.41421f, // 1*sin(135) + -1*cos(135) = sqrt(2)/2 + sqrt(2)/2 = sqrt(2)
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -189,18 +189,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.5f, // 0*cos(150) - 1*sin(150) = -1/2
                         -0.86603f, // 0*sin(150) + 1*cos(150) = -sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.36603f, // -1*cos(150) - -1*sin(150) = sqrt(3)/2 + 1/2
                         0.36603f, // -1*sin(150) + -1*cos(150) = -1/2 + sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.36603f, // 1*cos(150) - -1*sin(150) = -sqrt(3)/2 + 1/2
                         1.36603f, // 1*sin(150) + -1*cos(150) = 1/2 + sqrt(3)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -208,18 +208,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.0f, // 0*cos(180) - 1*sin(180) = 0
                         -1.0f, // 0*sin(180) + 1*cos(180) = -1
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.0f, // -1*cos(180) - -1*sin(180) = 1
                         1.0f, // -1*sin(180) + -1*cos(180) = 1
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.0f, // 1*cos(180) - -1*sin(180) = -1
                         1.0f, // 1*sin(180) + -1*cos(180) = 1
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -227,18 +227,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.5f, // 0*cos(210) - 1*sin(210) = 1/2
                         -0.86603f, // 0*sin(210) + 1*cos(210) = -sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.36603f, // -1*cos(210) - -1*sin(210) = sqrt(3)/2 - 1/2
                         1.36603f, // -1*sin(210) + -1*cos(210) = 1/2 + sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.36603f, // 1*cos(210) - -1*sin(210) = -sqrt(3)/2 - 1/2
                         0.36603f, // 1*sin(210) + -1*cos(210) = -1/2 + sqrt(3)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -246,18 +246,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.70711f, // 0*cos(225) - 1*sin(225) = sqrt(2)/2
                         -0.70711f, // 0*sin(225) + 1*cos(225) = -sqrt(2)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.0f, // -1*cos(225) - -1*sin(225) = sqrt(2)/2 - sqrt(2)2
                         1.41421f, // -1*sin(225) + -1*cos(225) = sqrt(2)/2 + sqrt(2)/2 = sqrt(2)
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.41421f, // 1*cos(225) - -1*sin(225) = -sqrt(2)/2 - sqrt(2)/2 = -sqrt(2)
                         0.0f, // 1*sin(225) + -1*cos(225) = -sqrt(2)/2 + sqrt(2)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -265,18 +265,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.86603f, // 0*cos(240) - 1*sin(240) = sqrt(3)/2
                         -0.5f, // 0*sin(240) + 1*cos(240) = -1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.36603f, // -1*cos(240) - -1*sin(240) = 1/2 - sqrt(3)/2
                         1.36603f, // -1*sin(240) + -1*cos(240) = sqrt(3)/2 + 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.36603f, // 1*cos(240) - -1*sin(240) = -1/2 - sqrt(3)/2
                         -0.36603f, // 1*sin(240) + -1*cos(240) = -sqrt(3)/2 + 1/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -284,18 +284,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.0f, // 0*cos(270) - 1*sin(270) = 1
                         0.0f, // 0*sin(270) + 1*cos(270) = 0
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.0f, // -1*cos(270) - -1*sin(270) = 0 - 1
                         1.0f, // -1*sin(270) + -1*cos(270) = 1
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.0f, // 1*cos(270) - -1*sin(270) = 0 - 1
                         -1.0f, // 1*sin(270) + -1*cos(270) = -1
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -303,18 +303,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.86603f, // 0*cos(300) - 1*sin(300) = sqrt(3)/2
                         0.5f, // 0*sin(300) + 1*cos(300) = 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.36603f, // -1*cos(300) - -1*sin(300) = -1/2 - sqrt(3)/2
                         0.36603f, // -1*sin(300) + -1*cos(300) = sqrt(3)/2 - 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.36603f, // 1*cos(300) - -1*sin(300) = 1/2 - sqrt(3)/2
                         -1.36603f, // 1*sin(300) + -1*cos(300) = -sqrt(3)/2 - 1/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -322,18 +322,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.70711f, // 0*cos(315) - 1*sin(315) = sqrt(2)/2
                         0.70711f, // 0*sin(315) + 1*cos(315) = sqrt(2)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.41421f, // -1*cos(315) - -1*sin(315) = -sqrt(2)/2 - sqrt(2)/2 = -sqrt(2)
                         0.0f, // -1*sin(315) + -1*cos(315) = sqrt(2)/2 - sqrt(2)/2 = 0
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.0f, // 1*cos(315) - -1*sin(315) = sqrt(2)/2 - sqrt(2)/2 = 0
                         -1.41421f, // 1*sin(315) + -1*cos(315) = -sqrt(2)/2 - sqrt(2)/2 = -sqrt(2)
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -341,18 +341,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.5f, // 0*cos(330) - 1*sin(330) = 1/2
                         0.86603f, // 0*sin(330) + 1*cos(330) = sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.36603f, // -1*cos(330) - -1*sin(330) = -sqrt(3)/2 - 1/2
                         -0.36603f, // -1*sin(330) + -1*cos(330) = 1/2 - sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.36603f, // 1*cos(330) - -1*sin(330) = sqrt(3)/2 - 1/2
                         -1.36603f, // 1*sin(330) + -1*cos(330) = -1/2 - sqrt(3)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -366,18 +366,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.5f, // 0*cos(330) - 1*sin(330) = 1/2
                         0.86603f, // 0*sin(330) + 1*cos(330) = sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.36603f, // -1*cos(330) - -1*sin(330) = -sqrt(3)/2 - 1/2
                         -0.36603f, // -1*sin(330) + -1*cos(330) = 1/2 - sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.36603f, // 1*cos(330) - -1*sin(330) = sqrt(3)/2 - 1/2
                         -1.36603f, // 1*sin(330) + -1*cos(330) = -1/2 - sqrt(3)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -385,18 +385,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.70711f, // 0*cos(315) - 1*sin(315) = sqrt(2)/2
                         0.70711f, // 0*sin(315) + 1*cos(315) = sqrt(2)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.41421f, // -1*cos(315) - -1*sin(315) = -sqrt(2)/2 - sqrt(2)/2 = -sqrt(2)
                         0.0f, // -1*sin(315) + -1*cos(315) = sqrt(2)/2 - sqrt(2)/2 = 0
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.0f, // 1*cos(315) - -1*sin(315) = sqrt(2)/2 - sqrt(2)/2 = 0
                         -1.41421f, // 1*sin(315) + -1*cos(315) = -sqrt(2)/2 - sqrt(2)/2 = -sqrt(2)
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -404,18 +404,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.86603f, // 0*cos(300) - 1*sin(300) = sqrt(3)/2
                         0.5f, // 0*sin(300) + 1*cos(300) = 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.36603f, // -1*cos(300) - -1*sin(300) = -1/2 - sqrt(3)/2
                         0.36603f, // -1*sin(300) + -1*cos(300) = sqrt(3)/2 - 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.36603f, // 1*cos(300) - -1*sin(300) = 1/2 - sqrt(3)/2
                         -1.36603f, // 1*sin(300) + -1*cos(300) = -sqrt(3)/2 - 1/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -423,18 +423,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.0f, // 0*cos(270) - 1*sin(270) = 1
                         0.0f, // 0*sin(270) + 1*cos(270) = 0
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.0f, // -1*cos(270) - -1*sin(270) = 0 - 1
                         1.0f, // -1*sin(270) + -1*cos(270) = 1
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.0f, // 1*cos(270) - -1*sin(270) = 0 - 1
                         -1.0f, // 1*sin(270) + -1*cos(270) = -1
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -442,18 +442,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.86603f, // 0*cos(240) - 1*sin(240) = sqrt(3)/2
                         -0.5f, // 0*sin(240) + 1*cos(240) = -1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.36603f, // -1*cos(240) - -1*sin(240) = 1/2 - sqrt(3)/2
                         1.36603f, // -1*sin(240) + -1*cos(240) = sqrt(3)/2 + 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.36603f, // 1*cos(240) - -1*sin(240) = -1/2 - sqrt(3)/2
                         -0.36603f, // 1*sin(240) + -1*cos(240) = -sqrt(3)/2 + 1/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -461,18 +461,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.70711f, // 0*cos(225) - 1*sin(225) = sqrt(2)/2
                         -0.70711f, // 0*sin(225) + 1*cos(225) = -sqrt(2)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.0f, // -1*cos(225) - -1*sin(225) = sqrt(2)/2 - sqrt(2)2
                         1.41421f, // -1*sin(225) + -1*cos(225) = sqrt(2)/2 + sqrt(2)/2 = sqrt(2)
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.41421f, // 1*cos(225) - -1*sin(225) = -sqrt(2)/2 - sqrt(2)/2 = -sqrt(2)
                         0.0f, // 1*sin(225) + -1*cos(225) = -sqrt(2)/2 + sqrt(2)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -480,18 +480,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.5f, // 0*cos(210) - 1*sin(210) = 1/2
                         -0.86603f, // 0*sin(210) + 1*cos(210) = -sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.36603f, // -1*cos(210) - -1*sin(210) = sqrt(3)/2 - 1/2
                         1.36603f, // -1*sin(210) + -1*cos(210) = 1/2 + sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.36603f, // 1*cos(210) - -1*sin(210) = -sqrt(3)/2 - 1/2
                         0.36603f, // 1*sin(210) + -1*cos(210) = -1/2 + sqrt(3)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -499,18 +499,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.0f, // 0*cos(180) - 1*sin(180) = 0
                         -1.0f, // 0*sin(180) + 1*cos(180) = -1
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.0f, // -1*cos(180) - -1*sin(180) = 1
                         1.0f, // -1*sin(180) + -1*cos(180) = 1
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.0f, // 1*cos(180) - -1*sin(180) = -1
                         1.0f, // 1*sin(180) + -1*cos(180) = 1
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -518,18 +518,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.5f, // 0*cos(150) - 1*sin(150) = -1/2
                         -0.86603f, // 0*sin(150) + 1*cos(150) = -sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.36603f, // -1*cos(150) - -1*sin(150) = sqrt(3)/2 + 1/2
                         0.36603f, // -1*sin(150) + -1*cos(150) = -1/2 + sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.36603f, // 1*cos(150) - -1*sin(150) = -sqrt(3)/2 + 1/2
                         1.36603f, // 1*sin(150) + -1*cos(150) = 1/2 + sqrt(3)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -537,18 +537,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.70711f, // 0*cos(135) - 1*sin(135) = -sqrt(2)/2
                         -0.70711f, // 0*sin(135) + 1*cos(135) = -sqrt(2)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.41421f, // -1*cos(135) - -1*sin(135) = sqrt(2)/2 + sqrt(2)/2 = sqrt(2)
                         0.0f, // -1*sin(135) + -1*cos(135) = -sqrt(2)/2 + sqrt(2)/2 = 0
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.0f, // 1*cos(135) - -1*sin(135) = -sqrt(2)/2 + sqrt(2)/2 = 0
                         1.41421f, // 1*sin(135) + -1*cos(135) = sqrt(2)/2 + sqrt(2)/2 = sqrt(2)
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -556,18 +556,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.86603f, // 0*cos(120) - 1*sin(120) = -sqrt(3)/2
                         -0.5f, // 0*sin(120) + 1*cos(120) = -1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.36603f, // -1*cos(120) - -1*sin(120) = 1/2 + sqrt(3)/2
                         -0.36603f, // -1*sin(120) + -1*cos(120) = -sqrt(3)/2 + 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.36603f, // 1*cos(120) - -1*sin(120) = -1/2 + sqrt(3)/2
                         1.36603f, // 1*sin(120) + -1*cos(120) = sqrt(3)/2 + 1/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -575,18 +575,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -1.0f,
                         0.0f,
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.0f, // -1*cos(90) - -1*sin(90) = 0 + 1
                         -1.0f, // -1*sin(90) + -1*cos(90) = -1 + 0
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.0f, // 1*cos(90) - -1*sin(90) = 0 + 1
                         1.0f, // 1*sin(90) + -1*cos(90) = 1 + 0
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -594,18 +594,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.86603f, // -sqrt(3)/2
                         0.5f, // 0*sin(60) + 1*cos(60) = 1/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         0.36603f, // -1*cos(60) - -1*sin(60) = -1/2 + sqrt(3)/2
                         -1.36603f, // -1*sin(60) + -1*cos(60) = -sqrt(3)/2 - 1/2 
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.36603f, // 1*cos(60) - -1*sin(60) = 1/2 + sqrt(3)/2
                         0.36603f, // 1*sin(60) + -1*cos(60) = sqrt(3)/2 - 1/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -613,18 +613,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.70711f, // -sqrt(2) / 2
                         0.70711f, // sqrt(2) / 2 
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                          0.0f, // -1*cos(45) - -1*sin(45) = -sqrt(2)/2 + sqrt(2)/2
                         -1.41421f, // -1*sin(45) + -1*cos(45) = -sqrt(2)/2 + -sqrt(2)/2 = -sqrt(2)
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.41421f, // 1*cos(45) - -1*sin(45) = sqrt(2)/2 + sqrt(2)/2 = sqrt(2)
                         0.0f, // 1*sin(45) + -1*cos(45) = sqrt(2)/2 - sqrt(2)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -632,18 +632,18 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.5f, // -1.0f / 2.0f,
                         0.86603f, // std::sqrt(3.0f) / 2.0f, 
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         -0.36603f, //-std::sqrt(3.0f)/2.0f + 0.5f, // -1*cos(30) - -1*sin(30) = -1*sqrt(3)/2 + 1*1/2 = -sqrt(3)/2 + 1/2
                         -1.36603f, // -0.5f - std::sqrt(3.0f)/2.0f, // -1*sin(30) + -1*cos(30) = -1*1/2 -1*sqrt(3)/2 = -1/2 - sqrt(3)/2
-                        0.0f),
-                    MATH::Vector3f(
+                        0.0f)},
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
                         1.36603f, // std::sqrt(3.0f)/2.0f + 0.5f, // 1*cos(30) - -1*sin(30) = 1*sqrt(3)/2 - -1*1/2 = sqrt(3)/2 + 1/2
                         -0.36603f, //0.5f - std::sqrt(3.0f)/2.0f, // 1*sin(30) + -1*cos(30) = 1*1/2 + -1*sqrt(3)/2 = 1/2 - sqrt(3)/2
-                        0.0f),
+                        0.0f)},
                 })
         },
         {
@@ -673,14 +673,14 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         MATH::Matrix4x4f world_transform = test_object_3D.WorldTransform();
         for (const auto& vertex : triangle.Vertices)
         {
-            MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(vertex);
+            MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(vertex.Position);
             MATH::Vector4f world_vertex = world_transform * homogeneous_vertex;
             world_vertices.push_back(world_vertex);
         }
 
         // VERIFY THE TRANSFORMATION OF THE 3D OBJECT.
         constexpr unsigned int TOP_VERTEX_INDEX = 0;
-        const MATH::Vector4f EXPECTED_TOP_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[TOP_VERTEX_INDEX]);
+        const MATH::Vector4f EXPECTED_TOP_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[TOP_VERTEX_INDEX].Position);
         const MATH::Vector4f& actual_top_world_vertex = world_vertices[0];
         // Due to numerical precision issues, the margin is modified.
         constexpr float APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN = 0.0001f;
@@ -690,7 +690,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         REQUIRE(EXPECTED_TOP_WORLD_VERTEX.W == Approx(actual_top_world_vertex.W));
 
         constexpr unsigned int LEFT_VERTEX_INDEX = 1;
-        const MATH::Vector4f EXPECTED_LEFT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[LEFT_VERTEX_INDEX]);
+        const MATH::Vector4f EXPECTED_LEFT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[LEFT_VERTEX_INDEX].Position);
         const MATH::Vector4f& actual_left_world_vertex = world_vertices[1];
         REQUIRE(EXPECTED_LEFT_WORLD_VERTEX.X == Approx(actual_left_world_vertex.X).margin(APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN));
         REQUIRE(EXPECTED_LEFT_WORLD_VERTEX.Y == Approx(actual_left_world_vertex.Y).margin(APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN));
@@ -698,7 +698,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         REQUIRE(EXPECTED_LEFT_WORLD_VERTEX.W == Approx(actual_left_world_vertex.W));
 
         constexpr unsigned int RIGHT_VERTEX_INDEX = 2;
-        const MATH::Vector4f EXPECTED_RIGHT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[RIGHT_VERTEX_INDEX]);;
+        const MATH::Vector4f EXPECTED_RIGHT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[RIGHT_VERTEX_INDEX].Position);
         const MATH::Vector4f& actual_right_world_vertex = world_vertices[2];
         REQUIRE(EXPECTED_RIGHT_WORLD_VERTEX.X == Approx(actual_right_world_vertex.X).margin(APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN));
         REQUIRE(EXPECTED_RIGHT_WORLD_VERTEX.Y == Approx(actual_right_world_vertex.Y).margin(APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN));
@@ -713,9 +713,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
     GRAPHICS::Triangle triangle;
     triangle.Vertices =
     {
-        MATH::Vector3f(0.0f, 1.0f, 0.0f), // top
-        MATH::Vector3f(-1.0f, -1.0f, 0.0f), // left
-        MATH::Vector3f(1.0f, -1.0f, 0.0f) // right
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 1.0f, 0.0f) }, // top
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -1.0f, 0.0f) }, // left
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -1.0f, 0.0f) } // right
     };
 
     // DEFINE THE DIFFERENT ROTATION ANGLES AND EXPECTED TRIANGLES.
@@ -727,9 +727,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -737,9 +737,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f( 1.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f( 1.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -747,9 +747,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -757,9 +757,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, 0.0f, 1.0f),
-                    MATH::Vector3f(-1.0f, 0.0f, -1.0f),
-                    MATH::Vector3f(1.0f, 0.0f, -1.0f),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 0.0f, 1.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, 0.0f, -1.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, 0.0f, -1.0f) },
                 })
         },
         {
@@ -767,9 +767,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -777,9 +777,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -787,9 +787,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -797,9 +797,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -1.0f, 0.0f),
-                    MATH::Vector3f(-1.0f, 1.0f, 0.0f),
-                    MATH::Vector3f(1.0f, 1.0f, 0.0f),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -1.0f, 0.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, 1.0f, 0.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, 1.0f, 0.0f) },
                 })
         },
         {
@@ -807,9 +807,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -817,9 +817,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -827,9 +827,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -837,9 +837,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, 0.0f, -1.0f),
-                    MATH::Vector3f(-1.0f, 0.0f, 1.0f),
-                    MATH::Vector3f(1.0f, 0.0f, 1.0f),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 0.0f, -1.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, 0.0f, 1.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, 0.0f, 1.0f) },
                 })
         },
         {
@@ -847,9 +847,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -857,9 +857,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -867,9 +867,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -883,9 +883,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -893,9 +893,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -903,9 +903,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -913,9 +913,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, 0.0f, -1.0f),
-                    MATH::Vector3f(-1.0f, 0.0f, 1.0f),
-                    MATH::Vector3f(1.0f, 0.0f, 1.0f),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 0.0f, -1.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, 0.0f, 1.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, 0.0f, 1.0f) },
                 })
         },
         {
@@ -923,9 +923,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -933,9 +933,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -943,9 +943,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -953,9 +953,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -1.0f, 0.0f),
-                    MATH::Vector3f(-1.0f, 1.0f, 0.0f),
-                    MATH::Vector3f(1.0f, 1.0f, 0.0f),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -1.0f, 0.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, 1.0f, 0.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, 1.0f, 0.0f) },
                 })
         },
         {
@@ -963,9 +963,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -973,9 +973,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -983,9 +983,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-1.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(1.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -993,9 +993,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, 0.0f, 1.0f),
-                    MATH::Vector3f(-1.0f, 0.0f, -1.0f),
-                    MATH::Vector3f(1.0f, 0.0f, -1.0f),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 0.0f, 1.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, 0.0f, -1.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, 0.0f, -1.0f) },
                 })
         },
         {
@@ -1003,9 +1003,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -1013,9 +1013,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -1023,9 +1023,9 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
             GRAPHICS::Triangle(
                 NO_MATERIAL,
                 {
-                    MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-1.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(1.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -1055,14 +1055,14 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         MATH::Matrix4x4f world_transform = test_object_3D.WorldTransform();
         for (const auto& vertex : triangle.Vertices)
         {
-            MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(vertex);
+            MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(vertex.Position);
             MATH::Vector4f world_vertex = world_transform * homogeneous_vertex;
             world_vertices.push_back(world_vertex);
         }
 
         // VERIFY THE TRANSFORMATION OF THE 3D OBJECT.
         constexpr unsigned int TOP_VERTEX_INDEX = 0;
-        const MATH::Vector4f EXPECTED_TOP_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[TOP_VERTEX_INDEX]);
+        const MATH::Vector4f EXPECTED_TOP_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[TOP_VERTEX_INDEX].Position);
         const MATH::Vector4f& actual_top_world_vertex = world_vertices[0];
         // Due to numerical precision issues, the margin is modified.
         constexpr float APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN = 0.0001f;
@@ -1072,7 +1072,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         REQUIRE(EXPECTED_TOP_WORLD_VERTEX.W == Approx(actual_top_world_vertex.W));
 
         constexpr unsigned int LEFT_VERTEX_INDEX = 1;
-        const MATH::Vector4f EXPECTED_LEFT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[LEFT_VERTEX_INDEX]);
+        const MATH::Vector4f EXPECTED_LEFT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[LEFT_VERTEX_INDEX].Position);
         const MATH::Vector4f& actual_left_world_vertex = world_vertices[1];
         REQUIRE(EXPECTED_LEFT_WORLD_VERTEX.X == Approx(actual_left_world_vertex.X));
         REQUIRE(EXPECTED_LEFT_WORLD_VERTEX.Y == Approx(actual_left_world_vertex.Y).margin(APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN));
@@ -1080,7 +1080,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         REQUIRE(EXPECTED_LEFT_WORLD_VERTEX.W == Approx(actual_left_world_vertex.W));
 
         constexpr unsigned int RIGHT_VERTEX_INDEX = 2;
-        const MATH::Vector4f EXPECTED_RIGHT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[RIGHT_VERTEX_INDEX]);;
+        const MATH::Vector4f EXPECTED_RIGHT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[RIGHT_VERTEX_INDEX].Position);
         const MATH::Vector4f& actual_right_world_vertex = world_vertices[2];
         REQUIRE(EXPECTED_RIGHT_WORLD_VERTEX.X == Approx(actual_right_world_vertex.X));
         REQUIRE(EXPECTED_RIGHT_WORLD_VERTEX.Y == Approx(actual_right_world_vertex.Y).margin(APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN));
@@ -1095,9 +1095,9 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
     GRAPHICS::Triangle triangle;
     triangle.Vertices =
     {
-        MATH::Vector3f(0.0f, 1.0f, 0.0f), // top
-        MATH::Vector3f(-1.0f, -1.0f, 0.0f), // left
-        MATH::Vector3f(1.0f, -1.0f, 0.0f) // right
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 1.0f, 0.0f) }, // top
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-1.0f, -1.0f, 0.0f) }, // left
+        GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(1.0f, -1.0f, 0.0f) } // right
     };
 
     // DEFINE THE DIFFERENT ROTATION ANGLES AND EXPECTED TRIANGLES.
@@ -1110,8 +1110,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -1120,8 +1120,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -1130,8 +1130,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -1140,8 +1140,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(0.0f, -1.0f, 1.0f),
-                    MATH::Vector3f(0.0f, -1.0f, -1.0f),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(0.0f, -1.0f, 1.0f) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(0.0f, -1.0f, -1.0f) },
                 })
         },
         {
@@ -1150,8 +1150,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -1160,8 +1160,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -1170,8 +1170,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -1180,8 +1180,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(1.0f, -1.0f, 0.0f),
-                    MATH::Vector3f(-1.0f, -1.0f, 0.0f),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(1.0f, -1.0f, 0.0f) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-1.0f, -1.0f, 0.0f) },
                 })
         },
         {
@@ -1190,8 +1190,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -1200,8 +1200,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -1210,8 +1210,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -1220,8 +1220,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(0.0f, -1.0f, -1.0f),
-                    MATH::Vector3f(0.0f, -1.0f, 1.0f),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(0.0f, -1.0f, -1.0f) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(0.0f, -1.0f, 1.0f) },
                 })
         },
         {
@@ -1230,8 +1230,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -1240,8 +1240,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -1250,8 +1250,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -1266,8 +1266,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -1276,8 +1276,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -1286,8 +1286,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -1296,8 +1296,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(0.0f, -1.0f, -1.0f),
-                    MATH::Vector3f(0.0f, -1.0f, 1.0f),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(0.0f, -1.0f, -1.0f) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(0.0f, -1.0f, 1.0f) },
                 })
         },
         {
@@ -1306,8 +1306,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -1316,8 +1316,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -1326,8 +1326,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -1336,8 +1336,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(1.0f, -1.0f, 0.0f),
-                    MATH::Vector3f(-1.0f, -1.0f, 0.0f),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(1.0f, -1.0f, 0.0f) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-1.0f, -1.0f, 0.0f) },
                 })
         },
         {
@@ -1346,8 +1346,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -1356,8 +1356,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -1366,8 +1366,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -1376,8 +1376,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(0.0f, -1.0f, 1.0f),
-                    MATH::Vector3f(0.0f, -1.0f, -1.0f),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -1.0f, 1.0f) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -1.0f, -1.0f) },
                 })
         },
         {
@@ -1386,8 +1386,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_60_DEGREES, -1.0f, ONE_ROTATED_30_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_60_DEGREES, -1.0f, -ONE_ROTATED_30_DEGREES) },
                 })
         },
         {
@@ -1396,8 +1396,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES),
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(-ONE_ROTATED_45_DEGREES, -1.0f, ONE_ROTATED_45_DEGREES) },
+                    GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(ONE_ROTATED_45_DEGREES, -1.0f, -ONE_ROTATED_45_DEGREES) },
                 })
         },
         {
@@ -1406,8 +1406,8 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
-                    MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES),
-                    MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES),
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(-ONE_ROTATED_30_DEGREES, -1.0f, ONE_ROTATED_60_DEGREES) },
+                    GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(ONE_ROTATED_30_DEGREES, -1.0f, -ONE_ROTATED_60_DEGREES) },
                 })
         },
         {
@@ -1437,14 +1437,14 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         MATH::Matrix4x4f world_transform = test_object_3D.WorldTransform();
         for (const auto& vertex : triangle.Vertices)
         {
-            MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(vertex);
+            MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(vertex.Position);
             MATH::Vector4f world_vertex = world_transform * homogeneous_vertex;
             world_vertices.push_back(world_vertex);
         }
 
         // VERIFY THE TRANSFORMATION OF THE 3D OBJECT.
         constexpr unsigned int TOP_VERTEX_INDEX = 0;
-        const MATH::Vector4f EXPECTED_TOP_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[TOP_VERTEX_INDEX]);
+        const MATH::Vector4f EXPECTED_TOP_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[TOP_VERTEX_INDEX].Position);
         const MATH::Vector4f& actual_top_world_vertex = world_vertices[0];
         // Due to numerical precision issues, the margin is modified.
         constexpr float APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN = 0.0001f;
@@ -1454,7 +1454,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         REQUIRE(EXPECTED_TOP_WORLD_VERTEX.W == Approx(actual_top_world_vertex.W));
 
         constexpr unsigned int LEFT_VERTEX_INDEX = 1;
-        const MATH::Vector4f EXPECTED_LEFT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[LEFT_VERTEX_INDEX]);
+        const MATH::Vector4f EXPECTED_LEFT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[LEFT_VERTEX_INDEX].Position);
         const MATH::Vector4f& actual_left_world_vertex = world_vertices[1];
         REQUIRE(EXPECTED_LEFT_WORLD_VERTEX.X == Approx(actual_left_world_vertex.X).margin(APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN));
         REQUIRE(EXPECTED_LEFT_WORLD_VERTEX.Y == Approx(actual_left_world_vertex.Y));
@@ -1462,7 +1462,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         REQUIRE(EXPECTED_LEFT_WORLD_VERTEX.W == Approx(actual_left_world_vertex.W));
 
         constexpr unsigned int RIGHT_VERTEX_INDEX = 2;
-        const MATH::Vector4f EXPECTED_RIGHT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[RIGHT_VERTEX_INDEX]);;
+        const MATH::Vector4f EXPECTED_RIGHT_WORLD_VERTEX = MATH::Vector4f::HomogeneousPositionVector(expected_triangle.Vertices[RIGHT_VERTEX_INDEX].Position);
         const MATH::Vector4f& actual_right_world_vertex = world_vertices[2];
         REQUIRE(EXPECTED_RIGHT_WORLD_VERTEX.X == Approx(actual_right_world_vertex.X).margin(APPROXIMATION_ALLOWED_ABSOLUTE_MARGIN));
         REQUIRE(EXPECTED_RIGHT_WORLD_VERTEX.Y == Approx(actual_right_world_vertex.Y));

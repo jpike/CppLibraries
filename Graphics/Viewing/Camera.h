@@ -2,8 +2,8 @@
 
 #include <limits>
 #include "Graphics/Images/Bitmap.h"
-#include "Graphics/ProjectionType.h"
 #include "Graphics/RayTracing/Ray.h"
+#include "Graphics/Viewing/ProjectionType.h"
 #include "Graphics/Viewing/ViewingPlane.h"
 #include "Math/Angle.h"
 #include "Math/CoordinateFrame.h"

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace GRAPHICS
+namespace GRAPHICS::VIEWING
 {
     /// The different type of projections that can be used for cameras.
     enum class ProjectionType

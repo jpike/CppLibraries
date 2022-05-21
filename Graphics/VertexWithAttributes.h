@@ -6,6 +6,9 @@
 #if __has_include(<bgfx/bgfx.h>)
 #include <bgfx/bgfx.h>
 #endif
+#include "Graphics/Color.h"
+#include "Math/Vector2.h"
+#include "Math/Vector3.h"
 
 namespace GRAPHICS
 {
@@ -20,17 +23,11 @@ namespace GRAPHICS
         #endif
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
-        /// The X position of the vertex.
-        float X = 0.0f;
-        /// The Y position of the vertex.
-        float Y = 0.0f;
-        /// The Z position of the vertex.
-        float Z = 0.0f;
-        /// The texture U (horiziontal) coordinate.
-        float TextureU = 0.0f;
-        /// The texture V (vertical) coordinate.
-        float TextureV = 0.0f;
-        /// The color in a packed ARGB format (8 bits per color component).
-        uint32_t ColorAlphaRedGreenBlue = 0;
+        /// The position of the vertex.
+        MATH::Vector3f Position = MATH::Vector3f(0.0f, 0.0f, 0.0f);
+        /// Any texture coordinates of the vertex.
+        MATH::Vector2f TextureCoordinates = MATH::Vector2f(0.0f, 0.0f);
+        /// The color of the vertex.
+        Color Color = GRAPHICS::Color::WHITE;
     };
 }

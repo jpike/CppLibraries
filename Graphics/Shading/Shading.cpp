@@ -6,7 +6,6 @@ namespace GRAPHICS::SHADING
     /// Computes shading for a vertex.
     /// @param[in]  world_vertex - The world space vertex for which to compute lighting.
     /// @param[in]  unit_vertex_normal - The unit surface normal for the vertex.
-    /// @param[in]  base_vertex_color - The base color of the vertex.
     /// @param[in]  material - The material for the vertex.
     /// @param[in]  viewing_world_position - The world position from where the vertex is being viewed.
     /// @param[in]  lights - The lights potentially shining on the vertex.
@@ -16,9 +15,8 @@ namespace GRAPHICS::SHADING
     ///     there are no lights in the scene.
     /// @return The computed shading for the vertex.
     Color Shading::Compute(
-        const MATH::Vector3f& world_vertex,
+        const VertexWithAttributes& world_vertex,
         const MATH::Vector3f& unit_vertex_normal,
-        const Color& base_vertex_color,
         const Material& material,
         const MATH::Vector3f& viewing_world_position,
         const std::optional<std::vector<LIGHTING::Light>>& lights)
@@ -28,7 +26,7 @@ namespace GRAPHICS::SHADING
         if (lights)
         {
             light_color = LIGHTING::Lighting::Compute(
-                world_vertex,
+                world_vertex.Position,
                 unit_vertex_normal,
                 material,
                 viewing_world_position,
@@ -36,7 +34,7 @@ namespace GRAPHICS::SHADING
         }
 
         // COMBINE LIGHTING WITH THE BASE VERTEX COLOR.
-        Color final_vertex_color = Color::ComponentMultiplyRedGreenBlue(base_vertex_color, light_color);
+        Color final_vertex_color = Color::ComponentMultiplyRedGreenBlue(world_vertex.Color, light_color);
         final_vertex_color.Clamp();
         return final_vertex_color;
     }

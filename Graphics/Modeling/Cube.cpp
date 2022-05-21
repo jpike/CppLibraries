@@ -9,16 +9,17 @@ namespace GRAPHICS::MODELING
     Object3D Cube::Create(const std::shared_ptr<GRAPHICS::Material>& material)
     {
         // DEFINE THE VERTICES OF THE CUBE.
-        std::vector<MATH::Vector3f> vertices =
+        std::vector<VertexWithAttributes> vertices =
         {
-            MATH::Vector3f(0.5f, 0.5f, 0.5f),
-            MATH::Vector3f(-0.5f, 0.5f, 0.5f),
-            MATH::Vector3f(-0.5f, 0.5f, -0.5f),
-            MATH::Vector3f(0.5f, 0.5f, -0.5f),
-            MATH::Vector3f(0.5f, -0.5f, 0.5f),
-            MATH::Vector3f(-0.5f, -0.5f, 0.5),
-            MATH::Vector3f(-0.5f, -0.5f, -0.5f),
-            MATH::Vector3f(0.5f, -0.5, -0.5f),
+            /// @todo   What to do about other vertex attributes?
+            VertexWithAttributes { .Position = MATH::Vector3f(0.5f, 0.5f, 0.5f) },
+            VertexWithAttributes { .Position = MATH::Vector3f(-0.5f, 0.5f, 0.5f) },
+            VertexWithAttributes { .Position = MATH::Vector3f(-0.5f, 0.5f, -0.5f) },
+            VertexWithAttributes { .Position = MATH::Vector3f(0.5f, 0.5f, -0.5f) },
+            VertexWithAttributes { .Position = MATH::Vector3f(0.5f, -0.5f, 0.5f) },
+            VertexWithAttributes { .Position = MATH::Vector3f(-0.5f, -0.5f, 0.5) },
+            VertexWithAttributes { .Position = MATH::Vector3f(-0.5f, -0.5f, -0.5f) },
+            VertexWithAttributes { .Position = MATH::Vector3f(0.5f, -0.5, -0.5f) },
         };
 
         // DEFINE THE TRIANGLES FOR THE FACES.

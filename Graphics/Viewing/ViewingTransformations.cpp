@@ -43,12 +43,10 @@ namespace GRAPHICS::VIEWING
     std::optional<ScreenSpaceTriangle> ViewingTransformations::Apply(const Triangle& world_triangle) const
     {
         // CREATE THE INITIAL SCREEN SPACE TRIANGLE.
-        // Vertex colors will be populated later.
         ScreenSpaceTriangle screen_space_triangle =
         {
             .Material = world_triangle.Material,
-            .VertexPositions = world_triangle.Vertices,
-            .VertexColors = std::array<GRAPHICS::Color, ScreenSpaceTriangle::VERTEX_COUNT>()
+            .Vertices = world_triangle.Vertices,
         };
 
         // TRANSFORM EACH VERTEX.
@@ -56,7 +54,7 @@ namespace GRAPHICS::VIEWING
         for (std::size_t vertex_index = 0; vertex_index < triangle_vertex_count; ++vertex_index)
         {
             // TRANSFORM THE WORLD VERTEX INTO VIEW OF THE CAMERA.
-            const MATH::Vector3f& world_vertex = world_triangle.Vertices[vertex_index];
+            const MATH::Vector3f& world_vertex = world_triangle.Vertices[vertex_index].Position;
             MATH::Vector4f world_homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(world_vertex);
             MATH::Vector4f view_vertex = CameraViewTransform * world_homogeneous_vertex;
 
@@ -80,7 +78,7 @@ namespace GRAPHICS::VIEWING
 
             // TRANSFORM THE VERTEX INTO SCREEN SPACE.
             MATH::Vector4f screen_space_vertex = ScreenTransform * transformed_vertex;
-            screen_space_triangle.VertexPositions[vertex_index] = MATH::Vector3f(screen_space_vertex.X, screen_space_vertex.Y, screen_space_vertex.Z);
+            screen_space_triangle.Vertices[vertex_index].Position = MATH::Vector3f(screen_space_vertex.X, screen_space_vertex.Y, screen_space_vertex.Z);
         }
 
         // RETURN THE SCREEN SPACE TRIANGLE.

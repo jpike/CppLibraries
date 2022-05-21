@@ -202,9 +202,14 @@ namespace GRAPHICS::MODELING
         for (const std::tuple<std::size_t, std::size_t, std::size_t>& face : face_vertex_indices)
         {
             // GET THE VERTICES.
-            MATH::Vector3f first_vertex = vertices.at(std::get<0>(face));
-            MATH::Vector3f second_vertex = vertices.at(std::get<1>(face));
-            MATH::Vector3f third_vertex = vertices.at(std::get<2>(face));
+            MATH::Vector3f first_vertex_position = vertices.at(std::get<0>(face));
+            MATH::Vector3f second_vertex_position = vertices.at(std::get<1>(face));
+            MATH::Vector3f third_vertex_position = vertices.at(std::get<2>(face));
+
+            /// @todo   Other vertex attributes?
+            VertexWithAttributes first_vertex = { .Position = first_vertex_position };
+            VertexWithAttributes second_vertex = { .Position = second_vertex_position };
+            VertexWithAttributes third_vertex = { .Position = third_vertex_position };
 
             // ADD THE CURRENT TRIANGLE.
             /// @todo   How to handle materials?  Need some kind of permanent storage.
@@ -506,14 +511,19 @@ namespace GRAPHICS::MODELING
                 MATH::Vector2f& third_vertex_texture_coordinates = vertex_texture_coordinates.at(third_vertex_texture_coordinate_index);
                 MATH::Vector3f& third_vertex_normal = vertex_normals.at(third_vertex_normal_index);
 
+                VertexWithAttributes first_vertex = { .Position = first_vertex_position, .TextureCoordinates = first_vertex_texture_coordinates };
+                VertexWithAttributes second_vertex = { .Position = second_vertex_position, .TextureCoordinates = second_vertex_texture_coordinates };
+                VertexWithAttributes third_vertex = { .Position = third_vertex_position, .TextureCoordinates = third_vertex_texture_coordinates };
+
                 GRAPHICS::Triangle triangle;
                 triangle.Vertices =
                 {
-                    first_vertex_position,
-                    second_vertex_position,
-                    third_vertex_position
+                    first_vertex,
+                    second_vertex,
+                    third_vertex
                 };
 
+                /// @todo
                 current_mesh->Material.VertexColors.push_back(GRAPHICS::Color::WHITE);
                 current_mesh->Material.VertexColors.push_back(GRAPHICS::Color::WHITE);
                 current_mesh->Material.VertexColors.push_back(GRAPHICS::Color::WHITE);

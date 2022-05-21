@@ -44,10 +44,12 @@ namespace GRAPHICS::RAY_TRACING
                     // TRANSFORM EACH VERTEX OF THE TRIANGLE.
                     for (std::size_t vertex_index = 0; vertex_index < untransformed_triangle.Vertices.size(); ++vertex_index)
                     {
-                        const MATH::Vector3f& untransformed_vertex = untransformed_triangle.Vertices[vertex_index];
-                        MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(untransformed_vertex);
+                        const VertexWithAttributes& untransformed_vertex = untransformed_triangle.Vertices[vertex_index];
+                        MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(untransformed_vertex.Position);
                         MATH::Vector4f transformed_vertex = world_transform * homogeneous_vertex;
-                        transformed_triangle.Vertices[vertex_index] = MATH::Vector3f(transformed_vertex.X, transformed_vertex.Y, transformed_vertex.Z);
+                        /// @todo   Clearn this up a bit?
+                        transformed_triangle.Vertices[vertex_index] = untransformed_vertex;
+                        transformed_triangle.Vertices[vertex_index].Position = MATH::Vector3f(transformed_vertex.X, transformed_vertex.Y, transformed_vertex.Z);
                     }
 
                     // STORE THE TRANSFORMED TRIANGLE.

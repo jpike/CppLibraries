@@ -10,6 +10,7 @@
 #include "Graphics/Lighting/Light.h"
 #include "Graphics/Scene.h"
 #include "Graphics/ScreenSpaceTriangle.h"
+#include "Graphics/VertexWithAttributes.h"
 #include "Graphics/Viewing/Camera.h"
 
 namespace GRAPHICS::CPU_RENDERING
@@ -50,10 +51,8 @@ namespace GRAPHICS::CPU_RENDERING
             IMAGES::Bitmap& render_target,
             DepthBuffer* depth_buffer);
         static void DrawLineWithInterpolatedColor(
-            const MATH::Vector3f& start_vertex,
-            const MATH::Vector3f& end_vertex,
-            const Color& start_color,
-            const Color& end_color,
+            const VertexWithAttributes& start_vertex,
+            const VertexWithAttributes& end_vertex,
             IMAGES::Bitmap& render_target,
             DepthBuffer* depth_buffer);
     };

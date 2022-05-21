@@ -2,9 +2,9 @@
 
 #include <optional>
 #include <vector>
-#include "Graphics/Color.h"
 #include "Graphics/Lighting/Light.h"
 #include "Graphics/Material.h"
+#include "Graphics/VertexWithAttributes.h"
 #include "Math/Vector3.h"
 
 namespace GRAPHICS::SHADING
@@ -14,9 +14,8 @@ namespace GRAPHICS::SHADING
     {
     public:
         static Color Compute(
-            const MATH::Vector3f& world_vertex,
+            const VertexWithAttributes& world_vertex,
             const MATH::Vector3f& unit_vertex_normal,
-            const Color& base_vertex_color,
             const Material& material,
             const MATH::Vector3f& viewing_world_position,
             const std::optional<std::vector<LIGHTING::Light>>& lights);
