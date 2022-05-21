@@ -3,7 +3,7 @@
 #include <optional>
 #include <vector>
 #include "Graphics/Color.h"
-#include "Graphics/Light.h"
+#include "Graphics/Lighting/Light.h"
 #include "Graphics/Object3D.h"
 
 namespace GRAPHICS
@@ -22,6 +22,6 @@ namespace GRAPHICS
         /// (shading comes directly from vertex colors).
         /// A populated optional with an empty list means that lighting should be
         /// computed for the scene as if no lights existed.
-        std::optional<std::vector<Light>> PointLights = std::nullopt;
+        std::optional<std::vector<LIGHTING::Light>> PointLights = std::nullopt;
     };
 }

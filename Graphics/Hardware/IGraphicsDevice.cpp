@@ -1,6 +1,6 @@
 #include "ErrorHandling/Asserts.h"
 #include "Graphics/Bgfx/BgfxGraphicsDevice.h"
-#include "Graphics/CpuRendering/CpuRasterizationGraphicsDevice.h"
+#include "Graphics/CpuRendering/CpuGraphicsDevice.h"
 #include "Graphics/Hardware/IGraphicsDevice.h"
 #include "Windowing/SdlWindow.h"
 
@@ -16,8 +16,8 @@ namespace GRAPHICS::HARDWARE
         if (IGraphicsDevice::CPU & device_type)
         {
             /// @todo   Support ray-tracing - ideally in the same class?
-            std::unique_ptr<GRAPHICS::CPU_RENDERING::CpuRasterizationGraphicsDevice> cpu_rasterization_graphics_device = GRAPHICS::CPU_RENDERING::CpuRasterizationGraphicsDevice::Create(window);
-            return cpu_rasterization_graphics_device;
+            std::unique_ptr<GRAPHICS::CPU_RENDERING::CpuGraphicsDevice> cpu_graphics_device = GRAPHICS::CPU_RENDERING::CpuGraphicsDevice::ConnectTo(window);
+            return cpu_graphics_device;
         }
         else if (IGraphicsDevice::BGFX & device_type)
         {

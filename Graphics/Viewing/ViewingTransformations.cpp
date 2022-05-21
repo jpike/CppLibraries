@@ -1,6 +1,6 @@
-#include "Graphics/ViewingTransformations.h"
+#include "Graphics/Viewing/ViewingTransformations.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::VIEWING
 {
     /// Creates viewing transformations for the specified camera, without a screen transform.
     /// @param[in]  camera - The camera used for viewing.

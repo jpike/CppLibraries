@@ -1,6 +1,6 @@
 #pragma once
 
-namespace GRAPHICS
+namespace GRAPHICS::VIEWING
 {
     /// A plane onto which an image is projected when viewed by a camera.
     /// The viewing plane is always centerd directly in front of the camera.

@@ -19,7 +19,7 @@ TEST_CASE("World transform can translate a vector.", "[Object3D][WorldTransform]
     };
 
     GRAPHICS::Object3D test_object_3D;
-    test_object_3D.Triangles = { triangle };
+    test_object_3D.Model.MeshesByName["Test"].Triangles = {triangle};
     test_object_3D.WorldPosition = MATH::Vector3f(1.0f, 3.0f, -5.0f);
 
     // TRANSFORM THE 3D OBJECT TO WORLD SPACE.
@@ -662,7 +662,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
 
         // CREATE A 3D OBJECT.
         GRAPHICS::Object3D test_object_3D;
-        test_object_3D.Triangles = { triangle };
+        test_object_3D.Model.MeshesByName["Test"].Triangles = { triangle };
         test_object_3D.RotationInRadians = MATH::Vector3<MATH::Angle<float>::Radians>(
             MATH::Angle<float>::Radians(0.0f),
             MATH::Angle<float>::Radians(0.0f),
@@ -1044,7 +1044,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
 
         // CREATE A 3D OBJECT.
         GRAPHICS::Object3D test_object_3D;
-        test_object_3D.Triangles = { triangle };
+        test_object_3D.Model.MeshesByName["Test"].Triangles = { triangle };
         test_object_3D.RotationInRadians = MATH::Vector3<MATH::Angle<float>::Radians>(
             MATH::Angle<float>::DegreesToRadians(MATH::Angle<float>::Degrees(rotation_angle_in_degrees)),
             MATH::Angle<float>::Radians(0.0f),
@@ -1426,7 +1426,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
 
         // CREATE A 3D OBJECT.
         GRAPHICS::Object3D test_object_3D;
-        test_object_3D.Triangles = { triangle };
+        test_object_3D.Model.MeshesByName["Test"].Triangles = { triangle };
         test_object_3D.RotationInRadians = MATH::Vector3<MATH::Angle<float>::Radians>(
             MATH::Angle<float>::Radians(0.0f),
             MATH::Angle<float>::DegreesToRadians(MATH::Angle<float>::Degrees(rotation_angle_in_degrees)),

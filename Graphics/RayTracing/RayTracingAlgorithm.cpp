@@ -3,18 +3,17 @@
 #include <future>
 #include <thread>
 #include <vector>
+#include "Graphics/Modeling/Mesh.h"
 #include "Graphics/RayTracing/RayTracingAlgorithm.h"
 #include "Math/Angle.h"
 
-namespace GRAPHICS
-{
-namespace RAY_TRACING
+namespace GRAPHICS::RAY_TRACING
 {
     /// Renders a scene to the specified render target.
     /// @param[in]  scene - The scene to render.
     /// @param[in]  camera - The camera to use to view the scene.
     /// @param[in,out]  render_target - The target to render to.
-    void RayTracingAlgorithm::Render(const Scene& scene, const Camera& camera, GRAPHICS::IMAGES::Bitmap& render_target)
+    void RayTracingAlgorithm::Render(const Scene& scene, const VIEWING::Camera& camera, GRAPHICS::IMAGES::Bitmap& render_target)
     {
         // TRANSFORM OBJECTS IN THE SCENE INTO WORLD SPACE.
         Scene scene_with_world_space_objects;
@@ -28,25 +27,35 @@ namespace RAY_TRACING
             transformed_object.WorldPosition = untransformed_object.WorldPosition;
             transformed_object.RotationInRadians = untransformed_object.RotationInRadians;
 
-            // TRANSFORM ALL TRIANGLES IN THE OBJECT.
+            // TRANSFORM ALL MESHES IN THE OBJECT.
             MATH::Matrix4x4f world_transform = untransformed_object.WorldTransform();
-            for (const Triangle& untransformed_triangle : untransformed_object.Triangles)
+            for (const auto& [mesh_name, untransformed_mesh] : untransformed_object.Model.MeshesByName)
             {
-                // INITIALIZE THE TRANSFORMED VERSION OF THE TRIANGLE.
-                Triangle transformed_triangle;
-                transformed_triangle.Material = untransformed_triangle.Material;
+                // CREATE AN EMPTY MESH TO BE POPULATED WITH TRANSFORMED INFORMATION.
+                MODELING::Mesh transformed_mesh = { .Name = mesh_name };
 
-                // TRANSFORM EACH VERTEX OF THE TRIANGLE.
-                for (std::size_t vertex_index = 0; vertex_index < untransformed_triangle.Vertices.size(); ++vertex_index)
+                // TRANSFORM ALL TRIANGLES IN THE MESH.
+                for (const Triangle& untransformed_triangle : untransformed_mesh.Triangles)
                 {
-                    const MATH::Vector3f& untransformed_vertex = untransformed_triangle.Vertices[vertex_index];
-                    MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(untransformed_vertex);
-                    MATH::Vector4f transformed_vertex = world_transform * homogeneous_vertex;
-                    transformed_triangle.Vertices[vertex_index] = MATH::Vector3f(transformed_vertex.X, transformed_vertex.Y, transformed_vertex.Z);
+                    // INITIALIZE THE TRANSFORMED VERSION OF THE TRIANGLE.
+                    Triangle transformed_triangle;
+                    transformed_triangle.Material = untransformed_triangle.Material;
+
+                    // TRANSFORM EACH VERTEX OF THE TRIANGLE.
+                    for (std::size_t vertex_index = 0; vertex_index < untransformed_triangle.Vertices.size(); ++vertex_index)
+                    {
+                        const MATH::Vector3f& untransformed_vertex = untransformed_triangle.Vertices[vertex_index];
+                        MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(untransformed_vertex);
+                        MATH::Vector4f transformed_vertex = world_transform * homogeneous_vertex;
+                        transformed_triangle.Vertices[vertex_index] = MATH::Vector3f(transformed_vertex.X, transformed_vertex.Y, transformed_vertex.Z);
+                    }
+
+                    // STORE THE TRANSFORMED TRIANGLE.
+                    transformed_mesh.Triangles.push_back(transformed_triangle);
                 }
 
-                // STORE THE TRANSFORMED TRIANGLE.
-                transformed_object.Triangles.push_back(transformed_triangle);
+                // STORE THE TRANSFORMED MESH.
+                transformed_object.Model.MeshesByName[mesh_name] = transformed_mesh;
             }
 
             // STORE THE TRANSFORMED OBJECT.
@@ -100,7 +109,7 @@ namespace RAY_TRACING
     /// @todo
     void RayTracingAlgorithm::RenderRows(
         const Scene& scene_with_world_space_objects,
-        const Camera& camera,
+        const VIEWING::Camera& camera,
         const unsigned int pixel_start_y,
         const unsigned int pixel_end_y,
         GRAPHICS::IMAGES::Bitmap& render_target) const
@@ -164,7 +173,7 @@ namespace RAY_TRACING
         MATH::Vector3f unit_surface_normal = intersection.Triangle->SurfaceNormal();
         if (scene.PointLights)
         {
-            for (const Light& light : (*scene.PointLights))
+            for (const LIGHTING::Light& light : (*scene.PointLights))
             {
                 // CAST A RAY OUT TO COMPUTE SHADOWS IF ENABLED.
                 // To simplify later parts of the algorithm, a shadow factor of 1 (no shadowing)
@@ -218,7 +227,7 @@ namespace RAY_TRACING
                     // An object tangent to the light direction or facing away receives no illumination.
                     // In-between, the amount of illumination is proportional to the cosine of the angle between
                     // the light and surface normal (where the cosine can be computed via the dot product).
-                    const Light& light = scene.PointLights->at(light_index);
+                    const LIGHTING::Light& light = scene.PointLights->at(light_index);
                     MATH::Vector3f direction_from_point_to_light = light.PointLightDirectionFrom(intersection_point);
                     MATH::Vector3f unit_direction_from_point_to_light = MATH::Vector3f::Normalize(direction_from_point_to_light);
                     constexpr float NO_ILLUMINATION = 0.0f;
@@ -250,7 +259,7 @@ namespace RAY_TRACING
                 for (std::size_t light_index = 0; light_index < scene.PointLights->size(); ++light_index)
                 {
                     // COMPUTE THE AMOUNT OF ILLUMINATION FROM THE CURRENT LIGHT.
-                    const Light& light = scene.PointLights->at(light_index);
+                    const LIGHTING::Light& light = scene.PointLights->at(light_index);
                     MATH::Vector3f direction_from_point_to_light = light.PointLightDirectionFrom(intersection_point);
                     MATH::Vector3f unit_direction_from_point_to_light = MATH::Vector3f::Normalize(direction_from_point_to_light);
                     constexpr float NO_ILLUMINATION = 0.0f;
@@ -344,44 +353,48 @@ namespace RAY_TRACING
         std::optional<RayObjectIntersection> closest_intersection = std::nullopt;
         for (const auto& current_object : scene.Objects)
         {
-            /// @todo   Convert things to operate on triangles as opposed to "objects"?
-            for (const auto& current_triangle : current_object.Triangles)
+            // SEARCH FOR INTERSECTIONS IN ALL MESHES OF THE OBJECT.
+            for (const auto& [mesh_name, mesh] : current_object.Model.MeshesByName)
             {
-                // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
-                bool ignore_current_object = (ignored_object == &current_triangle);
-                if (ignore_current_object)
+                // SEARCH FOR INTERSECTIONS IN ALL TRIANGLES OF THE CURRENT MESH.
+                /// @todo   Convert things to operate on triangles as opposed to "objects"?
+                for (const auto& current_triangle : mesh.Triangles)
                 {
-                    continue;
-                }
-
-                // CHECK IF THE RAY INTERSECTS THE CURRENT OBJECT.
-                std::optional<RayObjectIntersection> intersection = current_triangle.Intersect(ray);
-                bool ray_hit_object = (std::nullopt != intersection);
-                if (!ray_hit_object)
-                {
-                    // CONTINUE SEEING IF OTHER OBJECTS ARE HIT.
-                    continue;
-                }
-
-                // UPDATE THE CLOSEST INTERSECTION APPROPRIATELY.
-                if (closest_intersection)
-                {
-                    // ONLY OVERWRITE THE CLOSEST INTERSECTION IF THE NEWEST ONE IS CLOSER.
-                    bool new_intersection_closer = (intersection->DistanceFromRayToObject < closest_intersection->DistanceFromRayToObject);
-                    if (new_intersection_closer)
+                    // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
+                    bool ignore_current_object = (ignored_object == &current_triangle);
+                    if (ignore_current_object)
                     {
+                        continue;
+                    }
+
+                    // CHECK IF THE RAY INTERSECTS THE CURRENT OBJECT.
+                    std::optional<RayObjectIntersection> intersection = current_triangle.Intersect(ray);
+                    bool ray_hit_object = (std::nullopt != intersection);
+                    if (!ray_hit_object)
+                    {
+                        // CONTINUE SEEING IF OTHER OBJECTS ARE HIT.
+                        continue;
+                    }
+
+                    // UPDATE THE CLOSEST INTERSECTION APPROPRIATELY.
+                    if (closest_intersection)
+                    {
+                        // ONLY OVERWRITE THE CLOSEST INTERSECTION IF THE NEWEST ONE IS CLOSER.
+                        bool new_intersection_closer = (intersection->DistanceFromRayToObject < closest_intersection->DistanceFromRayToObject);
+                        if (new_intersection_closer)
+                        {
+                            closest_intersection = intersection;
+                        }
+                    }
+                    else
+                    {
+                        // SET THIS FIRST INTERSECTION AS THE CLOSEST.
                         closest_intersection = intersection;
                     }
-                }
-                else
-                {
-                    // SET THIS FIRST INTERSECTION AS THE CLOSEST.
-                    closest_intersection = intersection;
                 }
             }
         }
 
         return closest_intersection;
     }
-}
 }

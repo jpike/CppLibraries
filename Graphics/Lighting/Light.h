@@ -3,7 +3,7 @@
 #include "Graphics/Color.h"
 #include "Math/Vector3.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::LIGHTING
 {
     /// The type of light.
     enum class LightType

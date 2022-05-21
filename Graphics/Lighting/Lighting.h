@@ -2,11 +2,11 @@
 
 #include <vector>
 #include "Graphics/Color.h"
-#include "Graphics/Light.h"
+#include "Graphics/Lighting/Light.h"
 #include "Graphics/Material.h"
 #include "Math/Vector3.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::LIGHTING
 {
     /// Encapsulates domain knowledge for lighting algorithms.
     class Lighting

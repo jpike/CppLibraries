@@ -1,13 +1,13 @@
 #pragma once
 
 #include <optional>
-#include "Graphics/Camera.h"
 #include "Graphics/Images/Bitmap.h"
 #include "Graphics/ScreenSpaceTriangle.h"
 #include "Graphics/Triangle.h"
+#include "Graphics/Viewing/Camera.h"
 #include "Math/Matrix4x4.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::VIEWING
 {
     /// The transformations needed to view geometry in 3D space on a 2D plane.
     /// This class encapsulates the domain algorithms for these transformations.

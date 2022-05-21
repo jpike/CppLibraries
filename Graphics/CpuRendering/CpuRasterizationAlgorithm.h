@@ -4,34 +4,34 @@
 
 #include <optional>
 #include <vector>
-#include "Graphics/Camera.h"
 #include "Graphics/DepthBuffer.h"
 #include "Graphics/Gui/Text.h"
 #include "Graphics/Images/Bitmap.h"
-#include "Graphics/Light.h"
+#include "Graphics/Lighting/Light.h"
 #include "Graphics/Scene.h"
 #include "Graphics/ScreenSpaceTriangle.h"
+#include "Graphics/Viewing/Camera.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::CPU_RENDERING
 {
     /// A software (non-graphics hardware) rasterization algorithm
     /// (http://en.wikipedia.org/wiki/Rasterisation) for rendering.
     /// @todo   Alpha blending
-    class SoftwareRasterizationAlgorithm
+    class CpuRasterizationAlgorithm
     {
     public:
         static void Render(const GUI::Text& text, IMAGES::Bitmap& render_target);
 
         static void Render(
             const Scene& scene, 
-            const Camera& camera, 
+            const VIEWING::Camera& camera, 
             const bool cull_backfaces, 
             IMAGES::Bitmap& output_bitmap,
             DepthBuffer* depth_buffer);
         static void Render(
             const Object3D& object_3D, 
-            const std::optional<std::vector<Light>>& lights, 
-            const Camera& camera, 
+            const std::optional<std::vector<LIGHTING::Light>>& lights, 
+            const VIEWING::Camera& camera,
             const bool cull_backfaces, 
             IMAGES::Bitmap& output_bitmap,
             DepthBuffer* depth_buffer);

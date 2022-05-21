@@ -4,14 +4,15 @@
 #include "Graphics/Images/Bitmap.h"
 #include "Graphics/ProjectionType.h"
 #include "Graphics/RayTracing/Ray.h"
-#include "Graphics/ViewingPlane.h"
+#include "Graphics/Viewing/ViewingPlane.h"
 #include "Math/Angle.h"
 #include "Math/CoordinateFrame.h"
 #include "Math/Matrix4x4.h"
 #include "Math/Vector2.h"
 #include "Math/Vector3.h"
 
-namespace GRAPHICS
+/// Holds code related to viewing in computer graphics.
+namespace GRAPHICS::VIEWING
 {
     /// A camera defining the portion of a 3D scene that is currently viewable.
     class Camera
@@ -59,6 +60,6 @@ namespace GRAPHICS
         /// but this can be changed later if necessary.
         MATH::Angle<float>::Degrees FieldOfView = MATH::Angle<float>::Degrees(90.0f);
         /// The viewing plane onto which the image is projected.
-        GRAPHICS::ViewingPlane ViewingPlane = GRAPHICS::ViewingPlane();
+        ViewingPlane ViewingPlane = {};
     };
 }

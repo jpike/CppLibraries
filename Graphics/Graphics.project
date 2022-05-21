@@ -1,24 +1,38 @@
 // To avoid annoyances with Windows min/max #defines.
 #define NOMINMAX
 
+#include "Graphics/CpuRendering/CpuGraphicsDevice.cpp"
+#include "Graphics/CpuRendering/CpuRasterizationAlgorithm.cpp"
+
 #include "Graphics/Gui/Font.cpp"
 #include "Graphics/Gui/Glyph.cpp"
 
+#include "Graphics/Hardware/IGraphicsDevice.cpp"
+
+#include "Graphics/Images/Bitmap.cpp"
+
+#include "Graphics/Lighting/Light.cpp"
+#include "Graphics/Lighting/Lighting.cpp"
+
+#include "Graphics/Modeling/Cube.cpp"
 #include "Graphics/Modeling/WavefrontMaterial.cpp"
 #include "Graphics/Modeling/WavefrontObjectModel.cpp"
 
 #include "Graphics/OpenGL/OpenGLGraphicsDevice.cpp"
 
-#include "Graphics/Camera.cpp"
+#include "Graphics/RayTracing/Ray.cpp"
+#include "Graphics/RayTracing/RayObjectIntersection.cpp"
+#include "Graphics/RayTracing/RayTracingAlgorithm.cpp"
+
+#include "Graphics/Shading/Shading.cpp"
+
+#include "Graphics/Viewing/Camera.cpp"
+#include "Graphics/Viewing/ViewingTransformations.cpp"
+
 #include "Graphics/Color.cpp"
-#include "Graphics/Cube.cpp"
 #include "Graphics/DepthBuffer.cpp"
 #include "Graphics/FrameTimer.cpp"
-#include "Graphics/Images/Bitmap.cpp"
-#include "Graphics/Light.cpp"
-#include "Graphics/Lighting.cpp"
+#include "Graphics/Material.cpp"
 #include "Graphics/Object3D.cpp"
-#include "Graphics/Shading.cpp"
-#include "Graphics/SoftwareRasterizationAlgorithm.cpp"
 #include "Graphics/Triangle.cpp"
-#include "Graphics/ViewingTransformations.cpp"
+#include "Graphics/VertexWithAttributes.cpp"

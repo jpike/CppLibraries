@@ -1,6 +1,6 @@
-#include "Graphics/Lighting.h"
+#include "Graphics/Lighting/Lighting.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::LIGHTING
 {
     /// Computes lighting for a vertex.
     /// @param[in]  world_vertex - The world space vertex for which to compute lighting.

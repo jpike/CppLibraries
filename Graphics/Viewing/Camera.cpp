@@ -1,7 +1,7 @@
 #include <cmath>
-#include "Graphics/Camera.h"
+#include "Graphics/Viewing/Camera.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::VIEWING
 {
     /// Creates an orthographic projection matrix.
     /// @param[in]  left_x_world_boundary - The left (x) world boundary of the

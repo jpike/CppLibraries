@@ -209,7 +209,7 @@ namespace GRAPHICS::MODELING
             // ADD THE CURRENT TRIANGLE.
             /// @todo   How to handle materials?  Need some kind of permanent storage.
             Triangle triangle(materials[0], { first_vertex, second_vertex, third_vertex });
-            object_3d.Triangles.push_back(triangle);
+            object_3d.Model.MeshesByName["DefaultMesh"].Triangles.push_back(triangle);
         }
 
         return object_3d;

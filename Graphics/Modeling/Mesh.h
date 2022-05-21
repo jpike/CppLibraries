@@ -10,9 +10,9 @@
 #endif
 
 #include "Graphics/Material.h"
-#include "Graphics/VertexWithAttributes.h"
+#include "Graphics/Triangle.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::MODELING
 {
     class Mesh
     {
@@ -21,8 +21,8 @@ namespace GRAPHICS
         std::string Name = "";
         /// True if the mesh should be rendered; false if not.
         bool Visible = true;
-        /// The vertices that make up this mesh.
-        std::vector<VertexWithAttributes> Vertices = {};
+        /// The triangles that make up this mesh, in the local coordinate space of the mesh.
+        std::vector<Triangle> Triangles = {};
 // This code is only compiled in if the bgfx library is available to allow
 // the larger graphics library to be used without bgfx.
 #if __has_include(<bgfx/bgfx.h>)

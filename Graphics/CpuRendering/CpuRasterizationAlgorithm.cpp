@@ -3,17 +3,17 @@
 // To avoid annoyances with Windows min/max #defines.
 #define NOMINMAX
 
-#include "Graphics/Shading.h"
-#include "Graphics/SoftwareRasterizationAlgorithm.h"
-#include "Graphics/ViewingTransformations.h"
+#include "Graphics/CpuRendering/CpuRasterizationAlgorithm.h"
+#include "Graphics/Shading/Shading.h"
+#include "Graphics/Viewing/ViewingTransformations.h"
 #include "Math/Number.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::CPU_RENDERING
 {
     /// Renders some text onto the render target.
     /// @param[in]  text - The text to render.
     /// @param[in,out]  render_target - The target to render to.
-    void SoftwareRasterizationAlgorithm::Render(const GUI::Text& text, IMAGES::Bitmap& render_target)
+    void CpuRasterizationAlgorithm::Render(const GUI::Text& text, IMAGES::Bitmap& render_target)
     {
         // MAKE SURE A FONT EXISTS.
         if (!text.Font)
@@ -56,9 +56,9 @@ namespace GRAPHICS
     /// @param[in]  cull_backfaces - True if backfaces should be culled; false otherwise.
     /// @param[in,out]  output_bitmap - The bitmap to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
-    void SoftwareRasterizationAlgorithm::Render(
+    void CpuRasterizationAlgorithm::Render(
         const Scene& scene, 
-        const Camera& camera, 
+        const VIEWING::Camera& camera,
         const bool cull_backfaces, 
         IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
@@ -83,10 +83,10 @@ namespace GRAPHICS
     /// @param[in]  camera - The camera to use to view the object.
     /// @param[in,out]  output_bitmap - The bitmap to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
-    void SoftwareRasterizationAlgorithm::Render(
+    void CpuRasterizationAlgorithm::Render(
         const Object3D& object_3D, 
-        const std::optional<std::vector<Light>>& lights, 
-        const Camera& camera, 
+        const std::optional<std::vector<LIGHTING::Light>>& lights,
+        const VIEWING::Camera& camera,
         const bool cull_backfaces, 
         IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
@@ -94,56 +94,60 @@ namespace GRAPHICS
         // GET RE-USED TRANSFORMATIONS.
         // This is done before the loop to avoid performance hits for repeatedly calculating these matrices.
         MATH::Matrix4x4f object_world_transform = object_3D.WorldTransform();
-        ViewingTransformations viewing_transformations(camera, output_bitmap);
+        VIEWING::ViewingTransformations viewing_transformations(camera, output_bitmap);
 
-        // RENDER EACH TRIANGLE OF THE OBJECT.
-        for (const auto& local_triangle : object_3D.Triangles)
+        // RENDER EACH MESH OF THE OBJECT.
+        for (const auto& [mesh_name, mesh] : object_3D.Model.MeshesByName)
         {
-            // TRANSFORM THE TRIANGLE INTO WORLD SPACE.
-            Triangle world_space_triangle = TransformLocalToWorld(local_triangle, object_world_transform);
-
-            // CULL BACKFACES IF APPLICABLE.
-            MATH::Vector3f unit_surface_normal = world_space_triangle.SurfaceNormal();
-            if (cull_backfaces)
+            // RENDER EACH TRIANGLE OF THE MESH.
+            for (const auto& local_triangle : mesh.Triangles)
             {
-                // If the surface normal is facing opposite of the camera's view direction (negative dot product),
-                // then the surface normal should be facing the camera.
-                MATH::Vector3f view_direction = -camera.CoordinateFrame.Forward;
-                float surface_normal_camera_view_direction_dot_product = MATH::Vector3f::DotProduct(unit_surface_normal, view_direction);
-                bool triangle_facing_toward_camera = (surface_normal_camera_view_direction_dot_product < 0.0f);
-                if (!triangle_facing_toward_camera)
+                // TRANSFORM THE TRIANGLE INTO WORLD SPACE.
+                Triangle world_space_triangle = TransformLocalToWorld(local_triangle, object_world_transform);
+
+                // CULL BACKFACES IF APPLICABLE.
+                MATH::Vector3f unit_surface_normal = world_space_triangle.SurfaceNormal();
+                if (cull_backfaces)
+                {
+                    // If the surface normal is facing opposite of the camera's view direction (negative dot product),
+                    // then the surface normal should be facing the camera.
+                    MATH::Vector3f view_direction = -camera.CoordinateFrame.Forward;
+                    float surface_normal_camera_view_direction_dot_product = MATH::Vector3f::DotProduct(unit_surface_normal, view_direction);
+                    bool triangle_facing_toward_camera = (surface_normal_camera_view_direction_dot_product < 0.0f);
+                    if (!triangle_facing_toward_camera)
+                    {
+                        continue;
+                    }
+                }
+
+                // TRANSFORM THE TRIANGLE FOR PROPER CAMERA VIEWING.
+                std::optional<ScreenSpaceTriangle> screen_space_triangle = viewing_transformations.Apply(world_space_triangle);
+                if (!screen_space_triangle)
                 {
                     continue;
                 }
+
+                // COMPUTE VERTEX COLORS.
+                for (std::size_t vertex_index = 0; vertex_index < Triangle::VERTEX_COUNT; ++vertex_index)
+                {
+                    // SHADE THE CURRENT VERTEX.
+                    const MATH::Vector3f& world_vertex = world_space_triangle.Vertices[vertex_index];
+                    const Color& base_vertex_color = screen_space_triangle->Material->VertexColors[vertex_index];
+
+                    Color final_vertex_color = SHADING::Shading::Compute(
+                        world_vertex,
+                        unit_surface_normal,
+                        base_vertex_color,
+                        *screen_space_triangle->Material,
+                        camera.WorldPosition,
+                        lights);
+
+                    screen_space_triangle->VertexColors[vertex_index] = final_vertex_color;
+                }
+
+                // RENDER THE FINAL SCREEN SPACE TRIANGLE.
+                Render(*screen_space_triangle, output_bitmap, depth_buffer);
             }
-
-            // TRANSFORM THE TRIANGLE FOR PROPER CAMERA VIEWING.
-            std::optional<ScreenSpaceTriangle> screen_space_triangle = viewing_transformations.Apply(world_space_triangle);
-            if (!screen_space_triangle)
-            {
-                continue;
-            }
-
-            // COMPUTE VERTEX COLORS.
-            for (std::size_t vertex_index = 0; vertex_index < Triangle::VERTEX_COUNT; ++vertex_index)
-            {
-                // SHADE THE CURRENT VERTEX.
-                const MATH::Vector3f& world_vertex = world_space_triangle.Vertices[vertex_index];
-                const Color& base_vertex_color = screen_space_triangle->Material->VertexColors[vertex_index];
-
-                Color final_vertex_color = Shading::Compute(
-                    world_vertex,
-                    unit_surface_normal,
-                    base_vertex_color,
-                    *screen_space_triangle->Material,
-                    camera.WorldPosition,
-                    lights);
-
-                screen_space_triangle->VertexColors[vertex_index] = final_vertex_color;
-            }
-
-            // RENDER THE FINAL SCREEN SPACE TRIANGLE.
-            Render(*screen_space_triangle, output_bitmap, depth_buffer);
         }
     }
 
@@ -151,7 +155,7 @@ namespace GRAPHICS
     /// @param[in]  local_triangle - The local triangle to transform.
     /// @param[in]  world_transform - The world transformation for the triangle.
     /// @return The world space triangle.
-    Triangle SoftwareRasterizationAlgorithm::TransformLocalToWorld(const Triangle& local_triangle, const MATH::Matrix4x4f& world_transform)
+    Triangle CpuRasterizationAlgorithm::TransformLocalToWorld(const Triangle& local_triangle, const MATH::Matrix4x4f& world_transform)
     {
         // TRANSFORM EACH VERTEX OF THE TRIANGLE.
         Triangle world_space_triangle = local_triangle;
@@ -175,7 +179,7 @@ namespace GRAPHICS
     /// @param[in]  triangle - The triangle to render.
     /// @param[in,out]  render_target - The target to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
-    void SoftwareRasterizationAlgorithm::Render(
+    void CpuRasterizationAlgorithm::Render(
         const ScreenSpaceTriangle& triangle, 
         IMAGES::Bitmap& render_target,
         DepthBuffer* depth_buffer)
@@ -543,7 +547,7 @@ namespace GRAPHICS
     /// @param[in]  color - The color of the line to draw.
     /// @param[in,out]  render_target - The target to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
-    void SoftwareRasterizationAlgorithm::DrawLine(
+    void CpuRasterizationAlgorithm::DrawLine(
         const MATH::Vector3f& start_vertex,
         const MATH::Vector3f& end_vertex,
         const Color& color,
@@ -639,7 +643,7 @@ namespace GRAPHICS
     /// @param[in]  end_color - The color of the line at the ending coordinate.
     /// @param[in,out]  render_target - The target to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
-    void SoftwareRasterizationAlgorithm::DrawLineWithInterpolatedColor(
+    void CpuRasterizationAlgorithm::DrawLineWithInterpolatedColor(
         const MATH::Vector3f& start_vertex,
         const MATH::Vector3f& end_vertex,
         const Color& start_color,

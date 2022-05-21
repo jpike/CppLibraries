@@ -1,14 +1,14 @@
 #include "ErrorHandling/Asserts.h"
 #include "Graphics/CpuRendering/CpuGraphicsDevice.h"
+#include "Graphics/CpuRendering/CpuRasterizationAlgorithm.h"
 #include "Graphics/RayTracing/RayTracingAlgorithm.h"
-#include "Graphics/SoftwareRasterizationAlgorithm.h"
 
 namespace GRAPHICS::CPU_RENDERING
 {
-    /// Attempts to create a graphics device to perform CPU rasterization to the specified window.
+    /// Attempts to connect a graphics device to the specified window for rendering via the CPU.
     /// @param[in,out]  window - The window in which to do CPU rendering.  Non-const since non-const access is sometimes needed.
-    /// return  The CPU graphics device, if successfully created; null if an error occurs.
-    std::unique_ptr<CpuGraphicsDevice> CpuGraphicsDevice::Create(WINDOWING::IWindow& window)
+    /// return  The CPU graphics device, if successfully connected to the window; null if an error occurs.
+    std::unique_ptr<CpuGraphicsDevice> CpuGraphicsDevice::ConnectTo(WINDOWING::IWindow& window)
     {
         auto graphics_device = std::make_unique<CpuGraphicsDevice>();
 
@@ -76,12 +76,12 @@ namespace GRAPHICS::CPU_RENDERING
     /// Renders the specified on using the graphics device.
     /// @param[in]  object_3D - The object to render.
     /// @param[in]  camera - The camera to use for viewing.
-    void CpuGraphicsDevice::Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::Camera& camera)
+    void CpuGraphicsDevice::Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::VIEWING::Camera& camera)
     {
         bool rasterization_enabled = (DeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RASTERIZER);
         if (rasterization_enabled)
         {
-            GRAPHICS::SoftwareRasterizationAlgorithm::Render(
+            CpuRasterizationAlgorithm::Render(
                 object_3D,
                 std::nullopt,
                 camera,
@@ -96,11 +96,11 @@ namespace GRAPHICS::CPU_RENDERING
             Scene scene;
             scene.BackgroundColor = GRAPHICS::Color::BLUE;
             scene.Objects.emplace_back(object_3D);
-            scene.PointLights = std::vector<GRAPHICS::Light>();
+            scene.PointLights = std::vector<GRAPHICS::LIGHTING::Light>();
             scene.PointLights->emplace_back(
-                GRAPHICS::Light
+                GRAPHICS::LIGHTING::Light
                 {
-                    .Type = GRAPHICS::LightType::POINT,
+                    .Type = GRAPHICS::LIGHTING::LightType::POINT,
                     .Color = GRAPHICS::Color(1.0f, 1.0f, 1.0f, 1.0f),
                     .PointLightWorldPosition = MATH::Vector3f(0.0f, 0.0f, 0.0f)
                 });

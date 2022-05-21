@@ -1,7 +1,7 @@
 #pragma once
 
 #include <unordered_map>
-#include "Graphics/Mesh.h"
+#include "Graphics/Modeling/Mesh.h"
 
 namespace GRAPHICS::MODELING
 {

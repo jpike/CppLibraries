@@ -1,7 +1,7 @@
-#include "Graphics/Lighting.h"
-#include "Graphics/Shading.h"
+#include "Graphics/Lighting/Lighting.h"
+#include "Graphics/Shading/Shading.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::SHADING
 {
     /// Computes shading for a vertex.
     /// @param[in]  world_vertex - The world space vertex for which to compute lighting.
@@ -21,13 +21,13 @@ namespace GRAPHICS
         const Color& base_vertex_color,
         const Material& material,
         const MATH::Vector3f& viewing_world_position,
-        const std::optional<std::vector<Light>>& lights)
+        const std::optional<std::vector<LIGHTING::Light>>& lights)
     {
         // COMPUTE COLOR FROM LIGHTS IF APPLICABLE.
         Color light_color = Color::WHITE;
         if (lights)
         {
-            light_color = Lighting::Compute(
+            light_color = LIGHTING::Lighting::Compute(
                 world_vertex,
                 unit_vertex_normal,
                 material,

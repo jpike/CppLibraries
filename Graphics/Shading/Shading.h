@@ -3,11 +3,11 @@
 #include <optional>
 #include <vector>
 #include "Graphics/Color.h"
-#include "Graphics/Light.h"
+#include "Graphics/Lighting/Light.h"
 #include "Graphics/Material.h"
 #include "Math/Vector3.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::SHADING
 {
     /// Encapsulates domain knowledge for shading algorithms.
     class Shading
@@ -19,6 +19,6 @@ namespace GRAPHICS
             const Color& base_vertex_color,
             const Material& material,
             const MATH::Vector3f& viewing_world_position,
-            const std::optional<std::vector<Light>>& lights);
+            const std::optional<std::vector<LIGHTING::Light>>& lights);
     };
 }

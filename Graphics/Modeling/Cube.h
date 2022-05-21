@@ -5,7 +5,7 @@
 #include "Graphics/Material.h"
 #include "Graphics/Object3D.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::MODELING
 {
     /// A cube that can be rendered.
     class Cube

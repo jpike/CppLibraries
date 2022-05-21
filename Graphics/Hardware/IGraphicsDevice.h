@@ -1,9 +1,9 @@
 #pragma once
 
 #include <memory>
-#include "Graphics/Camera.h"
 #include "Graphics/Color.h"
 #include "Graphics/Object3D.h"
+#include "Graphics/Viewing/Camera.h"
 #include "Windowing/IWindow.h"
 
 /// Holds code related to graphics hardware.
@@ -79,7 +79,7 @@ namespace GRAPHICS::HARDWARE
         /// Renders the specified on using the graphics device.
         /// @param[in]  object_3D - The object to render.
         /// @param[in]  camera - The camera to use for viewing.
-        virtual void Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::Camera& camera) = 0;
+        virtual void Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::VIEWING::Camera& camera) = 0;
         /// Displays the rendered image from the graphics device.
         /// @param[in,out]  window - The window in which to display the image.
         ///     Note that the image may not necessarily be displayed in the provided window.  Due to the way many graphics APIs

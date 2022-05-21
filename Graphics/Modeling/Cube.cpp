@@ -1,7 +1,7 @@
-#include "Graphics/Cube.h"
+#include "Graphics/Modeling/Cube.h"
 #include "Graphics/Triangle.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::MODELING
 {
     /// Creates a cube (with side lengths of 1) of the specified color.
     /// @param[in]  The material of the cube.
@@ -40,7 +40,7 @@ namespace GRAPHICS
 
         // RETURN THE 3D OBJECT.
         Object3D cube;
-        cube.Triangles = triangles;
+        cube.Model.MeshesByName["Cube"].Triangles = triangles;
         return cube;
     }
 }

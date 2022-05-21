@@ -1,6 +1,6 @@
-#include "Graphics/Light.h"
+#include "Graphics/Lighting/Light.h"
 
-namespace GRAPHICS
+namespace GRAPHICS::LIGHTING
 {
     /// Computes the direction from the specified world position to this point light.
     /// This method assumes that the light is a point light.
