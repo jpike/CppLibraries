@@ -1,6 +1,7 @@
 #include "ErrorHandling/Asserts.h"
 #include "Graphics/CpuRendering/CpuGraphicsDevice.h"
 #include "Graphics/Hardware/IGraphicsDevice.h"
+#include "Graphics/OpenGL/OpenGLGraphicsDevice.h"
 #include "Windowing/SdlWindow.h"
 
 namespace GRAPHICS::HARDWARE
@@ -14,9 +15,20 @@ namespace GRAPHICS::HARDWARE
         // CREATE A GRAPHICS DEVICE OF THE APPROPRIATE TYPE.
         if (IGraphicsDevice::CPU & device_type)
         {
-            /// @todo   Support ray-tracing - ideally in the same class?
             std::unique_ptr<GRAPHICS::CPU_RENDERING::CpuGraphicsDevice> cpu_graphics_device = GRAPHICS::CPU_RENDERING::CpuGraphicsDevice::ConnectTo(window);
             return cpu_graphics_device;
+        }
+        else if (IGraphicsDevice::GPU & device_type)
+        {
+            if (IGraphicsDevice::OPEN_GL & device_type)
+            {
+                std::unique_ptr<GRAPHICS::OPEN_GL::OpenGLGraphicsDevice> open_gl_graphics_device = GRAPHICS::OPEN_GL::OpenGLGraphicsDevice::ConnectTo(window);
+                return open_gl_graphics_device;
+            }
+            else
+            {
+                return nullptr;
+            }
         }
         else
         {
