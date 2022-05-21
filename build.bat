@@ -66,6 +66,14 @@ int main()
     };
     build.Add(&windows_api);
 
+    Project direct_x = 
+    {
+        .Type = ProjectType::LIBRARY,
+        .Name = "DirectX",
+        .LinkerLibraryNames = { "d3d11.lib", "dxgi.lib", "d3dcompiler.lib" }
+    };
+    build.Add(&direct_x);
+
     Project open_gl = 
     {
         .Type = ProjectType::LIBRARY,
@@ -431,7 +439,8 @@ int main()
         .UnityBuildFilepath = workspace_folder_path / "Graphics/Graphics.project",
         .Libraries = 
         { 
-            &windows_api, 
+            &windows_api,
+            &direct_x,
             &open_gl,
             &gl3w_library, 
             &sdl_library, 
@@ -486,6 +495,7 @@ int main()
         .Libraries = 
         { 
             &windows_api,
+            &direct_x,
             &open_gl,
             &gl3w_library,
             &sdl_library,

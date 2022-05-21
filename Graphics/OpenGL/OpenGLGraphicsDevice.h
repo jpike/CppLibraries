@@ -19,10 +19,6 @@ namespace GRAPHICS::OPEN_GL
 
         // INFORMATION RETRIEVAL.
         GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType Type() const override;
-        /// Updates the capabilities of the graphics device.
-        /// @param[in]  capabilities - The new capabilities to change to.
-        ///     These will overwrite any old capabilities.
-        ///     If not valid for this graphics device, then no changes will occur.
         void ChangeCapabilities(const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType capabilities) override;
 
         // RESOURCE ALLOCATION.
@@ -35,7 +31,8 @@ namespace GRAPHICS::OPEN_GL
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The capabilities of this device.
-        GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType GraphicsDeviceCapabilities = GRAPHICS::HARDWARE::IGraphicsDevice::CPU;
+        GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType GraphicsDeviceCapabilities = static_cast<GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType>(
+            GRAPHICS::HARDWARE::IGraphicsDevice::GPU | GRAPHICS::HARDWARE::IGraphicsDevice::OPEN_GL);
         /// The window the graphics device is connected to.
         WINDOWING::IWindow* Window = nullptr;
         /// The regular Windows device context.

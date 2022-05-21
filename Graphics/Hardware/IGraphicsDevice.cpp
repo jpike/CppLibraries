@@ -1,5 +1,6 @@
 #include "ErrorHandling/Asserts.h"
 #include "Graphics/CpuRendering/CpuGraphicsDevice.h"
+#include "Graphics/DirectX/Direct3DGraphicsDevice.h"
 #include "Graphics/Hardware/IGraphicsDevice.h"
 #include "Graphics/OpenGL/OpenGLGraphicsDevice.h"
 #include "Windowing/SdlWindow.h"
@@ -24,6 +25,11 @@ namespace GRAPHICS::HARDWARE
             {
                 std::unique_ptr<GRAPHICS::OPEN_GL::OpenGLGraphicsDevice> open_gl_graphics_device = GRAPHICS::OPEN_GL::OpenGLGraphicsDevice::ConnectTo(window);
                 return open_gl_graphics_device;
+            }
+            else if (IGraphicsDevice::DIRECT_3D & device_type)
+            {
+                std::unique_ptr<GRAPHICS::DIRECT_X::Direct3DGraphicsDevice> direct_3d_graphics_device = GRAPHICS::DIRECT_X::Direct3DGraphicsDevice::ConnectTo(window);
+                return direct_3d_graphics_device;
             }
             else
             {

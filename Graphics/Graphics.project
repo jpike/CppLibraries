@@ -4,6 +4,8 @@
 #include "Graphics/CpuRendering/CpuGraphicsDevice.cpp"
 #include "Graphics/CpuRendering/CpuRasterizationAlgorithm.cpp"
 
+#include "Graphics/DirectX/Direct3DGraphicsDevice.cpp"
+
 #include "Graphics/Gui/Font.cpp"
 #include "Graphics/Gui/Glyph.cpp"
 

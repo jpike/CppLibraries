@@ -18,10 +18,6 @@ namespace GRAPHICS::CPU_RENDERING
 
         // INFORMATION RETRIEVAL.
         GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType Type() const override;
-        /// Updates the capabilities of the graphics device.
-        /// @param[in]  capabilities - The new capabilities to change to.
-        ///     These will overwrite any old capabilities.
-        ///     If not valid for this graphics device, then no changes will occur.
         void ChangeCapabilities(const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType capabilities) override;
 
         // RESOURCE ALLOCATION.
