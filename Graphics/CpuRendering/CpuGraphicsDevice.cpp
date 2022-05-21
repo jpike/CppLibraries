@@ -94,7 +94,6 @@ namespace GRAPHICS::CPU_RENDERING
         if (ray_tracing_enabled)
         {
             Scene scene;
-            scene.BackgroundColor = GRAPHICS::Color::BLUE;
             scene.Objects.emplace_back(object_3D);
             scene.PointLights = std::vector<GRAPHICS::LIGHTING::Light>();
             scene.PointLights->emplace_back(
@@ -102,7 +101,7 @@ namespace GRAPHICS::CPU_RENDERING
                 {
                     .Type = GRAPHICS::LIGHTING::LightType::POINT,
                     .Color = GRAPHICS::Color(1.0f, 1.0f, 1.0f, 1.0f),
-                    .PointLightWorldPosition = MATH::Vector3f(0.0f, 0.0f, 0.0f)
+                    .PointLightWorldPosition = MATH::Vector3f(0.0f, 0.0f, 5.0f)
                 });
             GRAPHICS::RAY_TRACING::RayTracingAlgorithm ray_tracing_algorithm;
             ray_tracing_algorithm.Render(

@@ -243,9 +243,97 @@ namespace GRAPHICS::RAY_TRACING
                     light_total_color += current_light_color;
                 }
 
+                /// @todo   How to we know whether texture is for diffuse or not?
+                Color base_diffuse_color = intersected_material->DiffuseColor;
+                if (intersected_material->Texture)
+                {
+                    // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
+                    VertexWithAttributes first_vertex = intersection.Triangle->Vertices[0];
+                    VertexWithAttributes second_vertex = intersection.Triangle->Vertices[1];
+                    VertexWithAttributes third_vertex = intersection.Triangle->Vertices[2];
+                    /// @todo   How to do this in 3D?
+                    float top_vertex_signed_distance_from_bottom_edge = (
+                        ((second_vertex.Position.Y - third_vertex.Position.Y) * first_vertex.Position.X) +
+                        ((third_vertex.Position.X - second_vertex.Position.X) * first_vertex.Position.Y) +
+                        (second_vertex.Position.X * third_vertex.Position.Y) -
+                        (third_vertex.Position.X * second_vertex.Position.Y));
+                    float right_vertex_signed_distance_from_left_edge = (
+                        ((second_vertex.Position.Y - first_vertex.Position.Y) * third_vertex.Position.X) +
+                        ((first_vertex.Position.X - second_vertex.Position.X) * third_vertex.Position.Y) +
+                        (second_vertex.Position.X * first_vertex.Position.Y) -
+                        (first_vertex.Position.X * second_vertex.Position.Y));
+
+                    // COMPUTE THE BARYCENTRIC COORDINATES OF THE INTERSECTION POINT.
+                    // The following diagram shows the order of the vertices:
+                    //             first_vertex
+                    //                 /\
+                    //                /  \
+                    // second_vertex /____\ third_vertex
+                    float intersection_point_signed_distance_from_bottom_edge = (
+                        ((second_vertex.Position.Y - third_vertex.Position.Y) * intersection_point.X) +
+                        ((third_vertex.Position.X - second_vertex.Position.X) * intersection_point.Y) +
+                        (second_vertex.Position.X * third_vertex.Position.Y) -
+                        (third_vertex.Position.X * second_vertex.Position.Y));
+                    float scaled_signed_distance_of_intersection_point_relative_to_bottom_edge = (intersection_point_signed_distance_from_bottom_edge / top_vertex_signed_distance_from_bottom_edge);
+
+                    float intersection_point_signed_distance_from_left_edge = (
+                        ((second_vertex.Position.Y - first_vertex.Position.Y) * intersection_point.X) +
+                        ((first_vertex.Position.X - second_vertex.Position.X) * intersection_point.Y) +
+                        (second_vertex.Position.X * first_vertex.Position.Y) -
+                        (first_vertex.Position.X * second_vertex.Position.Y));
+                    float scaled_signed_distance_of_intersection_point_relative_to_left_edge = (intersection_point_signed_distance_from_left_edge / right_vertex_signed_distance_from_left_edge);
+
+                    float scaled_signed_distance_of_intersection_point_relative_to_right_edge = (
+                        1.0f -
+                        scaled_signed_distance_of_intersection_point_relative_to_left_edge -
+                        scaled_signed_distance_of_intersection_point_relative_to_bottom_edge);
+
+                    // INTERPOLATE THE TEXTURE COORDINATES.
+                    const MATH::Vector2f& first_texture_coordinate = first_vertex.TextureCoordinates;
+                    const MATH::Vector2f& second_texture_coordinate = second_vertex.TextureCoordinates;
+                    const MATH::Vector2f& third_texture_coordinate = third_vertex.TextureCoordinates;
+
+                    MATH::Vector2f interpolated_texture_coordinate;
+                    interpolated_texture_coordinate.X = (
+                        (scaled_signed_distance_of_intersection_point_relative_to_right_edge * third_texture_coordinate.X) +
+                        (scaled_signed_distance_of_intersection_point_relative_to_left_edge * second_texture_coordinate.X) +
+                        (scaled_signed_distance_of_intersection_point_relative_to_bottom_edge * first_texture_coordinate.X));
+                    interpolated_texture_coordinate.Y = (
+                        (scaled_signed_distance_of_intersection_point_relative_to_right_edge * third_texture_coordinate.Y) +
+                        (scaled_signed_distance_of_intersection_point_relative_to_left_edge * second_texture_coordinate.Y) +
+                        (scaled_signed_distance_of_intersection_point_relative_to_bottom_edge * first_texture_coordinate.Y));
+                    // Clamping.
+                    if (interpolated_texture_coordinate.X < 0.0f)
+                    {
+                        interpolated_texture_coordinate.X = 0.0f;
+                    }
+                    else if (interpolated_texture_coordinate.X > 1.0f)
+                    {
+                        interpolated_texture_coordinate.X = 1.0f;
+                    }
+                    if (interpolated_texture_coordinate.Y < 0.0f)
+                    {
+                        interpolated_texture_coordinate.Y = 0.0f;
+                    }
+                    else if (interpolated_texture_coordinate.Y > 1.0f)
+                    {
+                        interpolated_texture_coordinate.Y = 1.0f;
+                    }
+
+                    // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
+                    unsigned int texture_width_in_pixels = intersected_material->Texture->GetWidthInPixels();
+                    unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
+
+                    unsigned int texture_height_in_pixels = intersected_material->Texture->GetHeightInPixels();
+                    unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
+
+                    Color texture_color = intersected_material->Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
+                    base_diffuse_color = Color::ComponentMultiplyRedGreenBlue(base_diffuse_color, texture_color);;
+                }
+
                 // The diffuse color is multiplied component-wise by the amount of light.
                 Color diffuse_color = Color::ComponentMultiplyRedGreenBlue(
-                    intersected_material->DiffuseColor,
+                    base_diffuse_color,
                     light_total_color);
                 final_color += diffuse_color;
             }

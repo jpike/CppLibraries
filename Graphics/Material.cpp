@@ -63,6 +63,8 @@ namespace GRAPHICS
                 line_data >> field_indicator;
                 line_data >> current_material->Name;
 
+                current_material->Shading = ShadingType::MATERIAL;
+
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
                 continue;
             }
@@ -217,6 +219,7 @@ namespace GRAPHICS
                 /// @todo   Error-handling...different file types.
                 current_material->Texture = GRAPHICS::IMAGES::Bitmap::LoadPng(texture_filepath, ColorFormat::RGBA);
                 // for bgfx - a, b, g, r
+                current_material->Shading = ShadingType::TEXTURED;
 
                 continue;
             }
