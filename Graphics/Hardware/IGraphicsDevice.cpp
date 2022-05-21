@@ -1,5 +1,4 @@
 #include "ErrorHandling/Asserts.h"
-#include "Graphics/Bgfx/BgfxGraphicsDevice.h"
 #include "Graphics/CpuRendering/CpuGraphicsDevice.h"
 #include "Graphics/Hardware/IGraphicsDevice.h"
 #include "Windowing/SdlWindow.h"
@@ -18,19 +17,6 @@ namespace GRAPHICS::HARDWARE
             /// @todo   Support ray-tracing - ideally in the same class?
             std::unique_ptr<GRAPHICS::CPU_RENDERING::CpuGraphicsDevice> cpu_graphics_device = GRAPHICS::CPU_RENDERING::CpuGraphicsDevice::ConnectTo(window);
             return cpu_graphics_device;
-        }
-        else if (IGraphicsDevice::BGFX & device_type)
-        {
-            // MAKE SURE THE WINDOW IS OF THE CORRECT TYPE.
-            WINDOWING::SdlWindow* sdl_window = dynamic_cast<WINDOWING::SdlWindow*>(&window);
-            ASSERT_THEN_IF_NOT(sdl_window)
-            {
-                return nullptr;
-            }
-
-            // CREATE THE GRAPHICS DEVICE.
-            std::unique_ptr<GRAPHICS::BGFX::BgfxGraphicsDevice> bgfx_graphics_device = GRAPHICS::BGFX::BgfxGraphicsDevice::Create(device_type, *sdl_window);
-            return bgfx_graphics_device;
         }
         else
         {

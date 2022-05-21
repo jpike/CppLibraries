@@ -34,7 +34,7 @@ namespace GRAPHICS::CPU_RENDERING
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The capabilities of this device.
-        GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType DeviceCapabilities = GRAPHICS::HARDWARE::IGraphicsDevice::CPU;
+        GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType GraphicsDeviceCapabilities = GRAPHICS::HARDWARE::IGraphicsDevice::CPU;
         /// The window the graphics device is connected to.
         WINDOWING::IWindow* Window = nullptr;
         /// The buffer holds colors for the rendered image.

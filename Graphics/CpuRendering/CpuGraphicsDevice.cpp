@@ -12,7 +12,7 @@ namespace GRAPHICS::CPU_RENDERING
     {
         auto graphics_device = std::make_unique<CpuGraphicsDevice>();
 
-        graphics_device->DeviceCapabilities = static_cast<GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType>(
+        graphics_device->GraphicsDeviceCapabilities = static_cast<GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType>(
             GRAPHICS::HARDWARE::IGraphicsDevice::CPU | GRAPHICS::HARDWARE::IGraphicsDevice::RASTERIZER);
         graphics_device->Window = &window;
 
@@ -43,7 +43,7 @@ namespace GRAPHICS::CPU_RENDERING
     /// @return The type of the graphics device.
     GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType CpuGraphicsDevice::Type() const
     {
-        return DeviceCapabilities;
+        return GraphicsDeviceCapabilities;
     }
 
     /// Updates the capabilities of the graphics device.
@@ -54,7 +54,7 @@ namespace GRAPHICS::CPU_RENDERING
     {
         ASSERT_THEN_IF(capabilities & GRAPHICS::HARDWARE::IGraphicsDevice::CPU)
         {
-            DeviceCapabilities = capabilities;
+            GraphicsDeviceCapabilities = capabilities;
         }
     }
 
@@ -78,7 +78,7 @@ namespace GRAPHICS::CPU_RENDERING
     /// @param[in]  camera - The camera to use for viewing.
     void CpuGraphicsDevice::Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::VIEWING::Camera& camera)
     {
-        bool rasterization_enabled = (DeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RASTERIZER);
+        bool rasterization_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RASTERIZER);
         if (rasterization_enabled)
         {
             CpuRasterizationAlgorithm::Render(
@@ -90,7 +90,7 @@ namespace GRAPHICS::CPU_RENDERING
                 nullptr);
         }
 
-        bool ray_tracing_enabled = (DeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RAY_TRACER);
+        bool ray_tracing_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RAY_TRACER);
         if (ray_tracing_enabled)
         {
             Scene scene;
