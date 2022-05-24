@@ -11,6 +11,7 @@
 #include "Filesystem/testing/FileTests.h"
 #include "Filesystem/testing/FolderTests.h"
 #include "Graphics/testing/ColorTests.cpp"
+#include "Graphics/testing/DepthBufferTests.cpp"
 #include "Graphics/testing/Object3DTests.cpp"
 #include "Graphics/testing/Viewing/CameraTests.cpp"
 #include "Math/testing/AngleTests.h"
