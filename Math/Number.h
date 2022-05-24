@@ -9,15 +9,15 @@ namespace MATH
     {
     public:
         template <typename NumberType>
-        static bool IsEven(const NumberType number);
+        constexpr static bool IsEven(const NumberType number);
 
         template <typename NumberType>
-        static NumberType DecrementAndWrapWithinRange(const NumberType value, const NumberType min_value, const NumberType max_value);
+        constexpr static NumberType DecrementAndWrapWithinRange(const NumberType value, const NumberType min_value, const NumberType max_value);
         template <typename NumberType>
-        static NumberType IncrementAndWrapWithinRange(const NumberType value, const NumberType min_value, const NumberType max_value);
+        constexpr static NumberType IncrementAndWrapWithinRange(const NumberType value, const NumberType min_value, const NumberType max_value);
 
         template <typename NumericType>
-        static NumericType Clamp(
+        constexpr static NumericType Clamp(
             const NumericType number_to_clamp,
             const NumericType min_value,
             const NumericType max_value);
@@ -27,7 +27,7 @@ namespace MATH
     /// @param[in]  number - The number to check.
     /// @return True if the number is even; false otherwise.
     template <typename NumberType>
-    bool Number::IsEven(const NumberType number)
+    constexpr bool Number::IsEven(const NumberType number)
     {
         NumberType remainder = (number % 2);
         bool is_even = (0 == remainder);
@@ -41,7 +41,7 @@ namespace MATH
     /// @param[in]  max_value - The maximum valid value within the range to keep the number in.
     /// @return The provided number but decremented yet kept within the specified range.
     template <typename NumberType>
-    NumberType Number::DecrementAndWrapWithinRange(const NumberType value, const NumberType min_value, const NumberType max_value)
+    constexpr NumberType Number::DecrementAndWrapWithinRange(const NumberType value, const NumberType min_value, const NumberType max_value)
     {
         // CHECK IF THE VALUE IS GREATER THAN THE MAX OF THE RANGE.
         bool value_greater_than_max = (value > max_value);
@@ -75,7 +75,7 @@ namespace MATH
     /// @param[in]  max_value - The maximum valid value within the range to keep the number in.
     /// @return The provided number but incremented yet kept within the specified range.
     template <typename NumberType>
-    NumberType Number::IncrementAndWrapWithinRange(const NumberType value, const NumberType min_value, const NumberType max_value)
+    constexpr NumberType Number::IncrementAndWrapWithinRange(const NumberType value, const NumberType min_value, const NumberType max_value)
     {
         // CHECK IF THE VALUE IS LESS THAN THE MIN OF THE RANGE.
         bool value_less_than_min = (value < min_value);
@@ -109,7 +109,7 @@ namespace MATH
     /// \param[in]  max_value - The maximum (inclusive) value of the range to clamp to.
     /// \return The provided number clamped to the specified range.
     template <typename NumericType>
-    NumericType Number::Clamp(
+    constexpr NumericType Number::Clamp(
         const NumericType number_to_clamp,
         const NumericType min_value,
         const NumericType max_value)

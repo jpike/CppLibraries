@@ -89,6 +89,7 @@ namespace GRAPHICS
     /// Interpolates between 2 colors (excluding alpha components), performing clamping.
     /// @param[in]  start_color - The starting color to interpolate from (ratio = 0).
     /// @param[in]  end_color - The ending color to interpolate to (ratio = 1).
+    /// @param[in]  ratio_toward_end - The ratio toward the end to use for interpolation.
     /// @return The interpolated color.
     Color Color::InterpolateRedGreenBlue(const Color& start_color, const Color& end_color, float ratio_toward_end)
     {
@@ -249,6 +250,9 @@ namespace GRAPHICS
         return alpha_as_uint8;
     }
 
+    /// Packs the color into a single 32-bit integer according to the specified format.
+    /// @param[in]  color_format - The format in which to pack the color.
+    /// @return The packed color.
     uint32_t Color::Pack(const ColorFormat color_format) const
     {
         // GET THE COLOR COMPONENTS.
