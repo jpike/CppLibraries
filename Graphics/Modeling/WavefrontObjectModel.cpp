@@ -576,6 +576,7 @@ namespace GRAPHICS::MODELING
                 current_mesh->Vertices.push_back(third_vertex);
 #endif
 
+#define QUADS 1
 #if QUADS
                 /// @todo Handling quads!
                 if ((!line_data.eof()) && (!line_data.bad()))
@@ -604,59 +605,27 @@ namespace GRAPHICS::MODELING
 
                         // https://stackoverflow.com/questions/23723993/converting-quadriladerals-in-an-obj-file-into-triangles
                         // first, third, fourth
-                        MATH::Vector3f& first_vertex_position = vertex_positions.at(first_vertex_index);
-                        MATH::Vector2f& first_vertex_texture_coordinates = vertex_texture_coordinates.at(first_vertex_texture_coordinate_index);
-                        MATH::Vector3f& first_vertex_normal = vertex_normals.at(first_vertex_normal_index);
-                        GRAPHICS::VertexWithAttributes first_vertex =
-                        {
-                            .X = first_vertex_position.X,
-                            .Y = first_vertex_position.Y,
-                            .Z = first_vertex_position.Z,
-                            .TextureU = first_vertex_texture_coordinates.X,
-                            .TextureV = first_vertex_texture_coordinates.Y,
-                            //.TextureU = 0.0f,
-                            //.TextureV = 0.0f,
-                            //// @todo
-                            //.ColorAlphaRedGreenBlue = (uint32_t)rand(),
-                            .ColorAlphaRedGreenBlue = 0xFFFFFFFF,
-                        };
-                        current_mesh->Vertices.push_back(first_vertex);
-
-                        MATH::Vector3f& third_vertex_position = vertex_positions.at(third_vertex_index);
-                        MATH::Vector2f& third_vertex_texture_coordinates = vertex_texture_coordinates.at(third_vertex_texture_coordinate_index);
-                        MATH::Vector3f& third_vertex_normal = vertex_normals.at(third_vertex_normal_index);
-                        GRAPHICS::VertexWithAttributes third_vertex =
-                        {
-                            .X = third_vertex_position.X,
-                            .Y = third_vertex_position.Y,
-                            .Z = third_vertex_position.Z,
-                            .TextureU = third_vertex_texture_coordinates.X,
-                            .TextureV = third_vertex_texture_coordinates.Y,
-                            //.TextureU = 1.0f,
-                            //.TextureV = 1.0f,
-                            //// @todo
-                            //.ColorAlphaRedGreenBlue = (uint32_t)rand(),
-                            .ColorAlphaRedGreenBlue = 0xFFFFFFFF,
-                        };
-                        current_mesh->Vertices.push_back(third_vertex);
 
                         MATH::Vector3f& fourth_vertex_position = vertex_positions.at(fourth_vertex_index);
                         MATH::Vector2f& fourth_vertex_texture_coordinates = vertex_texture_coordinates.at(fourth_vertex_texture_coordinate_index);
                         MATH::Vector3f& fourth_vertex_normal = vertex_normals.at(fourth_vertex_normal_index);
                         GRAPHICS::VertexWithAttributes fourth_vertex =
                         {
-                            .X = fourth_vertex_position.X,
-                            .Y = fourth_vertex_position.Y,
-                            .Z = fourth_vertex_position.Z,
-                            .TextureU = fourth_vertex_texture_coordinates.X,
-                            .TextureV = fourth_vertex_texture_coordinates.Y,
-                            //.TextureU = 0.0f,
-                            //.TextureV = 1.0f,
-                            //// @todo
-                            //.ColorAlphaRedGreenBlue = (uint32_t)rand(),
-                            .ColorAlphaRedGreenBlue = 0xFFFFFFFF,
+                            .Position = fourth_vertex_position,
+                            .TextureCoordinates = fourth_vertex_texture_coordinates,
                         };
-                        current_mesh->Vertices.push_back(fourth_vertex);
+
+                        GRAPHICS::Triangle extra_triangle_for_quad;
+                        extra_triangle_for_quad.Vertices =
+                        {
+                            first_vertex,
+                            third_vertex,
+                            fourth_vertex,
+                        };
+
+                        extra_triangle_for_quad.Material = current_material;
+
+                        current_mesh->Triangles.push_back(extra_triangle_for_quad);
                     }
                 }
 #endif
