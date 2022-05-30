@@ -149,6 +149,7 @@ int main()
     };
     build.Add(&imgui_library);
 
+    #if BUILD_BGFX
     Project fcpp_library = 
     {
         .Type = ProjectType::LIBRARY,
@@ -237,7 +238,9 @@ int main()
         .LinkerLibraryNames = { "GlslOptimizer-glsl.lib" },
     };
     build.Add(&glsl_optimizer_glsl_library);
+    #endif
 
+#if BUILD_BGFX
     Project bgfx_library = 
     {
         .Type = ProjectType::LIBRARY,
@@ -274,6 +277,7 @@ int main()
         },
     };
     build.Add(&bgfx_library);
+#endif
 
     // DEFINE CUSTOM PROJECTS FOR THE BUILD.
     Project containers_library = 
@@ -445,7 +449,9 @@ int main()
             &gl3w_library, 
             &sdl_library, 
             &stb_library,
+            #if BUILD_BGFX
             &bgfx_library,
+            #endif
             &math_library,
             &filesystem_library,
             &windowing_library,
@@ -477,9 +483,11 @@ int main()
         .AdditionalIncludeFolderPaths = 
         {
             workspace_folder_path / "ThirdParty",
+            #if BUILD_BGFX
             workspace_folder_path / "ThirdParty/Bgfx/bgfx/include",
             workspace_folder_path / "ThirdParty/Bgfx/bx/include",
             workspace_folder_path / "ThirdParty/Bgfx/bx/include/compat/msvc",
+            #endif
             workspace_folder_path / "ThirdParty/gl3w",
         },
         .LinkerLibraryNames = { "CppLibraries.lib" },
@@ -500,7 +508,9 @@ int main()
             &gl3w_library,
             &sdl_library,
             &stb_library,
+            #if BUILD_BGFX
             &bgfx_library,
+            #endif
             &catch_library,
             &combined_cpp_libraries 
         }

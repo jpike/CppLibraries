@@ -22,6 +22,7 @@ namespace GRAPHICS::RAY_TRACING
         for (const Object3D& untransformed_object : scene.Objects)
         {
             // INITIALIZE THE TRANSFORMED VERSION OF THE OBJECT.
+            /// @todo   We don't really need full objects here - just final triangles.
             Object3D transformed_object;
             transformed_object.Scale = untransformed_object.Scale;
             transformed_object.WorldPosition = untransformed_object.WorldPosition;

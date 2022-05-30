@@ -16,7 +16,9 @@ namespace GRAPHICS::HARDWARE
         // CREATE A GRAPHICS DEVICE OF THE APPROPRIATE TYPE.
         if (IGraphicsDevice::CPU & device_type)
         {
+            /// @todo   Cleaner way to handle different capabilities.
             std::unique_ptr<GRAPHICS::CPU_RENDERING::CpuGraphicsDevice> cpu_graphics_device = GRAPHICS::CPU_RENDERING::CpuGraphicsDevice::ConnectTo(window);
+            cpu_graphics_device->ChangeCapabilities(device_type);
             return cpu_graphics_device;
         }
         else if (IGraphicsDevice::GPU & device_type)

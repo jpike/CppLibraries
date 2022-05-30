@@ -11,6 +11,8 @@ namespace GRAPHICS
         /// Color components are ordered from red, green, blue, alpha.
         RGBA = 0,
         /// Color components are ordered from alpha, red, green, blue.
-        ARGB
+        ARGB,
+        /// @todo   Use this format for OpenGL/Direct3D?
+        ABGR
     };
 }
