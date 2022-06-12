@@ -3,5 +3,6 @@
 
 #include "ColorTests.cpp"
 #include "DepthBufferTests.cpp"
+#include "Modeling/WavefrontObjectModelTests.cpp"
 #include "Object3DTests.cpp"
 #include "Viewing/CameraTests.cpp"

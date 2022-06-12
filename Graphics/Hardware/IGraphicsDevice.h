@@ -79,7 +79,13 @@ namespace GRAPHICS::HARDWARE
         /// Renders the specified on using the graphics device.
         /// @param[in]  object_3D - The object to render.
         /// @param[in]  camera - The camera to use for viewing.
-        virtual void Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::VIEWING::Camera& camera) = 0;
+        /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
+        /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
+        virtual void Render(
+            const GRAPHICS::Object3D& object_3D, 
+            const GRAPHICS::VIEWING::Camera& camera,
+            const bool cull_backfaces,
+            const bool depth_buffering) = 0;
         /// Displays the rendered image from the graphics device.
         /// @param[in,out]  window - The window in which to display the image.
         ///     Note that the image may not necessarily be displayed in the provided window.  Due to the way many graphics APIs

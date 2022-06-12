@@ -395,6 +395,10 @@ int main()
         .Type = ProjectType::LIBRARY,
         .Name = "Memory",
         .CodeFolderPath = workspace_folder_path / "Memory",
+        .Libraries = 
+        {
+            &gsl_library,
+        },
     };
     build.Add(&memory_library);
 
@@ -403,7 +407,8 @@ int main()
         .Type = ProjectType::LIBRARY,
         .Name = "String",
         .CodeFolderPath = workspace_folder_path, /// @todo  This is hacked to avoid confusion with String.h for official string headers.
-        .UnityBuildFilepath = workspace_folder_path / "String/String.project"
+        .UnityBuildFilepath = workspace_folder_path / "String/String.project",
+        .LinkerLibraryNames = { "String.lib" },
     };
     build.Add(&string_library);
 
@@ -453,7 +458,9 @@ int main()
             &bgfx_library,
             #endif
             &math_library,
+            &memory_library,
             &filesystem_library,
+            &string_library,
             &windowing_library,
         },
         .LinkerLibraryNames = { "Graphics.lib" },
@@ -489,6 +496,7 @@ int main()
             workspace_folder_path / "ThirdParty/Bgfx/bx/include/compat/msvc",
             #endif
             workspace_folder_path / "ThirdParty/gl3w",
+            workspace_folder_path / "ThirdParty/GSL/include",
         },
         .LinkerLibraryNames = { "CppLibraries.lib" },
     };

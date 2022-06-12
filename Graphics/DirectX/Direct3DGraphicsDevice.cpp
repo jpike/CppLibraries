@@ -724,7 +724,14 @@ namespace GRAPHICS::DIRECT_X
     /// Renders the specified on using the graphics device.
     /// @param[in]  object_3D - The object to render.
     /// @param[in]  camera - The camera to use for viewing.
-    void Direct3DGraphicsDevice::Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::VIEWING::Camera& camera)
+    /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
+    /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
+    /// @todo   Use all parameters above.
+    void Direct3DGraphicsDevice::Render(
+        const GRAPHICS::Object3D& object_3D,
+        const GRAPHICS::VIEWING::Camera& camera,
+        const bool cull_backfaces,
+        const bool depth_buffering)
     {
         unsigned int width_in_pixels = Window->GetWidthInPixels();
         unsigned int height_in_pixels = Window->GetHeightInPixels();

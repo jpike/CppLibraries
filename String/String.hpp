@@ -17,6 +17,10 @@ namespace STRING
     class String
     {
     public:
+        static std::vector<std::string> Split(const std::string& text, const char delimiter);
+
+        static std::vector<std::string> SplitByWhitespace(const std::string& text);
+
         static std::vector<std::string> SplitIntoLines(const std::string& text);
 
         static std::deque<std::string> SplitIntoWords(

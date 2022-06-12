@@ -25,9 +25,11 @@ namespace GRAPHICS
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The position of the vertex.
         MATH::Vector3f Position = MATH::Vector3f(0.0f, 0.0f, 0.0f);
-        /// Any texture coordinates of the vertex.
-        MATH::Vector2f TextureCoordinates = MATH::Vector2f(0.0f, 0.0f);
         /// The color of the vertex.
         Color Color = GRAPHICS::Color::WHITE;
+        /// Any texture coordinates of the vertex.
+        MATH::Vector2f TextureCoordinates = MATH::Vector2f(0.0f, 0.0f);
+        /// Any normal of the vertex.
+        MATH::Vector3f Normal = MATH::Vector3f(0.0f, 0.0f, 0.0f);
     };
 }

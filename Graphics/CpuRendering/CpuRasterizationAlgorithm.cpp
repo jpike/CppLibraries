@@ -99,6 +99,12 @@ namespace GRAPHICS::CPU_RENDERING
         // RENDER EACH MESH OF THE OBJECT.
         for (const auto& [mesh_name, mesh] : object_3D.Model.MeshesByName)
         {
+            // SKIP OVER INVISIBLE MESHES.
+            if (!mesh.Visible)
+            {
+                continue;
+            }
+
             // RENDER EACH TRIANGLE OF THE MESH.
             for (const auto& local_triangle : mesh.Triangles)
             {

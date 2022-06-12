@@ -2,7 +2,10 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include "Graphics/Material.h"
+#include <Memory/Pointers.h>
 
 namespace GRAPHICS::MODELING
 {
@@ -12,5 +15,6 @@ namespace GRAPHICS::MODELING
     {
     public:
         static std::shared_ptr<Material> Load(const std::filesystem::path& mtl_filepath);
+        static std::unordered_map<std::string, MEMORY::NonNullSharedPointer<Material>> LoadNew(const std::filesystem::path& mtl_filepath);
     };
 }

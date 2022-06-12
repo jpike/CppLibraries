@@ -24,6 +24,8 @@ namespace GRAPHICS::CPU_RENDERING
         // Clearing to black helps ensure a known, common initial state for the color buffer.
         graphics_device->ColorBuffer.FillPixels(GRAPHICS::Color::BLACK);
 
+        graphics_device->DepthBuffer = GRAPHICS::DepthBuffer(width_in_pixels, height_in_pixels);
+
         return graphics_device;
     }
 
@@ -71,23 +73,32 @@ namespace GRAPHICS::CPU_RENDERING
     void CpuGraphicsDevice::ClearBackground(const GRAPHICS::Color& color)
     {
         ColorBuffer.FillPixels(color);
+
+        DepthBuffer.ClearToDepth(GRAPHICS::DepthBuffer::MAX_DEPTH);
     }
 
     /// Renders the specified on using the graphics device.
     /// @param[in]  object_3D - The object to render.
     /// @param[in]  camera - The camera to use for viewing.
-    void CpuGraphicsDevice::Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::VIEWING::Camera& camera)
+    /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
+    /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
+    void CpuGraphicsDevice::Render(
+        const GRAPHICS::Object3D& object_3D,
+        const GRAPHICS::VIEWING::Camera& camera,
+        const bool cull_backfaces,
+        const bool depth_buffering)
     {
         bool rasterization_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RASTERIZER);
         if (rasterization_enabled)
         {
+            GRAPHICS::DepthBuffer* depth_buffer = depth_buffering ? &DepthBuffer : nullptr;
             CpuRasterizationAlgorithm::Render(
                 object_3D,
                 std::nullopt,
                 camera,
-                false,
+                cull_backfaces,
                 ColorBuffer,
-                nullptr);
+                depth_buffer);
         }
 
         bool ray_tracing_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RAY_TRACER);

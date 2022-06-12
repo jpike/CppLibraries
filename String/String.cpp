@@ -1,8 +1,44 @@
 #include <cctype>
+#include <sstream>
 #include "String/String.hpp"
 
 namespace STRING
 {
+    /// Splits a string based on a delimiter.
+    /// @param[in]  text - The string to split.
+    /// @param[in]  delimiter - The delimiter by which to split the string.
+    /// @return The components split from the string, in order.
+    std::vector<std::string> String::Split(const std::string& text, const char delimiter)
+    {
+        // PUT THE TEXT INTO A STREAM.
+        // This allows easy splitting using std::getline().
+        std::istringstream text_stream(text);
+
+        // GET EACH COMPONENT BY SPLITTING THE TEXT BY THE DELIMITER.
+        std::vector<std::string> components;
+        std::string current_component;
+        while (std::getline(text_stream, current_component, delimiter))
+        {
+            components.emplace_back(current_component);
+        }
+
+        return components;
+    }
+
+    /// Splits a string based on whitespace.
+    /// @param[in]  text - The string to split.
+    /// @return The components split from the string, in order.
+    std::vector<std::string> String::SplitByWhitespace(const std::string& text)
+    {
+        // Iterators can be used to easily split a stream based on whitespace.
+        std::istringstream text_stream(text);
+        std::istream_iterator<std::string> beginning_of_text(text_stream);
+        const std::istream_iterator<std::string> END_OF_TEXT;
+
+        std::vector<std::string> components(beginning_of_text, END_OF_TEXT);
+        return components;
+    }
+
     /// Splits the provided string into separate lines based on newline
     /// characters embedded in the string.  Only '\n' is currently supported
     /// since that is all tha is currently needed.

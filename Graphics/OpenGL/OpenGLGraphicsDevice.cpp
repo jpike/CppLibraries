@@ -210,9 +210,23 @@ namespace GRAPHICS::OPEN_GL
     /// Renders the specified on using the graphics device.
     /// @param[in]  object_3D - The object to render.
     /// @param[in]  camera - The camera to use for viewing.
-    void OpenGLGraphicsDevice::Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::VIEWING::Camera& camera)
+    /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
+    /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
+    /// @todo   Use all parameters above.
+    void OpenGLGraphicsDevice::Render(
+        const GRAPHICS::Object3D& object_3D,
+        const GRAPHICS::VIEWING::Camera& camera,
+        const bool cull_backfaces,
+        const bool depth_buffering)
     {
-        glEnable(GL_DEPTH_TEST);
+        if (depth_buffering)
+        {
+            glEnable(GL_DEPTH_TEST);
+        }
+        else
+        {
+            glDisable(GL_DEPTH_TEST);
+        }
 
         VIEWING::ViewingTransformations viewing_transformations(camera);
 

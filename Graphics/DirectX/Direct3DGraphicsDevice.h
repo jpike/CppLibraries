@@ -48,7 +48,11 @@ namespace GRAPHICS::DIRECT_X
 
         // RENDERING.
         void ClearBackground(const GRAPHICS::Color& color) override;
-        void Render(const GRAPHICS::Object3D& object_3D, const GRAPHICS::VIEWING::Camera& camera) override;
+        void Render(
+            const GRAPHICS::Object3D& object_3D,
+            const GRAPHICS::VIEWING::Camera& camera,
+            const bool cull_backfaces,
+            const bool depth_buffering) override;
         void DisplayRenderedImage(WINDOWING::IWindow& window) override;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
