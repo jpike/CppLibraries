@@ -732,8 +732,9 @@ namespace GRAPHICS::MODELING
 
                     constexpr std::size_t V_INDEX = 2;
                     const std::string& v_string = current_line_components.at(V_INDEX);
-                    // Texture coordinates are stored upside down in the file.
+                    // Texture coordinates are stored upside down in the file...or maybe switched (u <-> v)?
                     float v = 1.0f - std::stof(v_string);
+                    /// @todo float v = std::stof(v_string);
 
                     vertex_texture_coordinates.emplace_back(u, v);
                 }
@@ -995,6 +996,17 @@ namespace GRAPHICS::MODELING
                     second_vertex,
                     third_vertex
                 };
+
+                // A model and mesh must exist first before adding a triangle.
+                if (!model)
+                {
+                    model = GRAPHICS::MODELING::Model();
+                }
+                if (!current_mesh)
+                {
+                    current_mesh = GRAPHICS::MODELING::Mesh { .Name = "Default" };
+                }
+
                 current_mesh->Triangles.emplace_back(triangle);
 
                 // CREATE AN ADDITIONAL TRIANLGE IF A QUAD EXISTS.

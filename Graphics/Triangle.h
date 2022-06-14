@@ -25,6 +25,10 @@ namespace GRAPHICS
         explicit Triangle() = default;
         explicit Triangle(const std::shared_ptr<Material>& material, const std::array<VertexWithAttributes, VERTEX_COUNT>& vertices);
 
+        // OPERATORS.
+        /// Default comparison operator.
+        auto operator<=>(const Triangle&) const = default;
+
         // OTHER METHODS.
         MATH::Vector3f SurfaceNormal() const;
         std::optional<RAY_TRACING::RayObjectIntersection> Intersect(const RAY_TRACING::Ray& ray) const;

@@ -17,10 +17,14 @@ namespace GRAPHICS
     class VertexWithAttributes
     {
     public:
-        // METHODS.
+        // STATIC METHODS.
         #if __has_include(<bgfx/bgfx.h>)
         static bgfx::VertexLayout& Layout();
         #endif
+
+        // OPERATORS.
+        /// Default comparison operator.
+        auto operator<=>(const VertexWithAttributes&) const = default;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The position of the vertex.

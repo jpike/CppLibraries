@@ -194,6 +194,34 @@ namespace GRAPHICS::CPU_RENDERING
         const VertexWithAttributes& second_vertex = triangle.Vertices[1];
         const VertexWithAttributes& third_vertex = triangle.Vertices[2];
 
+        // RENDER THE TRIANGLE AS A WIREFRAME IF THERE IS NO MATERIAL.
+        // This allows viewing at least something for a triangle.
+        if (!triangle.Material)
+        {
+            // DRAW THE FIRST EDGE.
+            DrawLineWithInterpolatedColor(
+                first_vertex,
+                second_vertex,
+                render_target,
+                depth_buffer);
+
+            // DRAW THE SECOND EDGE.
+            DrawLineWithInterpolatedColor(
+                second_vertex,
+                third_vertex,
+                render_target,
+                depth_buffer);
+
+            // DRAW THE THIRD EDGE.
+            DrawLineWithInterpolatedColor(
+                third_vertex,
+                first_vertex,
+                render_target,
+                depth_buffer);
+
+            return;
+        }
+
         // RENDER THE TRIANGLE BASED ON SHADING TYPE.
         switch (triangle.Material->Shading)
         {
