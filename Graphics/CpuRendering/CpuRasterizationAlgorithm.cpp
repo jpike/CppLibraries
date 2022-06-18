@@ -464,16 +464,16 @@ namespace GRAPHICS::CPU_RENDERING
                             const Color& second_vertex_color = triangle.Vertices[1].Color;
                             const Color& third_vertex_color = triangle.Vertices[2].Color;
                             interpolated_color.Red = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex_color.Red) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex_color.Red) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_vertex_color.Red) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_vertex_color.Red) +
                                 (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex_color.Red));
                             interpolated_color.Green = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex_color.Green) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex_color.Green) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_vertex_color.Green) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_vertex_color.Green) +
                                 (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex_color.Green));
                             interpolated_color.Blue = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex_color.Blue) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex_color.Blue) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_vertex_color.Blue) +
+                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_vertex_color.Blue) +
                                 (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex_color.Blue));
                             interpolated_color.Clamp();
 
@@ -491,12 +491,12 @@ namespace GRAPHICS::CPU_RENDERING
 
                                 MATH::Vector2f interpolated_texture_coordinate;
                                 interpolated_texture_coordinate.X = (
-                                    (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_texture_coordinate.X) +
-                                    (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_texture_coordinate.X) +
+                                    (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_texture_coordinate.X) +
+                                    (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_texture_coordinate.X) +
                                     (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_texture_coordinate.X));
                                 interpolated_texture_coordinate.Y = (
-                                    (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_texture_coordinate.Y) +
-                                    (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_texture_coordinate.Y) +
+                                    (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_texture_coordinate.Y) +
+                                    (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_texture_coordinate.Y) +
                                     (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_texture_coordinate.Y));
                                 // Clamping.
                                 if (interpolated_texture_coordinate.X < 0.0f)
