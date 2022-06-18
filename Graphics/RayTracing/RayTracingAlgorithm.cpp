@@ -252,42 +252,14 @@ namespace GRAPHICS::RAY_TRACING
                     VertexWithAttributes first_vertex = intersection.Triangle->Vertices[0];
                     VertexWithAttributes second_vertex = intersection.Triangle->Vertices[1];
                     VertexWithAttributes third_vertex = intersection.Triangle->Vertices[2];
-                    /// @todo   How to do this in 3D?
-                    float top_vertex_signed_distance_from_bottom_edge = (
-                        ((second_vertex.Position.Y - third_vertex.Position.Y) * first_vertex.Position.X) +
-                        ((third_vertex.Position.X - second_vertex.Position.X) * first_vertex.Position.Y) +
-                        (second_vertex.Position.X * third_vertex.Position.Y) -
-                        (third_vertex.Position.X * second_vertex.Position.Y));
-                    float right_vertex_signed_distance_from_left_edge = (
-                        ((second_vertex.Position.Y - first_vertex.Position.Y) * third_vertex.Position.X) +
-                        ((first_vertex.Position.X - second_vertex.Position.X) * third_vertex.Position.Y) +
-                        (second_vertex.Position.X * first_vertex.Position.Y) -
-                        (first_vertex.Position.X * second_vertex.Position.Y));
-
-                    // COMPUTE THE BARYCENTRIC COORDINATES OF THE INTERSECTION POINT.
-                    // The following diagram shows the order of the vertices:
-                    //             first_vertex
-                    //                 /\
-                    //                /  \
-                    // second_vertex /____\ third_vertex
-                    float intersection_point_signed_distance_from_bottom_edge = (
-                        ((second_vertex.Position.Y - third_vertex.Position.Y) * intersection_point.X) +
-                        ((third_vertex.Position.X - second_vertex.Position.X) * intersection_point.Y) +
-                        (second_vertex.Position.X * third_vertex.Position.Y) -
-                        (third_vertex.Position.X * second_vertex.Position.Y));
-                    float scaled_signed_distance_of_intersection_point_relative_to_bottom_edge = (intersection_point_signed_distance_from_bottom_edge / top_vertex_signed_distance_from_bottom_edge);
-
-                    float intersection_point_signed_distance_from_left_edge = (
-                        ((second_vertex.Position.Y - first_vertex.Position.Y) * intersection_point.X) +
-                        ((first_vertex.Position.X - second_vertex.Position.X) * intersection_point.Y) +
-                        (second_vertex.Position.X * first_vertex.Position.Y) -
-                        (first_vertex.Position.X * second_vertex.Position.Y));
-                    float scaled_signed_distance_of_intersection_point_relative_to_left_edge = (intersection_point_signed_distance_from_left_edge / right_vertex_signed_distance_from_left_edge);
-
-                    float scaled_signed_distance_of_intersection_point_relative_to_right_edge = (
-                        1.0f -
-                        scaled_signed_distance_of_intersection_point_relative_to_left_edge -
-                        scaled_signed_distance_of_intersection_point_relative_to_bottom_edge);
+    
+#define BARYCENTRIC_COORDINATES_2D 1
+#if BARYCENTRIC_COORDINATES_2D
+                    MATH::Vector2f current_point(intersection_point.X, intersection_point.Y);
+                    MATH::Vector3f current_point_barycentric_coordinates = intersection.Triangle->BarycentricCoordinates2DOf(current_point);
+#else
+                    MATH::Vector3f current_point_barycentric_coordinates = intersection.Triangle->BarycentricCoordinates3DOf(intersection_point);
+#endif
 
                     // INTERPOLATE THE TEXTURE COORDINATES.
                     const MATH::Vector2f& first_texture_coordinate = first_vertex.TextureCoordinates;
@@ -296,13 +268,13 @@ namespace GRAPHICS::RAY_TRACING
 
                     MATH::Vector2f interpolated_texture_coordinate;
                     interpolated_texture_coordinate.X = (
-                        (scaled_signed_distance_of_intersection_point_relative_to_right_edge * third_texture_coordinate.X) +
-                        (scaled_signed_distance_of_intersection_point_relative_to_left_edge * second_texture_coordinate.X) +
-                        (scaled_signed_distance_of_intersection_point_relative_to_bottom_edge * first_texture_coordinate.X));
+                        (current_point_barycentric_coordinates.X * second_texture_coordinate.X) +
+                        (current_point_barycentric_coordinates.Y * third_texture_coordinate.X) +
+                        (current_point_barycentric_coordinates.Z * first_texture_coordinate.X));
                     interpolated_texture_coordinate.Y = (
-                        (scaled_signed_distance_of_intersection_point_relative_to_right_edge * third_texture_coordinate.Y) +
-                        (scaled_signed_distance_of_intersection_point_relative_to_left_edge * second_texture_coordinate.Y) +
-                        (scaled_signed_distance_of_intersection_point_relative_to_bottom_edge * first_texture_coordinate.Y));
+                        (current_point_barycentric_coordinates.X * second_texture_coordinate.Y) +
+                        (current_point_barycentric_coordinates.Y * third_texture_coordinate.Y) +
+                        (current_point_barycentric_coordinates.Z * first_texture_coordinate.Y));
                     // Clamping.
                     if (interpolated_texture_coordinate.X < 0.0f)
                     {
@@ -330,13 +302,19 @@ namespace GRAPHICS::RAY_TRACING
 
                     Color texture_color = intersected_material->Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
                     base_diffuse_color = Color::ComponentMultiplyRedGreenBlue(base_diffuse_color, texture_color);;
+                    /// @todo   Hack to test out texture mapping.
+                    final_color = base_diffuse_color;
                 }
+                else
+                {
+                    /// @todo   else clause above is hack to test out texture mapping.
 
-                // The diffuse color is multiplied component-wise by the amount of light.
-                Color diffuse_color = Color::ComponentMultiplyRedGreenBlue(
-                    base_diffuse_color,
-                    light_total_color);
-                final_color += diffuse_color;
+                    // The diffuse color is multiplied component-wise by the amount of light.
+                    Color diffuse_color = Color::ComponentMultiplyRedGreenBlue(
+                        base_diffuse_color,
+                        light_total_color);
+                    final_color += diffuse_color;
+                }
             }
 
             // ADD IN SPECULAR COLOR IF ENABLED.

@@ -2,7 +2,6 @@
 
 #include <optional>
 #include "Graphics/Images/Bitmap.h"
-#include "Graphics/ScreenSpaceTriangle.h"
 #include "Graphics/Triangle.h"
 #include "Graphics/Viewing/Camera.h"
 #include "Math/Matrix4x4.h"
@@ -22,7 +21,7 @@ namespace GRAPHICS::VIEWING
         explicit ViewingTransformations(const Camera& camera);
         explicit ViewingTransformations(const Camera& camera, const IMAGES::Bitmap& output_plane);
 
-        std::optional<ScreenSpaceTriangle> Apply(const Triangle& world_triangle) const;
+        std::optional<Triangle> Apply(const Triangle& world_triangle) const;
 
         /// The transform to transform a vertex from world to camera view space.
         MATH::Matrix4x4f CameraViewTransform = {};

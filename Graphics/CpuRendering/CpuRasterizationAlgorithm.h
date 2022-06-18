@@ -9,7 +9,6 @@
 #include "Graphics/Images/Bitmap.h"
 #include "Graphics/Lighting/Light.h"
 #include "Graphics/Scene.h"
-#include "Graphics/ScreenSpaceTriangle.h"
 #include "Graphics/VertexWithAttributes.h"
 #include "Graphics/Viewing/Camera.h"
 
@@ -40,7 +39,7 @@ namespace GRAPHICS::CPU_RENDERING
         static Triangle TransformLocalToWorld(const Triangle& local_triangle, const MATH::Matrix4x4f& world_transform);
 
         static void Render(
-            const ScreenSpaceTriangle& triangle, 
+            const Triangle& triangle, 
             IMAGES::Bitmap& render_target,
             DepthBuffer* depth_buffer);
 

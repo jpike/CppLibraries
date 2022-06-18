@@ -110,4 +110,128 @@ namespace GRAPHICS
         intersection.Triangle = this;
         return intersection;
     }
+
+    /// Computes the barycentric coordinates of a point relative to the triangle.
+    /// Note that this method only computes 2D barycentric coordinates.
+    /// Barycentric coordinates are effectively coordinates that indicate where a point is relative to the inside of a triangle:
+    /// - A point inside (including edges) will have all 3 coordinates between [0,1].
+    /// - Positive or negative values indicate where a point is relative to a particular edge.
+    /// @param[in]  point - The point for which to compute barycentric coordinates.
+    /// @return The point in barycentric coordinates relative to the triangle.
+    MATH::Vector3f Triangle::BarycentricCoordinates2DOf(const MATH::Vector2f& point) const
+    {
+        // DEFINE THE VERTICES FOR THE BARYCENTRIC COORDINATE SYSTEM.
+        // Triangle coordinates are in counterclockwise order.
+        // The names of the vertices below may not be strictly "correct",
+        // but the basic idea holds for each vertex relative to each other.
+        //             left_vertex
+        //                 /\
+        //                /  \
+        // center_vertex /____\ right_vertex
+        MATH::Vector2f center_vertex_position(Vertices[1].Position.X, Vertices[1].Position.Y);
+        MATH::Vector2f left_vertex_position(Vertices[0].Position.X, Vertices[0].Position.Y);
+        MATH::Vector2f right_vertex_position(Vertices[2].Position.X, Vertices[2].Position.Y);
+
+        // COMPUTE THE BARYCENTRIC COORDINATE RELATIVE TO THE LEFT EDGE.
+        float signed_distance_of_point_from_left_edge = SignedDistanceOfPointFromEdge2D(center_vertex_position, left_vertex_position, point);
+        float signed_distance_of_right_vertex_from_left_edge = SignedDistanceOfPointFromEdge2D(center_vertex_position, left_vertex_position, right_vertex_position);
+        float scaled_signed_distance_of_point_from_left_edge = (signed_distance_of_point_from_left_edge / signed_distance_of_right_vertex_from_left_edge);
+
+        // COMPUTE THE BARYCENTRIC COORDINATE RELATIVE TO THE RIGHT EDGE.
+        float signed_distance_of_point_from_right_edge = SignedDistanceOfPointFromEdge2D(center_vertex_position, right_vertex_position, point);
+        float signed_distance_of_left_vertex_from_right_edge = SignedDistanceOfPointFromEdge2D(center_vertex_position, right_vertex_position, left_vertex_position);
+        float scaled_signed_distance_of_point_from_right_edge = (signed_distance_of_point_from_right_edge / signed_distance_of_left_vertex_from_right_edge);
+
+        // COMPUTE THE BARYCENTRIC COORDINATE FOR THE REMAINING EDGE.
+        float scaled_signed_distance_of_point_from_opposite_edge = (
+            1.0f -
+            scaled_signed_distance_of_point_from_left_edge -
+            scaled_signed_distance_of_point_from_right_edge);
+
+        // RETURN THE FULL BARYCENTRIC COORDINATES FOR THE POINT.
+        MATH::Vector3f point_barycentric_coordinates(
+            scaled_signed_distance_of_point_from_opposite_edge,
+            scaled_signed_distance_of_point_from_left_edge,
+            scaled_signed_distance_of_point_from_right_edge);
+        return point_barycentric_coordinates;
+    }
+
+    /// Computes the signed distance of a point from an edge.
+    /// Note that this method only computes things on a 2D plane.
+    /// @param[in]  edge_start_position - The start position of the edge.
+    /// @param[in]  edge_end_position - The end position of the edge.
+    /// @param[in]  point - The point for which to compute the signed distance.
+    /// @return The signed distance of the point from an edge.
+    float Triangle::SignedDistanceOfPointFromEdge2D(const MATH::Vector2f& edge_start_position, const MATH::Vector2f& edge_end_position, const MATH::Vector2f& point) const
+    {
+        // The equations below is simplified to final form for easier computation.
+        // See books like "Fundamental of Computer Graphics" by Peter Shirley and Steve Marschner (3rd edition - section 2.7.1)
+        // for more elaboration on these equations.
+        float signed_distance_of_point_from_edge = (
+            ((edge_start_position.Y - edge_end_position.Y) * point.X) +
+            ((edge_end_position.X - edge_start_position.X) * point.Y) +
+            (edge_start_position.X * edge_end_position.Y) -
+            (edge_end_position.X * edge_start_position.Y));
+        return signed_distance_of_point_from_edge;
+    }
+
+    /// Computes the barycentric coordinates of a point relative to the triangle, taking into account 3D space.
+    /// Barycentric coordinates are effectively coordinates that indicate where a point is relative to the inside of a triangle:
+    /// - A point inside (including edges) will have all 3 coordinates between [0,1].
+    /// - Positive or negative values indicate where a point is relative to a particular edge.
+    /// @param[in]  point - The point for which to compute barycentric coordinates.
+    /// @return The point in barycentric coordinates relative to the triangle.
+    MATH::Vector3f Triangle::BarycentricCoordinates3DOf(const MATH::Vector3f& point) const
+    {
+        // See books like "Fundamental of Computer Graphics" by Peter Shirley and Steve Marschner (3rd edition - section 2.7.2)
+        // for more elaboration on these equations.
+
+        // DEFINE THE VERTICES FOR THE BARYCENTRIC COORDINATE SYSTEM.
+        // Triangle coordinates are in counterclockwise order.
+        // The names of the vertices below may not be strictly "correct",
+        // but the basic idea holds for each vertex relative to each other.
+        //             left_vertex
+        //                 /\
+        //                /  \
+        // center_vertex /____\ right_vertex
+        const MATH::Vector3f& center_vertex_position = Vertices[1].Position;
+        const MATH::Vector3f& left_vertex_position = Vertices[0].Position;
+        const MATH::Vector3f& right_vertex_position = Vertices[2].Position;
+
+        // COMPUTE THE SURFACE NORMAL FOR THE ENTIRE TRIANGLE.
+        MATH::Vector3f first_edge = right_vertex_position - center_vertex_position;
+        MATH::Vector3f second_edge = left_vertex_position - center_vertex_position;
+        MATH::Vector3f surface_normal = MATH::Vector3f::CrossProduct(first_edge, second_edge);
+        float surface_normal_length = surface_normal.Length();
+        float surface_normal_squared_length = surface_normal_length * surface_normal_length;
+
+        // COMPUTE NORMALS RELATIVE TO THE POINT.
+        MATH::Vector3f edge_for_right_vertex = (left_vertex_position - right_vertex_position);
+        MATH::Vector3f edge_for_point_and_right_vertex = (point - right_vertex_position);
+        MATH::Vector3f point_and_right_vertex_normal = MATH::Vector3f::CrossProduct(edge_for_right_vertex, edge_for_point_and_right_vertex);
+
+        MATH::Vector3f edge_for_left_vertex = (center_vertex_position - left_vertex_position);
+        MATH::Vector3f edge_for_point_and_left_vertex = (point - left_vertex_position);
+        MATH::Vector3f point_and_left_vertex_normal = MATH::Vector3f::CrossProduct(edge_for_left_vertex, edge_for_point_and_left_vertex);
+
+        MATH::Vector3f edge_for_center_vertex = first_edge;
+        MATH::Vector3f edge_for_point_and_center_vertex = (point - center_vertex_position);
+        MATH::Vector3f point_and_center_vertex_normal = MATH::Vector3f::CrossProduct(edge_for_center_vertex, edge_for_point_and_center_vertex);
+
+        // COMPUTE THE BARYCENTRIC COORDINATES.
+        float first_barycentric_coordinate_dot_product = MATH::Vector3f::DotProduct(surface_normal, point_and_right_vertex_normal);
+        float first_barycentric_coordinate = first_barycentric_coordinate_dot_product / surface_normal_squared_length;
+
+        float second_barycentric_coordinate_dot_product = MATH::Vector3f::DotProduct(surface_normal, point_and_left_vertex_normal);
+        float second_barycentric_coordinate = second_barycentric_coordinate_dot_product / surface_normal_squared_length;
+
+        float third_barycentric_coordinate_dot_product = MATH::Vector3f::DotProduct(surface_normal, point_and_center_vertex_normal);
+        float third_barycentric_coordinate = third_barycentric_coordinate_dot_product / surface_normal_squared_length;
+
+        MATH::Vector3f point_barycentric_coordinates(
+            first_barycentric_coordinate,
+            second_barycentric_coordinate,
+            third_barycentric_coordinate);
+        return point_barycentric_coordinates;
+    }
 }

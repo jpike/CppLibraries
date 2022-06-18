@@ -127,7 +127,7 @@ namespace GRAPHICS::CPU_RENDERING
                 }
 
                 // TRANSFORM THE TRIANGLE FOR PROPER CAMERA VIEWING.
-                std::optional<ScreenSpaceTriangle> screen_space_triangle = viewing_transformations.Apply(world_space_triangle);
+                std::optional<Triangle> screen_space_triangle = viewing_transformations.Apply(world_space_triangle);
                 if (!screen_space_triangle)
                 {
                     continue;
@@ -184,7 +184,7 @@ namespace GRAPHICS::CPU_RENDERING
     /// @param[in,out]  render_target - The target to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
     void CpuRasterizationAlgorithm::Render(
-        const ScreenSpaceTriangle& triangle, 
+        const Triangle& triangle, 
         IMAGES::Bitmap& render_target,
         DepthBuffer* depth_buffer)
     {
@@ -251,6 +251,7 @@ namespace GRAPHICS::CPU_RENDERING
             }
             case ShadingType::FLAT:
             {
+#if OLD_BARYCENTRIC_COORDINATES
                 // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
                 float top_vertex_signed_distance_from_bottom_edge = (
                     ((second_vertex.Position.Y - third_vertex.Position.Y) * first_vertex.Position.X) +
@@ -262,6 +263,7 @@ namespace GRAPHICS::CPU_RENDERING
                     ((first_vertex.Position.X - second_vertex.Position.X) * third_vertex.Position.Y) +
                     (second_vertex.Position.X * first_vertex.Position.Y) -
                     (first_vertex.Position.X * second_vertex.Position.Y));
+#endif
 
                 // GET THE BOUNDING RECTANGLE OF THE TRIANGLE.
                 /// @todo   Create rectangle class.
@@ -287,6 +289,7 @@ namespace GRAPHICS::CPU_RENDERING
                 {
                     for (float x = clamped_min_x; x <= clamped_max_x; x += ONE_PIXEL)
                     {
+#if OLD_BARYCENTRIC_COORDINATES
                         // COMPUTE THE BARYCENTRIC COORDINATES OF THE CURRENT PIXEL POSITION.
                         // The following diagram shows the order of the vertices:
                         //             first_vertex
@@ -329,12 +332,39 @@ namespace GRAPHICS::CPU_RENDERING
                             pixel_between_bottom_edge_and_top_vertex &&
                             pixel_between_left_edge_and_right_vertex &&
                             pixel_between_right_edge_and_left_vertex);
+#else
+                        MATH::Vector2f current_point(x, y);
+                        MATH::Vector3f current_point_barycentric_coordinates = triangle.BarycentricCoordinates2DOf(current_point);
+
+                        constexpr float MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE = 0.0f;
+                        constexpr float MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX = 1.0f;
+                        bool pixel_between_opposite_edge_and_center_vertex = (
+                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.X) &&
+                            (current_point_barycentric_coordinates.X <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
+                        bool pixel_between_left_edge_and_right_vertex = (
+                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Y) &&
+                            (current_point_barycentric_coordinates.Y <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
+                        bool pixel_between_right_edge_and_left_vertex = (
+                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Z) &&
+                            (current_point_barycentric_coordinates.Z <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
+                        bool pixel_in_triangle = (
+                            pixel_between_opposite_edge_and_center_vertex &&
+                            pixel_between_left_edge_and_right_vertex &&
+                            pixel_between_right_edge_and_left_vertex);
+#endif
                         if (pixel_in_triangle)
                         {
+#if OLD_BARYCENTRIC_COORDINATES
                             float interpolated_z = (
                                 (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex.Position.Z) +
                                 (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex.Position.Z) +
                                 (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex.Position.Z));
+#else
+                            float interpolated_z = (
+                                (current_point_barycentric_coordinates.X * second_vertex.Position.Z) +
+                                (current_point_barycentric_coordinates.Y * third_vertex.Position.Z) +
+                                (current_point_barycentric_coordinates.Z * first_vertex.Position.Z));
+#endif
 
                             // Apply depth buffering filtering if applicable.
                             unsigned int current_pixel_x = static_cast<unsigned int>(std::round(x));
@@ -376,6 +406,7 @@ namespace GRAPHICS::CPU_RENDERING
             case ShadingType::TEXTURED: /// @todo    This should be the same?
             case ShadingType::MATERIAL: /// @todo    This should be the same?
             {
+#if OLD_BARYCENTRIC_COORDINATES
                 // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
                 float top_vertex_signed_distance_from_bottom_edge = (
                     ((second_vertex.Position.Y - third_vertex.Position.Y) * first_vertex.Position.X) +
@@ -387,6 +418,7 @@ namespace GRAPHICS::CPU_RENDERING
                     ((first_vertex.Position.X - second_vertex.Position.X) * third_vertex.Position.Y) +
                     (second_vertex.Position.X * first_vertex.Position.Y) -
                     (first_vertex.Position.X * second_vertex.Position.Y));
+#endif
 
                 // GET THE BOUNDING RECTANGLE OF THE TRIANGLE.
                 /// @todo   Create rectangle class.
@@ -412,6 +444,7 @@ namespace GRAPHICS::CPU_RENDERING
                 {
                     for (float x = clamped_min_x; x <= clamped_max_x; x += ONE_PIXEL)
                     {
+#if OLD_BARYCENTRIC_COODINATES
                         // COMPUTE THE BARYCENTRIC COORDINATES OF THE CURRENT PIXEL POSITION.
                         // The following diagram shows the order of the vertices:
                         //             first_vertex
@@ -455,6 +488,27 @@ namespace GRAPHICS::CPU_RENDERING
                             pixel_between_bottom_edge_and_top_vertex &&
                             pixel_between_left_edge_and_right_vertex &&
                             pixel_between_right_edge_and_left_vertex);
+#else
+                        float interpolated_z = DepthBuffer::MAX_DEPTH;
+                        MATH::Vector2f current_point(x, y);
+                        MATH::Vector3f current_point_barycentric_coordinates = triangle.BarycentricCoordinates2DOf(current_point);
+
+                        constexpr float MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE = 0.0f;
+                        constexpr float MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX = 1.0f;
+                        bool pixel_between_opposite_edge_and_center_vertex = (
+                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.X) &&
+                            (current_point_barycentric_coordinates.X <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
+                        bool pixel_between_left_edge_and_right_vertex = (
+                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Y) &&
+                            (current_point_barycentric_coordinates.Y <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
+                        bool pixel_between_right_edge_and_left_vertex = (
+                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Z) &&
+                            (current_point_barycentric_coordinates.Z <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
+                        bool pixel_in_triangle = (
+                            pixel_between_opposite_edge_and_center_vertex &&
+                            pixel_between_left_edge_and_right_vertex &&
+                            pixel_between_right_edge_and_left_vertex);
+#endif
                         if (pixel_in_triangle)
                         {
                             // The color needs to be interpolated with this kind of shading.
@@ -463,6 +517,7 @@ namespace GRAPHICS::CPU_RENDERING
                             const Color& first_vertex_color = triangle.Vertices[0].Color;
                             const Color& second_vertex_color = triangle.Vertices[1].Color;
                             const Color& third_vertex_color = triangle.Vertices[2].Color;
+#if OLD_BARYCENTRIC_COORDINATES
                             interpolated_color.Red = (
                                 (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_vertex_color.Red) +
                                 (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_vertex_color.Red) +
@@ -481,6 +536,26 @@ namespace GRAPHICS::CPU_RENDERING
                                 (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex.Position.Z) +
                                 (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex.Position.Z) +
                                 (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex.Position.Z));
+#else
+                            interpolated_color.Red = (
+                                (current_point_barycentric_coordinates.X * second_vertex_color.Red) +
+                                (current_point_barycentric_coordinates.Y * third_vertex_color.Red) +
+                                (current_point_barycentric_coordinates.Z * first_vertex_color.Red));
+                            interpolated_color.Green = (
+                                (current_point_barycentric_coordinates.X * second_vertex_color.Green) +
+                                (current_point_barycentric_coordinates.Y * third_vertex_color.Green) +
+                                (current_point_barycentric_coordinates.Z * first_vertex_color.Green));
+                            interpolated_color.Blue = (
+                                (current_point_barycentric_coordinates.X * second_vertex_color.Blue) +
+                                (current_point_barycentric_coordinates.Y * third_vertex_color.Blue) +
+                                (current_point_barycentric_coordinates.Z * first_vertex_color.Blue));
+                            interpolated_color.Clamp();
+
+                            interpolated_z = (
+                                (current_point_barycentric_coordinates.X * second_vertex.Position.Z) +
+                                (current_point_barycentric_coordinates.Y * third_vertex.Position.Z) +
+                                (current_point_barycentric_coordinates.Z * first_vertex.Position.Z));
+#endif
 
                             if (ShadingType::TEXTURED == triangle.Material->Shading)
                             {
@@ -490,6 +565,7 @@ namespace GRAPHICS::CPU_RENDERING
                                 const MATH::Vector2f& third_texture_coordinate = third_vertex.TextureCoordinates;
 
                                 MATH::Vector2f interpolated_texture_coordinate;
+#if OLD_BARYCENTRIC_COORDINATES
                                 interpolated_texture_coordinate.X = (
                                     (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_texture_coordinate.X) +
                                     (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_texture_coordinate.X) +
@@ -498,6 +574,16 @@ namespace GRAPHICS::CPU_RENDERING
                                     (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_texture_coordinate.Y) +
                                     (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_texture_coordinate.Y) +
                                     (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_texture_coordinate.Y));
+#else
+                                interpolated_texture_coordinate.X = (
+                                    (current_point_barycentric_coordinates.X * second_texture_coordinate.X) +
+                                    (current_point_barycentric_coordinates.Y * third_texture_coordinate.X) +
+                                    (current_point_barycentric_coordinates.Z * first_texture_coordinate.X));
+                                interpolated_texture_coordinate.Y = (
+                                    (current_point_barycentric_coordinates.X * second_texture_coordinate.Y) +
+                                    (current_point_barycentric_coordinates.Y * third_texture_coordinate.Y) +
+                                    (current_point_barycentric_coordinates.Z * first_texture_coordinate.Y));
+#endif
                                 // Clamping.
                                 if (interpolated_texture_coordinate.X < 0.0f)
                                 {
