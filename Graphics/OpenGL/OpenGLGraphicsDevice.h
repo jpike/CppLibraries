@@ -31,6 +31,17 @@ namespace GRAPHICS::OPEN_GL
             const GRAPHICS::VIEWING::Camera& camera,
             const bool cull_backfaces,
             const bool depth_buffering) override;
+        /// Renders the specified scene using the graphics device.
+        /// @param[in]  scene - The scene to render.
+        /// @param[in]  camera - The camera to use for viewing.
+        /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
+        /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
+        /// @todo
+        void Render(
+            const GRAPHICS::Scene& scene,
+            const GRAPHICS::VIEWING::Camera& camera,
+            const bool cull_backfaces,
+            const bool depth_buffering) override {};
         void DisplayRenderedImage(WINDOWING::IWindow& window) override;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.

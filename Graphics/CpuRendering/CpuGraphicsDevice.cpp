@@ -122,6 +122,40 @@ namespace GRAPHICS::CPU_RENDERING
         }
     }
 
+    /// Renders the specified scene using the graphics device.
+    /// @param[in]  scene - The scene to render.
+    /// @param[in]  camera - The camera to use for viewing.
+    /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
+    /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
+    void CpuGraphicsDevice::Render(
+        const GRAPHICS::Scene& scene,
+        const GRAPHICS::VIEWING::Camera& camera,
+        const bool cull_backfaces,
+        const bool depth_buffering)
+    {
+        bool rasterization_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RASTERIZER);
+        if (rasterization_enabled)
+        {
+            GRAPHICS::DepthBuffer* depth_buffer = depth_buffering ? &DepthBuffer : nullptr;
+            CpuRasterizationAlgorithm::Render(
+                scene,
+                camera,
+                cull_backfaces,
+                ColorBuffer,
+                depth_buffer);
+        }
+
+        bool ray_tracing_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RAY_TRACER);
+        if (ray_tracing_enabled)
+        {
+            GRAPHICS::RAY_TRACING::RayTracingAlgorithm ray_tracing_algorithm;
+            ray_tracing_algorithm.Render(
+                scene,
+                camera,
+                ColorBuffer);
+        }
+    }
+
     /// Displays the rendered image from the graphics device.
     /// @param[in]  window - The window in which to display the image.
     void CpuGraphicsDevice::DisplayRenderedImage(WINDOWING::IWindow& window)

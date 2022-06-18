@@ -3,6 +3,7 @@
 #include <memory>
 #include "Graphics/Color.h"
 #include "Graphics/Object3D.h"
+#include "Graphics/Scene.h"
 #include "Graphics/Viewing/Camera.h"
 #include "Windowing/IWindow.h"
 
@@ -76,13 +77,23 @@ namespace GRAPHICS::HARDWARE
         /// Clears the background on the graphics device to the specified color.
         /// @param[in]  color - The color to clear the background to.
         virtual void ClearBackground(const GRAPHICS::Color& color) = 0;
-        /// Renders the specified on using the graphics device.
+        /// Renders the specified object using the graphics device.
         /// @param[in]  object_3D - The object to render.
         /// @param[in]  camera - The camera to use for viewing.
         /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
         /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
         virtual void Render(
             const GRAPHICS::Object3D& object_3D, 
+            const GRAPHICS::VIEWING::Camera& camera,
+            const bool cull_backfaces,
+            const bool depth_buffering) = 0;
+        /// Renders the specified scene using the graphics device.
+        /// @param[in]  scene - The scene to render.
+        /// @param[in]  camera - The camera to use for viewing.
+        /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
+        /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
+        virtual void Render(
+            const GRAPHICS::Scene& scene,
             const GRAPHICS::VIEWING::Camera& camera,
             const bool cull_backfaces,
             const bool depth_buffering) = 0;

@@ -27,6 +27,7 @@
 #include "Graphics/RayTracing/Ray.cpp"
 #include "Graphics/RayTracing/RayObjectIntersection.cpp"
 #include "Graphics/RayTracing/RayTracingAlgorithm.cpp"
+#include "Graphics/RayTracing/Sphere.cpp"
 
 #include "Graphics/Shading/Shading.cpp"
 

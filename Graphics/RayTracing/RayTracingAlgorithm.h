@@ -5,6 +5,7 @@
 #include "Graphics/Images/Bitmap.h"
 #include "Graphics/RayTracing/Ray.h"
 #include "Graphics/RayTracing/RayObjectIntersection.h"
+#include "Graphics/RayTracing/Sphere.h"
 #include "Graphics/Scene.h"
 #include "Graphics/Viewing/Camera.h"
 
@@ -49,6 +50,6 @@ namespace GRAPHICS::RAY_TRACING
         std::optional<RayObjectIntersection> ComputeClosestIntersection(
             const Scene& scene,
             const Ray& ray,
-            const Triangle* const ignored_object = nullptr) const;
+            const std::variant<std::monostate, const Triangle*, const Sphere*>& ignored_object = {}) const;
     };
 }

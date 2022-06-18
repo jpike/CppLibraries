@@ -107,7 +107,7 @@ namespace GRAPHICS
         RAY_TRACING::RayObjectIntersection intersection;
         intersection.Ray = &ray;
         intersection.DistanceFromRayToObject = distance_from_ray_to_object;
-        intersection.Triangle = this;
+        intersection.Object = this;
         return intersection;
     }
 

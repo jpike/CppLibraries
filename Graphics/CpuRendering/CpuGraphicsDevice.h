@@ -31,6 +31,11 @@ namespace GRAPHICS::CPU_RENDERING
             const GRAPHICS::VIEWING::Camera& camera,
             const bool cull_backfaces,
             const bool depth_buffering) override;
+        void Render(
+            const GRAPHICS::Scene& scene,
+            const GRAPHICS::VIEWING::Camera& camera,
+            const bool cull_backfaces,
+            const bool depth_buffering) override;
         void DisplayRenderedImage(WINDOWING::IWindow& window) override;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
