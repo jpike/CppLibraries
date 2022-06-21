@@ -14,7 +14,6 @@ namespace GRAPHICS::MODELING
     class WavefrontMaterial
     {
     public:
-        static std::shared_ptr<Material> Load(const std::filesystem::path& mtl_filepath);
-        static std::unordered_map<std::string, MEMORY::NonNullSharedPointer<Material>> LoadNew(const std::filesystem::path& mtl_filepath);
+        static std::unordered_map<std::string, MEMORY::NonNullSharedPointer<Material>> Load(const std::filesystem::path& mtl_filepath);
     };
 }

@@ -2,10 +2,11 @@
 
 #include <optional>
 #include "Graphics/Color.h"
+#include "Graphics/Geometry/Sphere.h"
 #include "Graphics/Images/Bitmap.h"
 #include "Graphics/RayTracing/Ray.h"
 #include "Graphics/RayTracing/RayObjectIntersection.h"
-#include "Graphics/RayTracing/Sphere.h"
+#include "Graphics/RayTracing/RayTraceableShape.h"
 #include "Graphics/Scene.h"
 #include "Graphics/Viewing/Camera.h"
 
@@ -13,7 +14,6 @@
 namespace GRAPHICS::RAY_TRACING
 {
     /// A basic ray tracing algorithm.
-    /// @todo   Add back in support for spheres.
     class RayTracingAlgorithm
     {
     public:
@@ -50,6 +50,6 @@ namespace GRAPHICS::RAY_TRACING
         std::optional<RayObjectIntersection> ComputeClosestIntersection(
             const Scene& scene,
             const Ray& ray,
-            const std::variant<std::monostate, const Triangle*, const Sphere*>& ignored_object = {}) const;
+            const RayTraceableShape& ignored_object = {}) const;
     };
 }

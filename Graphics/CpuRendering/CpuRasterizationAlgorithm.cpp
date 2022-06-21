@@ -109,7 +109,7 @@ namespace GRAPHICS::CPU_RENDERING
             for (const auto& local_triangle : mesh.Triangles)
             {
                 // TRANSFORM THE TRIANGLE INTO WORLD SPACE.
-                Triangle world_space_triangle = TransformLocalToWorld(local_triangle, object_world_transform);
+                GEOMETRY::Triangle world_space_triangle = TransformLocalToWorld(local_triangle, object_world_transform);
 
                 // CULL BACKFACES IF APPLICABLE.
                 MATH::Vector3f unit_surface_normal = world_space_triangle.SurfaceNormal();
@@ -127,14 +127,14 @@ namespace GRAPHICS::CPU_RENDERING
                 }
 
                 // TRANSFORM THE TRIANGLE FOR PROPER CAMERA VIEWING.
-                std::optional<Triangle> screen_space_triangle = viewing_transformations.Apply(world_space_triangle);
+                std::optional<GEOMETRY::Triangle> screen_space_triangle = viewing_transformations.Apply(world_space_triangle);
                 if (!screen_space_triangle)
                 {
                     continue;
                 }
 
                 // COMPUTE VERTEX COLORS.
-                for (std::size_t vertex_index = 0; vertex_index < Triangle::VERTEX_COUNT; ++vertex_index)
+                for (std::size_t vertex_index = 0; vertex_index < GEOMETRY::Triangle::VERTEX_COUNT; ++vertex_index)
                 {
                     // SHADE THE CURRENT VERTEX.
                     const VertexWithAttributes& current_world_vertex = world_space_triangle.Vertices[vertex_index];
@@ -159,10 +159,10 @@ namespace GRAPHICS::CPU_RENDERING
     /// @param[in]  local_triangle - The local triangle to transform.
     /// @param[in]  world_transform - The world transformation for the triangle.
     /// @return The world space triangle.
-    Triangle CpuRasterizationAlgorithm::TransformLocalToWorld(const Triangle& local_triangle, const MATH::Matrix4x4f& world_transform)
+    GEOMETRY::Triangle CpuRasterizationAlgorithm::TransformLocalToWorld(const GEOMETRY::Triangle& local_triangle, const MATH::Matrix4x4f& world_transform)
     {
         // TRANSFORM EACH VERTEX OF THE TRIANGLE.
-        Triangle world_space_triangle = local_triangle;
+        GEOMETRY::Triangle world_space_triangle = local_triangle;
 
         std::size_t triangle_vertex_count = world_space_triangle.Vertices.size();
         for (std::size_t vertex_index = 0; vertex_index < triangle_vertex_count; ++vertex_index)
@@ -184,7 +184,7 @@ namespace GRAPHICS::CPU_RENDERING
     /// @param[in,out]  render_target - The target to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
     void CpuRasterizationAlgorithm::Render(
-        const Triangle& triangle, 
+        const GEOMETRY::Triangle& triangle,
         IMAGES::Bitmap& render_target,
         DepthBuffer* depth_buffer)
     {

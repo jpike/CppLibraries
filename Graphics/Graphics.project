@@ -6,6 +6,10 @@
 
 #include "Graphics/DirectX/Direct3DGraphicsDevice.cpp"
 
+#include "Graphics/Geometry/Cube.cpp"
+#include "Graphics/Geometry/Sphere.cpp"
+#include "Graphics/Geometry/Triangle.cpp"
+
 #include "Graphics/Gui/Font.cpp"
 #include "Graphics/Gui/Glyph.cpp"
 
@@ -16,7 +20,6 @@
 #include "Graphics/Lighting/Light.cpp"
 #include "Graphics/Lighting/Lighting.cpp"
 
-#include "Graphics/Modeling/Cube.cpp"
 #include "Graphics/Modeling/WavefrontMaterial.cpp"
 #include "Graphics/Modeling/WavefrontObjectModel.cpp"
 
@@ -26,8 +29,8 @@
 
 #include "Graphics/RayTracing/Ray.cpp"
 #include "Graphics/RayTracing/RayObjectIntersection.cpp"
+#include "Graphics/RayTracing/RayTraceableShape.cpp"
 #include "Graphics/RayTracing/RayTracingAlgorithm.cpp"
-#include "Graphics/RayTracing/Sphere.cpp"
 
 #include "Graphics/Shading/Shading.cpp"
 
@@ -37,7 +40,4 @@
 #include "Graphics/Color.cpp"
 #include "Graphics/DepthBuffer.cpp"
 #include "Graphics/FrameTimer.cpp"
-#include "Graphics/Material.cpp"
 #include "Graphics/Object3D.cpp"
-#include "Graphics/Triangle.cpp"
-#include "Graphics/VertexWithAttributes.cpp"

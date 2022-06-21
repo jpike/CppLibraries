@@ -4,13 +4,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-// This code is only compiled in if the bgfx library is available to allow
-// the larger graphics library to be used without bgfx.
-#if __has_include(<bgfx/bgfx.h>)
-#include <bgfx/bgfx.h>
-#endif
-
 #include "Graphics/Color.h"
 #include "Graphics/Images/Bitmap.h"
 #include "Math/Vector2.h"
@@ -44,7 +37,8 @@ namespace GRAPHICS
     class Material
     {
     public:
-        static std::unordered_map<std::string, Material> Load(const std::filesystem::path& mtl_filepath);
+        /// An identifying name of the material.
+        std::string Name = "";
 
         /// The type of shading for the material.
         ShadingType Shading = ShadingType::WIREFRAME;
@@ -64,18 +58,5 @@ namespace GRAPHICS
 
         /// Any texture defining the look of the material.
         std::shared_ptr<IMAGES::Bitmap> Texture = nullptr;
-
-        // This code is only compiled in if the bgfx library is available to allow
-// the larger graphics library to be used without bgfx.
-#if __has_include(<bgfx/bgfx.h>)
-        /// Handle to the texture used for BGFX rendering.
-        bgfx::TextureHandle TextureResource = { bgfx::kInvalidHandle };
-        /// Handle allocated to the texture for shaders.
-        bgfx::UniformHandle TextureShaderInput = { bgfx::kInvalidHandle };
-        /// The shader program to use for rendering using the material.
-        bgfx::ProgramHandle ShaderProgram = { bgfx::kInvalidHandle };
-#endif
-        /// @todo   BGFX only?
-        std::string Name = "";
     };
 }

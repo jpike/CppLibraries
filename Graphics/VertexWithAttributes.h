@@ -1,11 +1,5 @@
 #pragma once
 
-#include <cstdint>
-// Parts of this code are only compiled in if the bgfx library is available to allow
-// the larger graphics library to be used without bgfx.
-#if __has_include(<bgfx/bgfx.h>)
-#include <bgfx/bgfx.h>
-#endif
 #include "Graphics/Color.h"
 #include "Math/Vector2.h"
 #include "Math/Vector3.h"
@@ -17,11 +11,6 @@ namespace GRAPHICS
     class VertexWithAttributes
     {
     public:
-        // STATIC METHODS.
-        #if __has_include(<bgfx/bgfx.h>)
-        static bgfx::VertexLayout& Layout();
-        #endif
-
         // OPERATORS.
         /// Default comparison operator.
         auto operator<=>(const VertexWithAttributes&) const = default;

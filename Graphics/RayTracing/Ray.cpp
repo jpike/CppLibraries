@@ -1,8 +1,6 @@
 #include "Graphics/RayTracing/Ray.h"
 
-namespace GRAPHICS
-{
-namespace RAY_TRACING
+namespace GRAPHICS::RAY_TRACING
 {
     /// Constructor.
     /// @param[in]  origin - See \ref Origin.
@@ -11,5 +9,4 @@ namespace RAY_TRACING
         Origin(origin),
         Direction(direction)
     {}
-}
 }

@@ -3,7 +3,7 @@
 #include <future>
 #include <thread>
 #include <vector>
-#include "Graphics/Modeling/Mesh.h"
+#include "Graphics/Mesh.h"
 #include "Graphics/RayTracing/RayTracingAlgorithm.h"
 #include "Math/Angle.h"
 
@@ -19,12 +19,12 @@ namespace GRAPHICS::RAY_TRACING
         Scene scene_with_world_space_objects;
         scene_with_world_space_objects.BackgroundColor = scene.BackgroundColor;
         scene_with_world_space_objects.PointLights = scene.PointLights;
-        scene_with_world_space_objects.Spheres = scene.Spheres;
         for (const Object3D& untransformed_object : scene.Objects)
         {
             // INITIALIZE THE TRANSFORMED VERSION OF THE OBJECT.
             /// @todo   We don't really need full objects here - just final triangles.
             Object3D transformed_object;
+            transformed_object.Spheres = untransformed_object.Spheres;
             transformed_object.Scale = untransformed_object.Scale;
             transformed_object.WorldPosition = untransformed_object.WorldPosition;
             transformed_object.RotationInRadians = untransformed_object.RotationInRadians;
@@ -34,13 +34,13 @@ namespace GRAPHICS::RAY_TRACING
             for (const auto& [mesh_name, untransformed_mesh] : untransformed_object.Model.MeshesByName)
             {
                 // CREATE AN EMPTY MESH TO BE POPULATED WITH TRANSFORMED INFORMATION.
-                MODELING::Mesh transformed_mesh = { .Name = mesh_name };
+                Mesh transformed_mesh = { .Name = mesh_name };
 
                 // TRANSFORM ALL TRIANGLES IN THE MESH.
-                for (const Triangle& untransformed_triangle : untransformed_mesh.Triangles)
+                for (const GEOMETRY::Triangle& untransformed_triangle : untransformed_mesh.Triangles)
                 {
                     // INITIALIZE THE TRANSFORMED VERSION OF THE TRIANGLE.
-                    Triangle transformed_triangle;
+                    GEOMETRY::Triangle transformed_triangle;
                     transformed_triangle.Material = untransformed_triangle.Material;
 
                     // TRANSFORM EACH VERTEX OF THE TRIANGLE.
@@ -165,18 +165,7 @@ namespace GRAPHICS::RAY_TRACING
         Color final_color = Color::BLACK;
 
         // ADD IN THE AMBIENT COLOR IF ENABLED.
-        std::shared_ptr<Material> intersected_material = nullptr;
-        const Triangle* const * intersected_triangle = std::get_if<const Triangle*>(&intersection.Object);
-        const Sphere* const * intersected_sphere = std::get_if<const Sphere*>(&intersection.Object);
-        if (intersected_triangle)
-        {
-            intersected_material = (*intersected_triangle)->Material;
-        }
-        else if (intersected_sphere)
-        {
-            intersected_material = (*intersected_sphere)->Material;
-        }
-
+        std::shared_ptr<Material> intersected_material = intersection.Object.GetMaterial();
         if (Ambient)
         {
             final_color += intersected_material->AmbientColor;
@@ -185,15 +174,7 @@ namespace GRAPHICS::RAY_TRACING
         // COMPUTE SHADOWS.
         std::vector<float> shadow_factors_by_light_index;
         MATH::Vector3f intersection_point = intersection.IntersectionPoint();
-        MATH::Vector3f unit_surface_normal;
-        if (intersected_triangle)
-        {
-            unit_surface_normal = (*intersected_triangle)->SurfaceNormal();
-        }
-        else if (intersected_sphere)
-        {
-            unit_surface_normal = (*intersected_sphere)->SurfaceNormal(intersection_point);
-        }
+        MATH::Vector3f unit_surface_normal = intersection.Object.GetSurfaceNormal(intersection_point);
         if (scene.PointLights)
         {
             for (const LIGHTING::Light& light : (*scene.PointLights))
@@ -267,6 +248,7 @@ namespace GRAPHICS::RAY_TRACING
                 /// @todo   How to we know whether texture is for diffuse or not?
                 Color base_diffuse_color = intersected_material->DiffuseColor;
                 /// @todo   Handle spheres versus triangles.
+                const GEOMETRY::Triangle* const* intersected_triangle = std::get_if<const GEOMETRY::Triangle*>(&intersection.Object.Shape);
                 if (intersected_material->Texture && intersected_triangle)
                 {
                     // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
@@ -437,12 +419,52 @@ namespace GRAPHICS::RAY_TRACING
     std::optional<RayObjectIntersection> RayTracingAlgorithm::ComputeClosestIntersection(
         const Scene& scene,
         const Ray& ray,
-        const std::variant<std::monostate, const Triangle*, const Sphere*>& ignored_object) const
+        const RayTraceableShape& ignored_object) const
     {
         // FIND THE CLOSEST OBJECT IN THE SCENE THAT THE RAY INTERSECTS.
         std::optional<RayObjectIntersection> closest_intersection = std::nullopt;
         for (const auto& current_object : scene.Objects)
         {
+            // SEARCH FOR INTERSECTIONS IN SPHERES.
+            for (const auto& current_sphere : current_object.Spheres)
+            {
+                // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
+                const GEOMETRY::Sphere* const* ignored_sphere = std::get_if<const GEOMETRY::Sphere*>(&ignored_object.Shape);
+                if (ignored_sphere)
+                {
+                    bool ignore_current_object = ((*ignored_sphere) == &current_sphere);
+                    if (ignore_current_object)
+                    {
+                        continue;
+                    }
+                }
+
+                // CHECK IF THE RAY INTERSECTS THE CURRENT OBJECT.
+                std::optional<RayObjectIntersection> intersection = current_sphere.Intersect(ray);
+                bool ray_hit_object = (std::nullopt != intersection);
+                if (!ray_hit_object)
+                {
+                    // CONTINUE SEEING IF OTHER OBJECTS ARE HIT.
+                    continue;
+                }
+
+                // UPDATE THE CLOSEST INTERSECTION APPROPRIATELY.
+                if (closest_intersection)
+                {
+                    // ONLY OVERWRITE THE CLOSEST INTERSECTION IF THE NEWEST ONE IS CLOSER.
+                    bool new_intersection_closer = (intersection->DistanceFromRayToObject < closest_intersection->DistanceFromRayToObject);
+                    if (new_intersection_closer)
+                    {
+                        closest_intersection = intersection;
+                    }
+                }
+                else
+                {
+                    // SET THIS FIRST INTERSECTION AS THE CLOSEST.
+                    closest_intersection = intersection;
+                }
+            }
+
             // SEARCH FOR INTERSECTIONS IN ALL MESHES OF THE OBJECT.
             for (const auto& [mesh_name, mesh] : current_object.Model.MeshesByName)
             {
@@ -451,7 +473,7 @@ namespace GRAPHICS::RAY_TRACING
                 for (const auto& current_triangle : mesh.Triangles)
                 {
                     // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
-                    const Triangle* const* ignored_triangle = std::get_if<const Triangle*>(&ignored_object);
+                    const GEOMETRY::Triangle* const* ignored_triangle = std::get_if<const GEOMETRY::Triangle*>(&ignored_object.Shape);
                     if (ignored_triangle)
                     {
                         bool ignore_current_object = ((*ignored_triangle) == &current_triangle);
@@ -486,45 +508,6 @@ namespace GRAPHICS::RAY_TRACING
                         closest_intersection = intersection;
                     }
                 }
-            }
-        }
-
-        for (const auto& current_sphere : scene.Spheres)
-        {
-            // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
-            const Sphere* const* ignored_sphere = std::get_if<const Sphere*>(&ignored_object);
-            if (ignored_sphere)
-            {
-                bool ignore_current_object = ((*ignored_sphere) == &current_sphere);
-                if (ignore_current_object)
-                {
-                    continue;
-                }
-            }
-
-            // CHECK IF THE RAY INTERSECTS THE CURRENT OBJECT.
-            std::optional<RayObjectIntersection> intersection = current_sphere.Intersect(ray);
-            bool ray_hit_object = (std::nullopt != intersection);
-            if (!ray_hit_object)
-            {
-                // CONTINUE SEEING IF OTHER OBJECTS ARE HIT.
-                continue;
-            }
-
-            // UPDATE THE CLOSEST INTERSECTION APPROPRIATELY.
-            if (closest_intersection)
-            {
-                // ONLY OVERWRITE THE CLOSEST INTERSECTION IF THE NEWEST ONE IS CLOSER.
-                bool new_intersection_closer = (intersection->DistanceFromRayToObject < closest_intersection->DistanceFromRayToObject);
-                if (new_intersection_closer)
-                {
-                    closest_intersection = intersection;
-                }
-            }
-            else
-            {
-                // SET THIS FIRST INTERSECTION AS THE CLOSEST.
-                closest_intersection = intersection;
             }
         }
 

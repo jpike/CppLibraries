@@ -40,10 +40,10 @@ namespace GRAPHICS::VIEWING
     /// Applies the viewing transformations to transform a triangle from world space to screen space.
     /// @param[in]  world_triangle - The world triangle to transform.
     /// @return The screen-space triangle, if within view; null otherwise.
-    std::optional<Triangle> ViewingTransformations::Apply(const Triangle& world_triangle) const
+    std::optional<GEOMETRY::Triangle> ViewingTransformations::Apply(const GEOMETRY::Triangle& world_triangle) const
     {
         // CREATE THE INITIAL SCREEN SPACE TRIANGLE.
-        Triangle screen_space_triangle;
+        GEOMETRY::Triangle screen_space_triangle;
         screen_space_triangle.Material = world_triangle.Material;
         screen_space_triangle.Vertices = world_triangle.Vertices;
 

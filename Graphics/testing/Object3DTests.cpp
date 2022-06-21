@@ -10,7 +10,7 @@ constexpr float ONE_ROTATED_60_DEGREES = 0.5f;
 TEST_CASE("World transform can translate a vector.", "[Object3D][WorldTransform][Translation]")
 {
     // CREATE A 3D OBJECT.
-    GRAPHICS::Triangle triangle;
+    GRAPHICS::GEOMETRY::Triangle triangle;
     triangle.Vertices =
     {
         GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 1.0f, 0.0f) },
@@ -58,7 +58,7 @@ TEST_CASE("World transform can translate a vector.", "[Object3D][WorldTransform]
 TEST_CASE("World transform can rotate a vector around the z-axis by common locations on unit circle.", "[Object3D][WorldTransform][Rotation]")
 {
     // DEFINE THE BASE TRIANGLE TO ROTATE.
-    GRAPHICS::Triangle triangle;
+    GRAPHICS::GEOMETRY::Triangle triangle;
     triangle.Vertices =
     {
         GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 1.0f, 0.0f) }, // top
@@ -68,11 +68,11 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
 
     // DEFINE THE DIFFERENT ROTATION ANGLES AND EXPECTED TRIANGLES.
     const std::shared_ptr<GRAPHICS::Material> NO_MATERIAL = nullptr;
-    std::map<float, GRAPHICS::Triangle> rotation_angles_in_degrees_and_expected_triangles =
+    std::map<float, GRAPHICS::GEOMETRY::Triangle> rotation_angles_in_degrees_and_expected_triangles =
     {
         {
             30.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -91,7 +91,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             45.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -110,7 +110,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             60.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -129,7 +129,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             90.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -148,7 +148,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             120.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -167,7 +167,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             135.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -186,7 +186,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             150.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -205,7 +205,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             180.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -224,7 +224,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             210.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -243,7 +243,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             225.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -262,7 +262,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             240.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -281,7 +281,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             270.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -300,7 +300,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             300.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -319,7 +319,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             315.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -338,7 +338,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             330.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -357,13 +357,13 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             360.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 triangle.Vertices)
         },
         {
             -30.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -382,7 +382,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -45.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -401,7 +401,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -60.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -420,7 +420,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -90.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -439,7 +439,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -120.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -458,7 +458,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -135.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -477,7 +477,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -150.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -496,7 +496,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -180.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -515,7 +515,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -210.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -534,7 +534,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -225.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -553,7 +553,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -240.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -572,7 +572,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -270.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -591,7 +591,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -300.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -610,7 +610,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -315.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -629,7 +629,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -330.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes {.Position = MATH::Vector3f(
@@ -648,7 +648,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
         },
         {
             -360.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 triangle.Vertices)
         },
@@ -710,7 +710,7 @@ TEST_CASE("World transform can rotate a vector around the z-axis by common locat
 TEST_CASE("World transform can rotate a vector around the x-axis by common locations on unit circle.", "[Object3D][WorldTransform][Rotation]")
 {
     // DEFINE THE BASE TRIANGLE TO ROTATE.
-    GRAPHICS::Triangle triangle;
+    GRAPHICS::GEOMETRY::Triangle triangle;
     triangle.Vertices =
     {
         GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 1.0f, 0.0f) }, // top
@@ -720,11 +720,11 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
 
     // DEFINE THE DIFFERENT ROTATION ANGLES AND EXPECTED TRIANGLES.
     const std::shared_ptr<GRAPHICS::Material> NO_MATERIAL = nullptr;
-    std::map<float, GRAPHICS::Triangle> rotation_angles_in_degrees_and_expected_triangles =
+    std::map<float, GRAPHICS::GEOMETRY::Triangle> rotation_angles_in_degrees_and_expected_triangles =
     {
         {
             30.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
@@ -734,7 +734,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             45.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
@@ -744,7 +744,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             60.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
@@ -754,7 +754,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             90.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 0.0f, 1.0f) },
@@ -764,7 +764,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             120.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
@@ -774,7 +774,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             135.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
@@ -784,7 +784,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             150.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
@@ -794,7 +794,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             180.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -1.0f, 0.0f) },
@@ -804,7 +804,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             210.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
@@ -814,7 +814,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             225.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
@@ -824,7 +824,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             240.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
@@ -834,7 +834,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             270.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 0.0f, -1.0f) },
@@ -844,7 +844,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             300.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
@@ -854,7 +854,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             315.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
@@ -864,7 +864,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             330.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
@@ -874,13 +874,13 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             360.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 triangle.Vertices)
         },
         {
             -30.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
@@ -890,7 +890,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -45.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
@@ -900,7 +900,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -60.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
@@ -910,7 +910,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -90.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 0.0f, -1.0f) },
@@ -920,7 +920,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -120.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, -ONE_ROTATED_30_DEGREES) },
@@ -930,7 +930,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -135.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, -ONE_ROTATED_45_DEGREES) },
@@ -940,7 +940,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -150.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, -ONE_ROTATED_60_DEGREES) },
@@ -950,7 +950,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -180.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -1.0f, 0.0f) },
@@ -960,7 +960,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -210.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
@@ -970,7 +970,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -225.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
@@ -980,7 +980,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -240.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, -ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
@@ -990,7 +990,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -270.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 0.0f, 1.0f) },
@@ -1000,7 +1000,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -300.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_60_DEGREES, ONE_ROTATED_30_DEGREES) },
@@ -1010,7 +1010,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -315.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_45_DEGREES, ONE_ROTATED_45_DEGREES) },
@@ -1020,7 +1020,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -330.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, ONE_ROTATED_30_DEGREES, ONE_ROTATED_60_DEGREES) },
@@ -1030,7 +1030,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
         },
         {
             -360.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 triangle.Vertices)
         },
@@ -1092,7 +1092,7 @@ TEST_CASE("World transform can rotate a vector around the x-axis by common locat
 TEST_CASE("World transform can rotate a vector around the y-axis by common locations on unit circle.", "[Object3D][WorldTransform][Rotation]")
 {
     // DEFINE THE BASE TRIANGLE TO ROTATE.
-    GRAPHICS::Triangle triangle;
+    GRAPHICS::GEOMETRY::Triangle triangle;
     triangle.Vertices =
     {
         GRAPHICS::VertexWithAttributes { .Position = MATH::Vector3f(0.0f, 1.0f, 0.0f) }, // top
@@ -1102,11 +1102,11 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
 
     // DEFINE THE DIFFERENT ROTATION ANGLES AND EXPECTED TRIANGLES.
     const std::shared_ptr<GRAPHICS::Material> NO_MATERIAL = nullptr;
-    std::map<float, GRAPHICS::Triangle> rotation_angles_in_degrees_and_expected_triangles =
+    std::map<float, GRAPHICS::GEOMETRY::Triangle> rotation_angles_in_degrees_and_expected_triangles =
     {
         {
             30.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1116,7 +1116,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             45.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1126,7 +1126,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             60.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1136,7 +1136,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             90.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1146,7 +1146,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             120.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1156,7 +1156,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             135.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1166,7 +1166,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             150.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1176,7 +1176,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             180.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1186,7 +1186,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             210.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1196,7 +1196,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             225.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1206,7 +1206,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             240.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1216,7 +1216,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             270.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1226,7 +1226,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             300.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1236,7 +1236,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             315.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1246,7 +1246,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             330.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1256,13 +1256,13 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             360.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 triangle.Vertices)
         },
         {
             -30.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1272,7 +1272,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -45.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1282,7 +1282,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -60.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1292,7 +1292,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -90.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1302,7 +1302,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -120.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1312,7 +1312,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -135.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1322,7 +1322,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -150.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1332,7 +1332,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -180.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1342,7 +1342,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -210.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1352,7 +1352,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -225.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1362,7 +1362,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -240.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1372,7 +1372,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -270.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1382,7 +1382,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -300.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1392,7 +1392,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -315.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1402,7 +1402,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -330.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 {
                     triangle.Vertices[0],
@@ -1412,7 +1412,7 @@ TEST_CASE("World transform can rotate a vector around the y-axis by common locat
         },
         {
             -360.0f,
-            GRAPHICS::Triangle(
+            GRAPHICS::GEOMETRY::Triangle(
                 NO_MATERIAL,
                 triangle.Vertices)
         },

@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 #include "Graphics/DepthBuffer.h"
+#include "Graphics/Geometry/Triangle.h"
 #include "Graphics/Gui/Text.h"
 #include "Graphics/Images/Bitmap.h"
 #include "Graphics/Lighting/Light.h"
@@ -36,10 +37,10 @@ namespace GRAPHICS::CPU_RENDERING
             IMAGES::Bitmap& output_bitmap,
             DepthBuffer* depth_buffer);
 
-        static Triangle TransformLocalToWorld(const Triangle& local_triangle, const MATH::Matrix4x4f& world_transform);
+        static GEOMETRY::Triangle TransformLocalToWorld(const GEOMETRY::Triangle& local_triangle, const MATH::Matrix4x4f& world_transform);
 
         static void Render(
-            const Triangle& triangle, 
+            const GEOMETRY::Triangle& triangle,
             IMAGES::Bitmap& render_target,
             DepthBuffer* depth_buffer);
 

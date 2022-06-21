@@ -5,7 +5,6 @@
 #include "Graphics/Color.h"
 #include "Graphics/Lighting/Light.h"
 #include "Graphics/Object3D.h"
-#include "Graphics/RayTracing/Sphere.h"
 
 namespace GRAPHICS
 {
@@ -18,8 +17,6 @@ namespace GRAPHICS
         GRAPHICS::Color BackgroundColor = GRAPHICS::Color::BLACK;
         /// All objects in the scene.
         std::vector<Object3D> Objects = {};
-        /// @todo   Merge with regular objects.
-        std::vector<RAY_TRACING::Sphere> Spheres = {};
         /// All point lights in the scene.
         /// An empty optional means lighting should not be computed for the scene
         /// (shading comes directly from vertex colors).

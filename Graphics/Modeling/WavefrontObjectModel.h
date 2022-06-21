@@ -29,8 +29,6 @@ namespace GRAPHICS::MODELING
     class WavefrontObjectModel
     {
     public:
-        static std::optional<Object3D> Load(const std::filesystem::path& obj_filepath);
-        static std::optional<GRAPHICS::MODELING::Model> LoadAsSingle3DModel(const std::filesystem::path& filepath);
-        static std::optional<GRAPHICS::MODELING::Model> LoadNew(const std::filesystem::path& filepath);
+        static std::optional<GRAPHICS::MODELING::Model> Load(const std::filesystem::path& filepath);
     };
 }

@@ -207,14 +207,14 @@ namespace GRAPHICS::OPEN_GL
         glClearBufferfv(GL_DEPTH, NO_SPECIFIC_DRAW_BUFFER, max_depth);
     }
 
-    /// Renders the specified on using the graphics device.
-    /// @param[in]  object_3D - The object to render.
+    /// Renders the specified scene using the graphics device.
+    /// @param[in]  scene - The scene to render.
     /// @param[in]  camera - The camera to use for viewing.
     /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
     /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
     /// @todo   Use all parameters above.
     void OpenGLGraphicsDevice::Render(
-        const GRAPHICS::Object3D& object_3D,
+        const GRAPHICS::Scene& scene,
         const GRAPHICS::VIEWING::Camera& camera,
         const bool cull_backfaces,
         const bool depth_buffering)
@@ -242,208 +242,212 @@ namespace GRAPHICS::OPEN_GL
         // USE THE OBJECT'S SHADER PROGRAM.
         glUseProgram(ShaderProgram->Id);
 
-        // SET UNIFORMS.
-        GLint world_matrix_variable = glGetUniformLocation(ShaderProgram->Id, "world_transform");
-        MATH::Matrix4x4f world_transform = object_3D.WorldTransform();
-        const float* world_matrix_elements_in_row_major_order = world_transform.ElementsInRowMajorOrder();
-        const GLsizei ONE_MATRIX = 1;
-        const GLboolean ROW_MAJOR_ORDER = GL_TRUE;
-        glUniformMatrix4fv(world_matrix_variable, ONE_MATRIX, ROW_MAJOR_ORDER, world_matrix_elements_in_row_major_order);
-
-        GLint view_matrix_variable = glGetUniformLocation(ShaderProgram->Id, "view_transform");
-        const float* view_matrix_elements_in_row_major_order = viewing_transformations.CameraViewTransform.ElementsInRowMajorOrder();
-        glUniformMatrix4fv(view_matrix_variable, ONE_MATRIX, ROW_MAJOR_ORDER, view_matrix_elements_in_row_major_order);
-
-        GLint projection_matrix_variable = glGetUniformLocation(ShaderProgram->Id, "projection_transform");
-        const float* projection_matrix_elements_in_row_major_order = viewing_transformations.CameraProjectionTransform.ElementsInRowMajorOrder();
-        glUniformMatrix4fv(projection_matrix_variable, ONE_MATRIX, ROW_MAJOR_ORDER, projection_matrix_elements_in_row_major_order);
-
-        GLint texture_sampler_variable = glGetUniformLocation(ShaderProgram->Id, "texture_sampler");
-        glUniform1i(texture_sampler_variable, 0);
-
-        bool is_lit = lights.has_value();
-        GLint is_lit_variable = glGetUniformLocation(ShaderProgram->Id, "is_lit");
-        glUniform1i(is_lit_variable, is_lit);
-
-        if (is_lit)
+        // RENDER EACH OBJECT.
+        for (const auto& object_3D : scene.Objects)
         {
-            // Single arbitrary light for now.
-            const LIGHTING::Light& first_light = lights->at(0);
+            // SET UNIFORMS.
+            GLint world_matrix_variable = glGetUniformLocation(ShaderProgram->Id, "world_transform");
+            MATH::Matrix4x4f world_transform = object_3D.WorldTransform();
+            const float* world_matrix_elements_in_row_major_order = world_transform.ElementsInRowMajorOrder();
+            const GLsizei ONE_MATRIX = 1;
+            const GLboolean ROW_MAJOR_ORDER = GL_TRUE;
+            glUniformMatrix4fv(world_matrix_variable, ONE_MATRIX, ROW_MAJOR_ORDER, world_matrix_elements_in_row_major_order);
 
-            GLint light_position_variable = glGetUniformLocation(ShaderProgram->Id, "light_position");
-            glUniform4f(
-                light_position_variable,
-                first_light.PointLightWorldPosition.X,
-                first_light.PointLightWorldPosition.Y,
-                first_light.PointLightWorldPosition.Z,
-                1.0f);
+            GLint view_matrix_variable = glGetUniformLocation(ShaderProgram->Id, "view_transform");
+            const float* view_matrix_elements_in_row_major_order = viewing_transformations.CameraViewTransform.ElementsInRowMajorOrder();
+            glUniformMatrix4fv(view_matrix_variable, ONE_MATRIX, ROW_MAJOR_ORDER, view_matrix_elements_in_row_major_order);
 
-            GLint light_color_variable = glGetUniformLocation(ShaderProgram->Id, "input_light_color");
-            glUniform4f(
-                light_color_variable,
-                first_light.Color.Red,
-                first_light.Color.Green,
-                first_light.Color.Blue,
-                first_light.Color.Alpha);
-        }
+            GLint projection_matrix_variable = glGetUniformLocation(ShaderProgram->Id, "projection_transform");
+            const float* projection_matrix_elements_in_row_major_order = viewing_transformations.CameraProjectionTransform.ElementsInRowMajorOrder();
+            glUniformMatrix4fv(projection_matrix_variable, ONE_MATRIX, ROW_MAJOR_ORDER, projection_matrix_elements_in_row_major_order);
 
-        /// @todo   Pass vertices for entire object at once!
-        /// @todo   Look at https://github.com/jpike/OpenGLEngine/ for possible better handling of some stuff?
-        for (const auto& [mesh_name, mesh] : object_3D.Model.MeshesByName)
-        {
-            for (const auto& triangle : mesh.Triangles)
+            GLint texture_sampler_variable = glGetUniformLocation(ShaderProgram->Id, "texture_sampler");
+            glUniform1i(texture_sampler_variable, 0);
+
+            bool is_lit = lights.has_value();
+            GLint is_lit_variable = glGetUniformLocation(ShaderProgram->Id, "is_lit");
+            glUniform1i(is_lit_variable, is_lit);
+
+            if (is_lit)
             {
-                // ALLOCATE A TEXTURE IF APPLICABLE.
-                // Must be done outside of glBegin()/glEnd() (http://docs.gl/gl2/glGenTextures).
-                GLuint texture = 0;
-                bool is_textured = (ShadingType::TEXTURED == triangle.Material->Shading);
-                if (is_textured)
+                // Single arbitrary light for now.
+                const LIGHTING::Light& first_light = lights->at(0);
+
+                GLint light_position_variable = glGetUniformLocation(ShaderProgram->Id, "light_position");
+                glUniform4f(
+                    light_position_variable,
+                    first_light.PointLightWorldPosition.X,
+                    first_light.PointLightWorldPosition.Y,
+                    first_light.PointLightWorldPosition.Z,
+                    1.0f);
+
+                GLint light_color_variable = glGetUniformLocation(ShaderProgram->Id, "input_light_color");
+                glUniform4f(
+                    light_color_variable,
+                    first_light.Color.Red,
+                    first_light.Color.Green,
+                    first_light.Color.Blue,
+                    first_light.Color.Alpha);
+            }
+
+            /// @todo   Pass vertices for entire object at once!
+            /// @todo   Look at https://github.com/jpike/OpenGLEngine/ for possible better handling of some stuff?
+            for (const auto& [mesh_name, mesh] : object_3D.Model.MeshesByName)
+            {
+                for (const auto& triangle : mesh.Triangles)
                 {
-                    glGenTextures(1, &texture);
-                    glActiveTexture(GL_TEXTURE0);
-                    glBindTexture(GL_TEXTURE_2D, texture);
+                    // ALLOCATE A TEXTURE IF APPLICABLE.
+                    // Must be done outside of glBegin()/glEnd() (http://docs.gl/gl2/glGenTextures).
+                    GLuint texture = 0;
+                    bool is_textured = (ShadingType::TEXTURED == triangle.Material->Shading);
+                    if (is_textured)
+                    {
+                        glGenTextures(1, &texture);
+                        glActiveTexture(GL_TEXTURE0);
+                        glBindTexture(GL_TEXTURE_2D, texture);
 
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-                    glTexImage2D(
-                        GL_TEXTURE_2D,
-                        0, // level of detail
-                        GL_RGBA, // this is the only thing we currently support
-                        triangle.Material->Texture->GetWidthInPixels(),
-                        triangle.Material->Texture->GetHeightInPixels(),
-                        0, // no border
-                        GL_RGBA,
-                        GL_UNSIGNED_BYTE, // one byte per color component
-                        triangle.Material->Texture->GetRawData());
-                }
-                GLint is_textured_variable = glGetUniformLocation(ShaderProgram->Id, "is_textured");
-                glUniform1i(is_textured_variable, is_textured);
+                        glTexImage2D(
+                            GL_TEXTURE_2D,
+                            0, // level of detail
+                            GL_RGBA, // this is the only thing we currently support
+                            triangle.Material->Texture->GetWidthInPixels(),
+                            triangle.Material->Texture->GetHeightInPixels(),
+                            0, // no border
+                            GL_RGBA,
+                            GL_UNSIGNED_BYTE, // one byte per color component
+                            triangle.Material->Texture->GetRawData());
+                    }
+                    GLint is_textured_variable = glGetUniformLocation(ShaderProgram->Id, "is_textured");
+                    glUniform1i(is_textured_variable, is_textured);
 
-                // ALLOCATE A VERTEX ARRAY/BUFFER.
-                const GLsizei ONE_VERTEX_ARRAY = 1;
-                GLuint vertex_array_id = 0;
-                glGenVertexArrays(ONE_VERTEX_ARRAY, &vertex_array_id);
-                glBindVertexArray(vertex_array_id);
+                    // ALLOCATE A VERTEX ARRAY/BUFFER.
+                    const GLsizei ONE_VERTEX_ARRAY = 1;
+                    GLuint vertex_array_id = 0;
+                    glGenVertexArrays(ONE_VERTEX_ARRAY, &vertex_array_id);
+                    glBindVertexArray(vertex_array_id);
 
-                const GLsizei ONE_VERTEX_BUFFER = 1;
-                GLuint vertex_buffer_id = 0;
-                glGenBuffers(ONE_VERTEX_BUFFER, &vertex_buffer_id);
+                    const GLsizei ONE_VERTEX_BUFFER = 1;
+                    GLuint vertex_buffer_id = 0;
+                    glGenBuffers(ONE_VERTEX_BUFFER, &vertex_buffer_id);
 
-                // FILL THE BUFFER WITH THE VERTEX DATA.
-                constexpr std::size_t POSITION_COORDINATE_COUNT_PER_VERTEX = 4;
-                constexpr std::size_t VERTEX_POSITION_COORDINATE_TOTAL_COUNT = POSITION_COORDINATE_COUNT_PER_VERTEX * Triangle::VERTEX_COUNT;
-                constexpr std::size_t COLOR_COMPONENT_COUNT_PER_VERTEX = 4;
-                constexpr std::size_t VERTEX_COLOR_COMPONENT_TOTAL_COUNT = COLOR_COMPONENT_COUNT_PER_VERTEX * Triangle::VERTEX_COUNT;
-                constexpr std::size_t TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX = 2;
-                constexpr std::size_t TEXTURE_COORDINATE_COMPONENT_TOTAL_COUNT = TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX * Triangle::VERTEX_COUNT;
-                constexpr std::size_t NORMAL_COORDINATE_COUNT_PER_VERTEX = 4;
-                constexpr std::size_t NORMAL_COORDINATE_COMPONENT_TOTAL_COUNT = NORMAL_COORDINATE_COUNT_PER_VERTEX * Triangle::VERTEX_COUNT;
-                constexpr std::size_t VERTEX_ATTRIBUTE_TOTAL_VALUE_COUNT = (
-                    VERTEX_POSITION_COORDINATE_TOTAL_COUNT +
-                    VERTEX_COLOR_COMPONENT_TOTAL_COUNT +
-                    TEXTURE_COORDINATE_COMPONENT_TOTAL_COUNT +
-                    NORMAL_COORDINATE_COMPONENT_TOTAL_COUNT);
+                    // FILL THE BUFFER WITH THE VERTEX DATA.
+                    constexpr std::size_t POSITION_COORDINATE_COUNT_PER_VERTEX = 4;
+                    constexpr std::size_t VERTEX_POSITION_COORDINATE_TOTAL_COUNT = POSITION_COORDINATE_COUNT_PER_VERTEX * GEOMETRY::Triangle::VERTEX_COUNT;
+                    constexpr std::size_t COLOR_COMPONENT_COUNT_PER_VERTEX = 4;
+                    constexpr std::size_t VERTEX_COLOR_COMPONENT_TOTAL_COUNT = COLOR_COMPONENT_COUNT_PER_VERTEX * GEOMETRY::Triangle::VERTEX_COUNT;
+                    constexpr std::size_t TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX = 2;
+                    constexpr std::size_t TEXTURE_COORDINATE_COMPONENT_TOTAL_COUNT = TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX * GEOMETRY::Triangle::VERTEX_COUNT;
+                    constexpr std::size_t NORMAL_COORDINATE_COUNT_PER_VERTEX = 4;
+                    constexpr std::size_t NORMAL_COORDINATE_COMPONENT_TOTAL_COUNT = NORMAL_COORDINATE_COUNT_PER_VERTEX * GEOMETRY::Triangle::VERTEX_COUNT;
+                    constexpr std::size_t VERTEX_ATTRIBUTE_TOTAL_VALUE_COUNT = (
+                        VERTEX_POSITION_COORDINATE_TOTAL_COUNT +
+                        VERTEX_COLOR_COMPONENT_TOTAL_COUNT +
+                        TEXTURE_COORDINATE_COMPONENT_TOTAL_COUNT +
+                        NORMAL_COORDINATE_COMPONENT_TOTAL_COUNT);
 
-                std::vector<float> vertex_attribute_values;
-                vertex_attribute_values.reserve(VERTEX_ATTRIBUTE_TOTAL_VALUE_COUNT);
+                    std::vector<float> vertex_attribute_values;
+                    vertex_attribute_values.reserve(VERTEX_ATTRIBUTE_TOTAL_VALUE_COUNT);
 
-                MATH::Vector3f surface_normal = triangle.SurfaceNormal();
-                for (std::size_t vertex_index = 0; vertex_index < Triangle::VERTEX_COUNT; ++vertex_index)
-                {
-                    const VertexWithAttributes& vertex = triangle.Vertices[vertex_index];
-                    vertex_attribute_values.emplace_back(vertex.Position.X);
-                    vertex_attribute_values.emplace_back(vertex.Position.Y);
-                    vertex_attribute_values.emplace_back(vertex.Position.Z);
-                    constexpr float HOMOGENEOUS_VERTEX_W = 1.0f;
-                    vertex_attribute_values.emplace_back(HOMOGENEOUS_VERTEX_W);
+                    MATH::Vector3f surface_normal = triangle.SurfaceNormal();
+                    for (std::size_t vertex_index = 0; vertex_index < GEOMETRY::Triangle::VERTEX_COUNT; ++vertex_index)
+                    {
+                        const VertexWithAttributes& vertex = triangle.Vertices[vertex_index];
+                        vertex_attribute_values.emplace_back(vertex.Position.X);
+                        vertex_attribute_values.emplace_back(vertex.Position.Y);
+                        vertex_attribute_values.emplace_back(vertex.Position.Z);
+                        constexpr float HOMOGENEOUS_VERTEX_W = 1.0f;
+                        vertex_attribute_values.emplace_back(HOMOGENEOUS_VERTEX_W);
 
-                    vertex_attribute_values.emplace_back(vertex.Color.Red);
-                    vertex_attribute_values.emplace_back(vertex.Color.Green);
-                    vertex_attribute_values.emplace_back(vertex.Color.Blue);
-                    vertex_attribute_values.emplace_back(vertex.Color.Alpha);
+                        vertex_attribute_values.emplace_back(vertex.Color.Red);
+                        vertex_attribute_values.emplace_back(vertex.Color.Green);
+                        vertex_attribute_values.emplace_back(vertex.Color.Blue);
+                        vertex_attribute_values.emplace_back(vertex.Color.Alpha);
 
-                    vertex_attribute_values.emplace_back(vertex.TextureCoordinates.X);
-                    vertex_attribute_values.emplace_back(vertex.TextureCoordinates.Y);
-                    
-                    vertex_attribute_values.emplace_back(surface_normal.X);
-                    vertex_attribute_values.emplace_back(surface_normal.Y);
-                    vertex_attribute_values.emplace_back(surface_normal.Z);
-                    vertex_attribute_values.emplace_back(1.0f);
-                }
+                        vertex_attribute_values.emplace_back(vertex.TextureCoordinates.X);
+                        vertex_attribute_values.emplace_back(vertex.TextureCoordinates.Y);
 
-                GLsizeiptr vertex_data_size_in_bytes = sizeof(float) * VERTEX_ATTRIBUTE_TOTAL_VALUE_COUNT;
-                glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
-                glBufferData(GL_ARRAY_BUFFER, vertex_data_size_in_bytes, vertex_attribute_values.data(), GL_STATIC_DRAW);
+                        vertex_attribute_values.emplace_back(surface_normal.X);
+                        vertex_attribute_values.emplace_back(surface_normal.Y);
+                        vertex_attribute_values.emplace_back(surface_normal.Z);
+                        vertex_attribute_values.emplace_back(1.0f);
+                    }
 
-                // SPECIFY HOW VERTEX BUFFER DATA MAPS TO SHADER INPUTS.
-                constexpr GLboolean NO_NORMALIZATION = GL_FALSE;
-                constexpr GLsizei SINGLE_VERTEX_ATTRIBUTE_VALUE_COUNT = (
-                    POSITION_COORDINATE_COUNT_PER_VERTEX +
-                    COLOR_COMPONENT_COUNT_PER_VERTEX +
-                    TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX +
-                    NORMAL_COORDINATE_COUNT_PER_VERTEX);
-                constexpr GLsizei SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES = sizeof(float) * SINGLE_VERTEX_ATTRIBUTE_VALUE_COUNT;
-                constexpr uint64_t VERTEX_POSITION_STARTING_OFFSET_IN_BYTES = 0;
-                GLint local_vertex_position_variable_id = glGetAttribLocation(ShaderProgram->Id, "local_vertex");
-                glVertexAttribPointer(
-                    local_vertex_position_variable_id,
-                    POSITION_COORDINATE_COUNT_PER_VERTEX,
-                    GL_FLOAT,
-                    NO_NORMALIZATION,
-                    SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES,
-                    (void*)VERTEX_POSITION_STARTING_OFFSET_IN_BYTES);
-                glEnableVertexAttribArray(local_vertex_position_variable_id);
+                    GLsizeiptr vertex_data_size_in_bytes = sizeof(float) * VERTEX_ATTRIBUTE_TOTAL_VALUE_COUNT;
+                    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
+                    glBufferData(GL_ARRAY_BUFFER, vertex_data_size_in_bytes, vertex_attribute_values.data(), GL_STATIC_DRAW);
 
-                const uint64_t VERTEX_COLOR_STARTING_OFFSET_IN_BYTES = sizeof(float) * POSITION_COORDINATE_COUNT_PER_VERTEX;
-                GLint vertex_color_variable_id = glGetAttribLocation(ShaderProgram->Id, "input_vertex_color");
-                glVertexAttribPointer(
-                    vertex_color_variable_id,
-                    COLOR_COMPONENT_COUNT_PER_VERTEX,
-                    GL_FLOAT,
-                    NO_NORMALIZATION,
-                    SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES,
-                    (void*)VERTEX_COLOR_STARTING_OFFSET_IN_BYTES);
-                glEnableVertexAttribArray(vertex_color_variable_id);
+                    // SPECIFY HOW VERTEX BUFFER DATA MAPS TO SHADER INPUTS.
+                    constexpr GLboolean NO_NORMALIZATION = GL_FALSE;
+                    constexpr GLsizei SINGLE_VERTEX_ATTRIBUTE_VALUE_COUNT = (
+                        POSITION_COORDINATE_COUNT_PER_VERTEX +
+                        COLOR_COMPONENT_COUNT_PER_VERTEX +
+                        TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX +
+                        NORMAL_COORDINATE_COUNT_PER_VERTEX);
+                    constexpr GLsizei SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES = sizeof(float) * SINGLE_VERTEX_ATTRIBUTE_VALUE_COUNT;
+                    constexpr uint64_t VERTEX_POSITION_STARTING_OFFSET_IN_BYTES = 0;
+                    GLint local_vertex_position_variable_id = glGetAttribLocation(ShaderProgram->Id, "local_vertex");
+                    glVertexAttribPointer(
+                        local_vertex_position_variable_id,
+                        POSITION_COORDINATE_COUNT_PER_VERTEX,
+                        GL_FLOAT,
+                        NO_NORMALIZATION,
+                        SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES,
+                        (void*)VERTEX_POSITION_STARTING_OFFSET_IN_BYTES);
+                    glEnableVertexAttribArray(local_vertex_position_variable_id);
 
-                constexpr std::size_t VERTEX_COLOR_SIZE_IN_BYTES = sizeof(float) * COLOR_COMPONENT_COUNT_PER_VERTEX;
-                const uint64_t TEXTURE_COORDINATE_STARTING_OFFSET_IN_BYTES = VERTEX_COLOR_STARTING_OFFSET_IN_BYTES + VERTEX_COLOR_SIZE_IN_BYTES;
-                GLint texture_coordinates_variable_id = glGetAttribLocation(ShaderProgram->Id, "input_texture_coordinates");
-                glVertexAttribPointer(
-                    texture_coordinates_variable_id,
-                    TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX,
-                    GL_FLOAT,
-                    NO_NORMALIZATION,
-                    SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES,
-                    (void*)TEXTURE_COORDINATE_STARTING_OFFSET_IN_BYTES);
-                glEnableVertexAttribArray(texture_coordinates_variable_id);
+                    const uint64_t VERTEX_COLOR_STARTING_OFFSET_IN_BYTES = sizeof(float) * POSITION_COORDINATE_COUNT_PER_VERTEX;
+                    GLint vertex_color_variable_id = glGetAttribLocation(ShaderProgram->Id, "input_vertex_color");
+                    glVertexAttribPointer(
+                        vertex_color_variable_id,
+                        COLOR_COMPONENT_COUNT_PER_VERTEX,
+                        GL_FLOAT,
+                        NO_NORMALIZATION,
+                        SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES,
+                        (void*)VERTEX_COLOR_STARTING_OFFSET_IN_BYTES);
+                    glEnableVertexAttribArray(vertex_color_variable_id);
 
-                constexpr std::size_t TEXTURE_COORDINATE_SIZE_IN_BYTES = sizeof(float) * TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX;
-                const uint64_t NORMAL_STARTING_OFFSET_IN_BYTES = TEXTURE_COORDINATE_STARTING_OFFSET_IN_BYTES + TEXTURE_COORDINATE_SIZE_IN_BYTES;
-                GLint normal_variable_id = glGetAttribLocation(ShaderProgram->Id, "vertex_normal");
-                glVertexAttribPointer(
-                    normal_variable_id,
-                    NORMAL_COORDINATE_COUNT_PER_VERTEX,
-                    GL_FLOAT,
-                    NO_NORMALIZATION,
-                    SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES,
-                    (void*)NORMAL_STARTING_OFFSET_IN_BYTES);
-                glEnableVertexAttribArray(normal_variable_id);
+                    constexpr std::size_t VERTEX_COLOR_SIZE_IN_BYTES = sizeof(float) * COLOR_COMPONENT_COUNT_PER_VERTEX;
+                    const uint64_t TEXTURE_COORDINATE_STARTING_OFFSET_IN_BYTES = VERTEX_COLOR_STARTING_OFFSET_IN_BYTES + VERTEX_COLOR_SIZE_IN_BYTES;
+                    GLint texture_coordinates_variable_id = glGetAttribLocation(ShaderProgram->Id, "input_texture_coordinates");
+                    glVertexAttribPointer(
+                        texture_coordinates_variable_id,
+                        TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX,
+                        GL_FLOAT,
+                        NO_NORMALIZATION,
+                        SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES,
+                        (void*)TEXTURE_COORDINATE_STARTING_OFFSET_IN_BYTES);
+                    glEnableVertexAttribArray(texture_coordinates_variable_id);
 
-                // DRAW THE TRIANGLE.
-                const unsigned int FIRST_VERTEX = 0;
-                GLsizei vertex_count = static_cast<GLsizei>(Triangle::VERTEX_COUNT);
-                glDrawArrays(GL_TRIANGLES, FIRST_VERTEX, vertex_count);
+                    constexpr std::size_t TEXTURE_COORDINATE_SIZE_IN_BYTES = sizeof(float) * TEXTURE_COORDINATE_COMPONENT_COUNT_PER_VERTEX;
+                    const uint64_t NORMAL_STARTING_OFFSET_IN_BYTES = TEXTURE_COORDINATE_STARTING_OFFSET_IN_BYTES + TEXTURE_COORDINATE_SIZE_IN_BYTES;
+                    GLint normal_variable_id = glGetAttribLocation(ShaderProgram->Id, "vertex_normal");
+                    glVertexAttribPointer(
+                        normal_variable_id,
+                        NORMAL_COORDINATE_COUNT_PER_VERTEX,
+                        GL_FLOAT,
+                        NO_NORMALIZATION,
+                        SINGLE_VERTEX_ENTIRE_DATA_SIZE_IN_BYTES,
+                        (void*)NORMAL_STARTING_OFFSET_IN_BYTES);
+                    glEnableVertexAttribArray(normal_variable_id);
 
-                /// @todo   Encapsulate this vertex array stuff with object?
-                glDeleteBuffers(ONE_VERTEX_BUFFER, &vertex_buffer_id);
-                glDeleteVertexArrays(ONE_VERTEX_ARRAY, &vertex_array_id);
+                    // DRAW THE TRIANGLE.
+                    const unsigned int FIRST_VERTEX = 0;
+                    GLsizei vertex_count = static_cast<GLsizei>(GEOMETRY::Triangle::VERTEX_COUNT);
+                    glDrawArrays(GL_TRIANGLES, FIRST_VERTEX, vertex_count);
 
-                if (is_textured)
-                {
-                    glDeleteTextures(1, &texture);
+                    /// @todo   Encapsulate this vertex array stuff with object?
+                    glDeleteBuffers(ONE_VERTEX_BUFFER, &vertex_buffer_id);
+                    glDeleteVertexArrays(ONE_VERTEX_ARRAY, &vertex_array_id);
+
+                    if (is_textured)
+                    {
+                        glDeleteTextures(1, &texture);
+                    }
                 }
             }
         }

@@ -77,51 +77,6 @@ namespace GRAPHICS::CPU_RENDERING
         DepthBuffer.ClearToDepth(GRAPHICS::DepthBuffer::MAX_DEPTH);
     }
 
-    /// Renders the specified on using the graphics device.
-    /// @param[in]  object_3D - The object to render.
-    /// @param[in]  camera - The camera to use for viewing.
-    /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
-    /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
-    void CpuGraphicsDevice::Render(
-        const GRAPHICS::Object3D& object_3D,
-        const GRAPHICS::VIEWING::Camera& camera,
-        const bool cull_backfaces,
-        const bool depth_buffering)
-    {
-        bool rasterization_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RASTERIZER);
-        if (rasterization_enabled)
-        {
-            GRAPHICS::DepthBuffer* depth_buffer = depth_buffering ? &DepthBuffer : nullptr;
-            CpuRasterizationAlgorithm::Render(
-                object_3D,
-                std::nullopt,
-                camera,
-                cull_backfaces,
-                ColorBuffer,
-                depth_buffer);
-        }
-
-        bool ray_tracing_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RAY_TRACER);
-        if (ray_tracing_enabled)
-        {
-            Scene scene;
-            scene.Objects.emplace_back(object_3D);
-            scene.PointLights = std::vector<GRAPHICS::LIGHTING::Light>();
-            scene.PointLights->emplace_back(
-                GRAPHICS::LIGHTING::Light
-                {
-                    .Type = GRAPHICS::LIGHTING::LightType::POINT,
-                    .Color = GRAPHICS::Color(1.0f, 1.0f, 1.0f, 1.0f),
-                    .PointLightWorldPosition = MATH::Vector3f(0.0f, 0.0f, 5.0f)
-                });
-            GRAPHICS::RAY_TRACING::RayTracingAlgorithm ray_tracing_algorithm;
-            ray_tracing_algorithm.Render(
-                scene, 
-                camera,
-                ColorBuffer);
-        }
-    }
-
     /// Renders the specified scene using the graphics device.
     /// @param[in]  scene - The scene to render.
     /// @param[in]  camera - The camera to use for viewing.

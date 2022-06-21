@@ -2,9 +2,7 @@
 
 #include "Math/Vector3.h"
 
-namespace GRAPHICS
-{
-namespace RAY_TRACING
+namespace GRAPHICS::RAY_TRACING
 {
     /// A ray that can be shot out from a location in the world in a given
     /// direction for the purposes of ray tracing.
@@ -20,5 +18,4 @@ namespace RAY_TRACING
         /// The direction of the ray.
         MATH::Vector3f Direction = MATH::Vector3f(0.0f, 0.0f, 0.0f);
     };
-}
 }

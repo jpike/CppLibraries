@@ -41,9 +41,6 @@ namespace GRAPHICS::HARDWARE
             OPEN_GL = 1 << 4,
             /// A graphics device using Direct3D for rendering.
             DIRECT_3D = 1 << 5,
-
-            /// A graphics device using the BGFX library (https://bkaradzic.github.io/bgfx/).
-            BGFX = 1 << 6,
         };
         // SUPPORTED DEVICE TYPE COMBINATIONS.
         /// Rendering via CPU rasterization.
@@ -77,16 +74,6 @@ namespace GRAPHICS::HARDWARE
         /// Clears the background on the graphics device to the specified color.
         /// @param[in]  color - The color to clear the background to.
         virtual void ClearBackground(const GRAPHICS::Color& color) = 0;
-        /// Renders the specified object using the graphics device.
-        /// @param[in]  object_3D - The object to render.
-        /// @param[in]  camera - The camera to use for viewing.
-        /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
-        /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
-        virtual void Render(
-            const GRAPHICS::Object3D& object_3D, 
-            const GRAPHICS::VIEWING::Camera& camera,
-            const bool cull_backfaces,
-            const bool depth_buffering) = 0;
         /// Renders the specified scene using the graphics device.
         /// @param[in]  scene - The scene to render.
         /// @param[in]  camera - The camera to use for viewing.

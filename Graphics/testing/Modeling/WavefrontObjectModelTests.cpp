@@ -12,7 +12,7 @@ TEST_CASE("No model is loaded from a file with only whitespace.", "[WavefrontObj
     model_file.close();
 
     // VERIFY THAT NO MODEL CAN BE LOADED FROM THE FILE.
-    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::LoadNew(MODEL_FILEPATH);
+    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::Load(MODEL_FILEPATH);
     REQUIRE_FALSE(model.has_value());
 
     // DELETE THE MODEL FILE.
@@ -30,7 +30,7 @@ TEST_CASE("No model is loaded from a file with only comments.", "[WavefrontObjec
     model_file.close();
 
     // VERIFY THAT NO MODEL CAN BE LOADED FROM THE FILE.
-    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::LoadNew(MODEL_FILEPATH);
+    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::Load(MODEL_FILEPATH);
     REQUIRE_FALSE(model.has_value());
 
     // DELETE THE MODEL FILE.
@@ -54,7 +54,7 @@ f 1 2 3 4
     model_file.close();
 
     // LOAD THE MODEL.
-    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::LoadNew(MODEL_FILEPATH);
+    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::Load(MODEL_FILEPATH);
 
     // VERIFY THE MODEL WAS PROPERLY LOADED.
     REQUIRE(model);
@@ -62,14 +62,14 @@ f 1 2 3 4
     // Only a single default mesh should exist.
     REQUIRE(1 == model->MeshesByName.size());
     const std::string EXPECTED_MESH_NAME = "Default";
-    const GRAPHICS::MODELING::Mesh& mesh = model->MeshesByName[EXPECTED_MESH_NAME];
+    const GRAPHICS::Mesh& mesh = model->MeshesByName[EXPECTED_MESH_NAME];
     REQUIRE(EXPECTED_MESH_NAME == mesh.Name);
 
     // The mesh should be visible.
     REQUIRE(mesh.Visible);
 
     // The mesh should have the proper triangles.
-    GRAPHICS::Triangle first_triangle;
+    GRAPHICS::GEOMETRY::Triangle first_triangle;
     first_triangle.Vertices =
     {
         GRAPHICS::VertexWithAttributes
@@ -85,7 +85,7 @@ f 1 2 3 4
             .Position = MATH::Vector3f(2.0f, 0.0f, 0.0f),
         },
     };
-    GRAPHICS::Triangle second_triangle;
+    GRAPHICS::GEOMETRY::Triangle second_triangle;
     second_triangle.Vertices =
     {
         GRAPHICS::VertexWithAttributes
@@ -101,7 +101,7 @@ f 1 2 3 4
             .Position = MATH::Vector3f(2.0f, 2.0f, 0.0f),
         },
     };
-    std::vector<GRAPHICS::Triangle> expected_triangles =
+    std::vector<GRAPHICS::GEOMETRY::Triangle> expected_triangles =
     {
         first_triangle,
         second_triangle
@@ -138,7 +138,7 @@ f 2 6 7 3
     model_file.close();
 
     // LOAD THE MODEL.
-    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::LoadNew(MODEL_FILEPATH);
+    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::Load(MODEL_FILEPATH);
 
     // VERIFY THE MODEL WAS PROPERLY LOADED.
     REQUIRE(model);
@@ -146,7 +146,7 @@ f 2 6 7 3
     // Only a single default mesh should exist.
     REQUIRE(1 == model->MeshesByName.size());
     const std::string EXPECTED_MESH_NAME = "Default";
-    const GRAPHICS::MODELING::Mesh& mesh = model->MeshesByName[EXPECTED_MESH_NAME];
+    const GRAPHICS::Mesh& mesh = model->MeshesByName[EXPECTED_MESH_NAME];
     REQUIRE(EXPECTED_MESH_NAME == mesh.Name);
 
     // The mesh should be visible.
@@ -190,42 +190,42 @@ f 2 6 7 3
     };
 
     // 1st quad.
-    GRAPHICS::Triangle triangle_1;
+    GRAPHICS::GEOMETRY::Triangle triangle_1;
     triangle_1.Vertices = { vertices[0], vertices[1], vertices[2] };
-    GRAPHICS::Triangle triangle_2;
+    GRAPHICS::GEOMETRY::Triangle triangle_2;
     triangle_2.Vertices = { vertices[0], vertices[2], vertices[3] };
     
     // 2nd quad.
-    GRAPHICS::Triangle triangle_3;
+    GRAPHICS::GEOMETRY::Triangle triangle_3;
     triangle_3.Vertices = { vertices[7], vertices[6], vertices[5] };
-    GRAPHICS::Triangle triangle_4;
+    GRAPHICS::GEOMETRY::Triangle triangle_4;
     triangle_4.Vertices = { vertices[7], vertices[5], vertices[4] };
 
     // 3rd quad.
-    GRAPHICS::Triangle triangle_5;
+    GRAPHICS::GEOMETRY::Triangle triangle_5;
     triangle_5.Vertices = { vertices[3], vertices[2], vertices[6] };
-    GRAPHICS::Triangle triangle_6;
+    GRAPHICS::GEOMETRY::Triangle triangle_6;
     triangle_6.Vertices = { vertices[3], vertices[6], vertices[7] };
 
     // 4th quad.
-    GRAPHICS::Triangle triangle_7;
+    GRAPHICS::GEOMETRY::Triangle triangle_7;
     triangle_7.Vertices = { vertices[4], vertices[0], vertices[3] };
-    GRAPHICS::Triangle triangle_8;
+    GRAPHICS::GEOMETRY::Triangle triangle_8;
     triangle_8.Vertices = { vertices[4], vertices[3], vertices[7] };
 
     // 5th quad.
-    GRAPHICS::Triangle triangle_9;
+    GRAPHICS::GEOMETRY::Triangle triangle_9;
     triangle_9.Vertices = { vertices[4], vertices[5], vertices[1] };
-    GRAPHICS::Triangle triangle_10;
+    GRAPHICS::GEOMETRY::Triangle triangle_10;
     triangle_10.Vertices = { vertices[4], vertices[1], vertices[0] };
 
     // 6th quad.
-    GRAPHICS::Triangle triangle_11;
+    GRAPHICS::GEOMETRY::Triangle triangle_11;
     triangle_11.Vertices = { vertices[1], vertices[5], vertices[6] };
-    GRAPHICS::Triangle triangle_12;
+    GRAPHICS::GEOMETRY::Triangle triangle_12;
     triangle_12.Vertices = { vertices[1], vertices[6], vertices[2] };
 
-    std::vector<GRAPHICS::Triangle> expected_triangles =
+    std::vector<GRAPHICS::GEOMETRY::Triangle> expected_triangles =
     {
         triangle_1,
         triangle_2,
@@ -281,7 +281,7 @@ f 1/1 2/2 3/3 4/4
     model_file.close();
 
     // LOAD THE MODEL.
-    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::LoadNew(MODEL_FILEPATH);
+    std::optional<GRAPHICS::MODELING::Model> model = GRAPHICS::MODELING::WavefrontObjectModel::Load(MODEL_FILEPATH);
 
     // VERIFY THE MODEL WAS PROPERLY LOADED.
     REQUIRE(model);
@@ -289,7 +289,7 @@ f 1/1 2/2 3/3 4/4
     // Only a single default mesh should exist.
     REQUIRE(1 == model->MeshesByName.size());
     const std::string EXPECTED_MESH_NAME = "Default";
-    const GRAPHICS::MODELING::Mesh& mesh = model->MeshesByName[EXPECTED_MESH_NAME];
+    const GRAPHICS::Mesh& mesh = model->MeshesByName[EXPECTED_MESH_NAME];
     REQUIRE(EXPECTED_MESH_NAME == mesh.Name);
 
     // The mesh should be visible.
@@ -301,7 +301,7 @@ f 1/1 2/2 3/3 4/4
     const std::shared_ptr<GRAPHICS::Material>& material = mesh.Triangles.front().Material;
     REQUIRE(material);
 
-    GRAPHICS::Triangle first_triangle;
+    GRAPHICS::GEOMETRY::Triangle first_triangle;
     first_triangle.Material = material;
 
     // Texture coordinates in the file have 1 at the top, but the texture pixels have 1 at the bottom.
@@ -324,7 +324,7 @@ f 1/1 2/2 3/3 4/4
             .TextureCoordinates = MATH::Vector2f(1.0f, FLIP_VERTICAL_TEXTURE_COORDINATES - 0.0f),
         },
     };
-    GRAPHICS::Triangle second_triangle;
+    GRAPHICS::GEOMETRY::Triangle second_triangle;
     second_triangle.Material = material;
     second_triangle.Vertices =
     {
@@ -344,7 +344,7 @@ f 1/1 2/2 3/3 4/4
             .TextureCoordinates = MATH::Vector2f(1.0f, FLIP_VERTICAL_TEXTURE_COORDINATES - 1.0f),
         },
     };
-    std::vector<GRAPHICS::Triangle> expected_triangles =
+    std::vector<GRAPHICS::GEOMETRY::Triangle> expected_triangles =
     {
         first_triangle,
         second_triangle
