@@ -40,8 +40,7 @@ namespace GRAPHICS::DIRECT_X
         virtual ~Direct3DGraphicsDevice();
 
         // INFORMATION RETRIEVAL.
-        GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType Type() const override;
-        void ChangeCapabilities(const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType capabilities) override;
+        GRAPHICS::HARDWARE::GraphicsDeviceType Type() const override;
 
         // RESOURCE ALLOCATION.
         void Load(GRAPHICS::Object3D& object_3D) override;
@@ -56,9 +55,6 @@ namespace GRAPHICS::DIRECT_X
         void DisplayRenderedImage(WINDOWING::IWindow& window) override;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
-        /// The capabilities of this device.
-        GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType GraphicsDeviceCapabilities = static_cast<GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType>(
-            GRAPHICS::HARDWARE::IGraphicsDevice::GPU | GRAPHICS::HARDWARE::IGraphicsDevice::DIRECT_3D);
         /// The window the graphics device is connected to.
         WINDOWING::IWindow* Window = nullptr;
 

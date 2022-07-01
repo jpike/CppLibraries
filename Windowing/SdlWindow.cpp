@@ -18,12 +18,13 @@ namespace WINDOWING
         const char* title,
         const unsigned int width_in_pixels,
         const unsigned int height_in_pixels,
-        const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType graphics_device_type)
+        const GRAPHICS::HARDWARE::GraphicsDeviceType graphics_device_type)
     {
         // TRY TO CREATE THE WINDOW.
         /// @todo   Allow switching between OpenGL, Direct3D, etc.
         SDL_WindowFlags window_settings = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-        if (GRAPHICS::HARDWARE::IGraphicsDevice::OPEN_GL & graphics_device_type)
+        bool open_gl_used = (GRAPHICS::HARDWARE::GraphicsDeviceType::OPEN_GL == graphics_device_type);
+        if (open_gl_used)
         {
             window_settings = (SDL_WindowFlags)(window_settings | SDL_WINDOW_OPENGL);
         }

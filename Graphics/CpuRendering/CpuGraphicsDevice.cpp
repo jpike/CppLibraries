@@ -6,14 +6,14 @@
 namespace GRAPHICS::CPU_RENDERING
 {
     /// Attempts to connect a graphics device to the specified window for rendering via the CPU.
+    /// @param[in]  device_type - The type of graphics device to connect to the window.
     /// @param[in,out]  window - The window in which to do CPU rendering.  Non-const since non-const access is sometimes needed.
     /// return  The CPU graphics device, if successfully connected to the window; null if an error occurs.
-    std::unique_ptr<CpuGraphicsDevice> CpuGraphicsDevice::ConnectTo(WINDOWING::IWindow& window)
+    std::unique_ptr<CpuGraphicsDevice> CpuGraphicsDevice::ConnectTo(const GRAPHICS::HARDWARE::GraphicsDeviceType device_type, WINDOWING::IWindow& window)
     {
         auto graphics_device = std::make_unique<CpuGraphicsDevice>();
 
-        graphics_device->GraphicsDeviceCapabilities = static_cast<GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType>(
-            GRAPHICS::HARDWARE::IGraphicsDevice::CPU | GRAPHICS::HARDWARE::IGraphicsDevice::RASTERIZER);
+        graphics_device->DeviceType = device_type;
         graphics_device->Window = &window;
 
         // CREATE A CLEARED COLOR BUFFER FOR THE GRAPHICS DEVICE.
@@ -43,21 +43,9 @@ namespace GRAPHICS::CPU_RENDERING
 
     /// Gets the type of the graphics device.
     /// @return The type of the graphics device.
-    GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType CpuGraphicsDevice::Type() const
+    GRAPHICS::HARDWARE::GraphicsDeviceType CpuGraphicsDevice::Type() const
     {
-        return GraphicsDeviceCapabilities;
-    }
-
-    /// Updates the capabilities of the graphics device.
-    /// @param[in]  capabilities - The new capabilities to change to.
-    ///     These will overwrite any old capabilities.
-    ///     If not valid for this graphics device (must be CPU capabilities), then no changes will occur.
-    void CpuGraphicsDevice::ChangeCapabilities(const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType capabilities)
-    {
-        ASSERT_THEN_IF(capabilities & GRAPHICS::HARDWARE::IGraphicsDevice::CPU)
-        {
-            GraphicsDeviceCapabilities = capabilities;
-        }
+        return DeviceType;
     }
 
     /// Does nothing since no additional loading is needed for 3D objects on the CPU.
@@ -88,26 +76,33 @@ namespace GRAPHICS::CPU_RENDERING
         const bool cull_backfaces,
         const bool depth_buffering)
     {
-        bool rasterization_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RASTERIZER);
-        if (rasterization_enabled)
+        switch (DeviceType)
         {
-            GRAPHICS::DepthBuffer* depth_buffer = depth_buffering ? &DepthBuffer : nullptr;
-            CpuRasterizationAlgorithm::Render(
-                scene,
-                camera,
-                cull_backfaces,
-                ColorBuffer,
-                depth_buffer);
-        }
-
-        bool ray_tracing_enabled = (GraphicsDeviceCapabilities & GRAPHICS::HARDWARE::IGraphicsDevice::RAY_TRACER);
-        if (ray_tracing_enabled)
-        {
-            GRAPHICS::RAY_TRACING::RayTracingAlgorithm ray_tracing_algorithm;
-            ray_tracing_algorithm.Render(
-                scene,
-                camera,
-                ColorBuffer);
+            case GRAPHICS::HARDWARE::GraphicsDeviceType::CPU_RASTERIZER:
+            {
+                GRAPHICS::DepthBuffer* depth_buffer = depth_buffering ? &DepthBuffer : nullptr;
+                CpuRasterizationAlgorithm::Render(
+                    scene,
+                    camera,
+                    cull_backfaces,
+                    ColorBuffer,
+                    depth_buffer);
+                break;
+            }
+            case GRAPHICS::HARDWARE::GraphicsDeviceType::CPU_RAY_TRACER:
+            {
+                GRAPHICS::RAY_TRACING::RayTracingAlgorithm ray_tracing_algorithm;
+                ray_tracing_algorithm.Render(
+                    scene,
+                    camera,
+                    ColorBuffer);
+                break;
+            }
+            default:
+            {
+                // No rendering can occur for an invalid device type.
+                break;
+            }
         }
     }
 

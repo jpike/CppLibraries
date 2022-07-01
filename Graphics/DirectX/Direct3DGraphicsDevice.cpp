@@ -579,8 +579,6 @@ namespace GRAPHICS::DIRECT_X
         // FINAL GRAPHICS DEVICE SETUP.
         auto graphics_device = std::make_unique<Direct3DGraphicsDevice>();
 
-        graphics_device->GraphicsDeviceCapabilities = static_cast<GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType>(
-            GRAPHICS::HARDWARE::IGraphicsDevice::GPU | GRAPHICS::HARDWARE::IGraphicsDevice::DIRECT_3D);
         graphics_device->Window = &window;
 
         graphics_device->Device = device;
@@ -680,18 +678,9 @@ namespace GRAPHICS::DIRECT_X
 
     /// Gets the type of the graphics device.
     /// @return The type of the graphics device.
-    GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType Direct3DGraphicsDevice::Type() const
+    GRAPHICS::HARDWARE::GraphicsDeviceType Direct3DGraphicsDevice::Type() const
     {
-        return GraphicsDeviceCapabilities;
-    }
-
-    /// Updates the capabilities of the graphics device.
-    /// @param[in]  capabilities - The new capabilities to change to.
-    ///     These will overwrite any old capabilities.
-    ///     If not valid for this graphics device, then no changes will occur.
-    void Direct3DGraphicsDevice::ChangeCapabilities(const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType capabilities)
-    {
-        /// @todo   Not supported.
+        return GRAPHICS::HARDWARE::GraphicsDeviceType::DIRECT_3D;
     }
 
     /// Does nothing since no additional loading is needed for 3D objects on the CPU.

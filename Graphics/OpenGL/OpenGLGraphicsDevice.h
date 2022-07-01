@@ -18,8 +18,7 @@ namespace GRAPHICS::OPEN_GL
         virtual ~OpenGLGraphicsDevice();
 
         // INFORMATION RETRIEVAL.
-        GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType Type() const override;
-        void ChangeCapabilities(const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType capabilities) override;
+        GRAPHICS::HARDWARE::GraphicsDeviceType Type() const override;
 
         // RESOURCE ALLOCATION.
         void Load(GRAPHICS::Object3D& object_3D) override;
@@ -34,9 +33,6 @@ namespace GRAPHICS::OPEN_GL
         void DisplayRenderedImage(WINDOWING::IWindow& window) override;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
-        /// The capabilities of this device.
-        GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType GraphicsDeviceCapabilities = static_cast<GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType>(
-            GRAPHICS::HARDWARE::IGraphicsDevice::GPU | GRAPHICS::HARDWARE::IGraphicsDevice::OPEN_GL);
         /// The window the graphics device is connected to.
         WINDOWING::IWindow* Window = nullptr;
         /// The regular Windows device context.

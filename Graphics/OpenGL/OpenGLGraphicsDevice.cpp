@@ -131,8 +131,6 @@ namespace GRAPHICS::OPEN_GL
 
                 auto graphics_device = std::make_unique<OpenGLGraphicsDevice>();
 
-                graphics_device->GraphicsDeviceCapabilities = static_cast<GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType>(
-                    GRAPHICS::HARDWARE::IGraphicsDevice::GPU | GRAPHICS::HARDWARE::IGraphicsDevice::OPEN_GL);
                 graphics_device->Window = &window;
                 graphics_device->WindowDeviceContext = window_device_context;
                 graphics_device->OpenGLRenderContext = open_gl_render_context;
@@ -172,18 +170,9 @@ namespace GRAPHICS::OPEN_GL
 
     /// Gets the type of the graphics device.
     /// @return The type of the graphics device.
-    GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType OpenGLGraphicsDevice::Type() const
+    GRAPHICS::HARDWARE::GraphicsDeviceType OpenGLGraphicsDevice::Type() const
     {
-        return GraphicsDeviceCapabilities;
-    }
-
-    /// Updates the capabilities of the graphics device.
-    /// @param[in]  capabilities - The new capabilities to change to.
-    ///     These will overwrite any old capabilities.
-    ///     If not valid for this graphics device (must be GPU OpenGL capabilities), then no changes will occur.
-    void OpenGLGraphicsDevice::ChangeCapabilities(const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType capabilities)
-    {
-        /// @todo   Not supported.
+        return GRAPHICS::HARDWARE::GraphicsDeviceType::OPEN_GL;
     }
 
     /// Does nothing since no additional loading is needed for 3D objects on the CPU.

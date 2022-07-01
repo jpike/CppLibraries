@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "Graphics/Color.h"
+#include "Graphics/Hardware/GraphicsDeviceType.h"
 #include "Graphics/Object3D.h"
 #include "Graphics/Scene.h"
 #include "Graphics/Viewing/Camera.h"
@@ -14,40 +15,6 @@ namespace GRAPHICS::HARDWARE
     class IGraphicsDevice
     {
     public:
-        // ENUMS.
-        /// Different types of graphics devices.
-        /// Types of graphic devices are determined by combining different enum values
-        /// as bitflags.  Not all combinations are valid.
-        /// 
-        /// An regular enum wrapped in this class to provide:
-        /// - Closely associating this type with graphics devices - no need to have a separate file/class.
-        /// - Named scoping for enum values.
-        /// - Easier integer manipulation of values.
-        enum GraphicsDeviceType
-        {
-            /// Invalid value to effectively indicate "no" rendering and provide a reasonable default 0 value.
-            NONE = 0,
-
-            /// A graphics device using the CPU for rendering (as opposed to a GPU).
-            CPU = 1 << 0,
-            /// A graphics device using rasterization for rendering.
-            RASTERIZER = 1 << 1,
-            /// A graphics device using ray tracing for rendering.
-            RAY_TRACER = 1 << 2,
-
-            /// A graphics device using the GPU for rendering.
-            GPU = 1 << 3,
-            /// A graphics device using OpenGL for rendering.
-            OPEN_GL = 1 << 4,
-            /// A graphics device using Direct3D for rendering.
-            DIRECT_3D = 1 << 5,
-        };
-        // SUPPORTED DEVICE TYPE COMBINATIONS.
-        /// Rendering via CPU rasterization.
-        static constexpr GraphicsDeviceType CPU_RASTERIZER = static_cast<GraphicsDeviceType>(CPU | RASTERIZER);
-        /// Rendering via CPU ray tracing.
-        static constexpr GraphicsDeviceType CPU_RAY_TRACER = static_cast<GraphicsDeviceType>(CPU | RAY_TRACER);
-
         // CREATION/SHUTDOWN.
         static std::unique_ptr<IGraphicsDevice> Create(const GraphicsDeviceType device_type, WINDOWING::IWindow& window);
         /// Shuts down operation of the graphics device.  Should free any resources.
@@ -59,11 +26,6 @@ namespace GRAPHICS::HARDWARE
         /// Gets the type of the graphics device.
         /// @return The type of the graphics device.
         virtual GraphicsDeviceType Type() const = 0;
-        /// Updates the capabilities of the graphics device.
-        /// @param[in]  capabilities - The new capabilities to change to.
-        ///     These will overwrite any old capabilities.
-        ///     If not valid for this graphics device, then no changes will occur.
-        virtual void ChangeCapabilities(const GraphicsDeviceType capabilities) = 0;
 
         // RESOURCE ALLOCATION.
         /// Loads the specified object into the graphics device, if needed.

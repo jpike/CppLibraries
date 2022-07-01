@@ -7,7 +7,7 @@
 #include <memory>
 #include <SDL/SDL_syswm.h>
 #include <SDL/SDL_video.h>
-#include "Graphics/Hardware/IGraphicsDevice.h"
+#include "Graphics/Hardware/GraphicsDeviceType.h"
 #include "Graphics/Images/Bitmap.h"
 #include "Windowing/IWindow.h"
 
@@ -22,7 +22,7 @@ namespace WINDOWING
             const char* const title,
             const unsigned int width_in_pixels,
             const unsigned int height_in_pixels,
-            const GRAPHICS::HARDWARE::IGraphicsDevice::GraphicsDeviceType graphics_device_type);
+            const GRAPHICS::HARDWARE::GraphicsDeviceType graphics_device_type);
         virtual ~SdlWindow();
         void Close();
 
