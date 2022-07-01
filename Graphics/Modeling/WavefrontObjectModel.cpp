@@ -31,7 +31,12 @@ namespace GRAPHICS::MODELING
         std::optional<GRAPHICS::MODELING::Model> model = std::nullopt;
         // The file format operates on the notion of various data applying to the current mesh/material.
         std::optional<GRAPHICS::Mesh> current_mesh = std::nullopt;
-        std::shared_ptr<GRAPHICS::Material> current_material = nullptr;
+        // A default material is used for rendering for cases where a file may not yet have specified a material.
+        // The exact defaults need to be determined, but for now, a basic white material is chosen.
+        std::shared_ptr<GRAPHICS::Material> current_material = std::make_shared<GRAPHICS::Material>();
+        current_material->Shading = GRAPHICS::ShadingType::FLAT;
+        current_material->AmbientColor = GRAPHICS::Color::WHITE;
+        current_material->DiffuseColor = GRAPHICS::Color::WHITE;
         // Multiple material library files may be included in the file.
         std::unordered_map<std::string, MEMORY::NonNullSharedPointer<GRAPHICS::Material>> current_materials;
         std::vector<MATH::Vector3f> vertex_positions;
@@ -239,7 +244,12 @@ namespace GRAPHICS::MODELING
                         // PARSE OUT THE TEXTURE COORDINATE INDEX.
                         const std::size_t TEXTURE_COORDINATE_INDEX = 1;
                         const std::string& texture_coordinate_index_string = vertex_attribute_indices.at(TEXTURE_COORDINATE_INDEX);
-                        current_face_vertex_attribute_indices.VertexTextureCoordinateIndex = std::stoul(texture_coordinate_index_string);
+                        // Vertex texture coordinates are optional.  If vertex texture coordinates are missing, this string will be empty.
+                        bool vertex_texture_coordinates_exist = !texture_coordinate_index_string.empty();
+                        if (vertex_texture_coordinates_exist)
+                        {
+                            current_face_vertex_attribute_indices.VertexTextureCoordinateIndex = std::stoul(texture_coordinate_index_string);
+                        }
                     }
                     if (vertex_attribute_index_count >= VERTEX_POSITION_TEXTURE_COORDINATE_AND_NORMAL_INDICES_COMPONENT_COUNT)
                     {
