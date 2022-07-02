@@ -83,7 +83,7 @@ namespace GRAPHICS::CPU_RENDERING
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
     void CpuRasterizationAlgorithm::Render(
         const Object3D& object_3D, 
-        const std::optional<std::vector<LIGHTING::Light>>& lights,
+        const std::vector<LIGHTING::Light>& lights,
         const RenderingSettings& rendering_settings,
         IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
@@ -141,13 +141,14 @@ namespace GRAPHICS::CPU_RENDERING
                         unit_surface_normal,
                         *screen_space_triangle->Material,
                         rendering_settings.Camera.WorldPosition,
-                        lights);
+                        lights,
+                        rendering_settings);
 
                     screen_space_triangle->Vertices[vertex_index].Color = final_vertex_color;
                 }
 
                 // RENDER THE FINAL SCREEN SPACE TRIANGLE.
-                Render(*screen_space_triangle, output_bitmap, depth_buffer);
+                Render(*screen_space_triangle, rendering_settings, output_bitmap, depth_buffer);
             }
         }
     }
@@ -178,10 +179,12 @@ namespace GRAPHICS::CPU_RENDERING
 
     /// Renders a single triangle to the render target.
     /// @param[in]  triangle - The triangle to render.
+    /// @param[in]  rendering_settings - The settings to use for rendering.
     /// @param[in,out]  render_target - The target to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
     void CpuRasterizationAlgorithm::Render(
         const GEOMETRY::Triangle& triangle,
+        const RenderingSettings& rendering_settings,
         IMAGES::Bitmap& render_target,
         DepthBuffer* depth_buffer)
     {
@@ -220,7 +223,9 @@ namespace GRAPHICS::CPU_RENDERING
         }
 
         // RENDER THE TRIANGLE BASED ON SHADING TYPE.
-        switch (triangle.Material->Shading)
+        /// @todo   Enable this to be an override of material only if set?
+        ShadingType shading_type = rendering_settings.Shading;
+        switch (shading_type)
         {
             case ShadingType::WIREFRAME:
             {
@@ -554,7 +559,7 @@ namespace GRAPHICS::CPU_RENDERING
                                 (current_point_barycentric_coordinates.Z * first_vertex.Position.Z));
 #endif
 
-                            if (ShadingType::TEXTURED == triangle.Material->Shading)
+                            if ((ShadingType::TEXTURED == triangle.Material->Shading) && rendering_settings.TextureMapping)
                             {
                                 // INTERPOLATE THE TEXTURE COORDINATES.
                                 const MATH::Vector2f& first_texture_coordinate = first_vertex.TextureCoordinates;

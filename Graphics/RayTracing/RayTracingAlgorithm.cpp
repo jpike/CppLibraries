@@ -76,7 +76,6 @@ namespace GRAPHICS::RAY_TRACING
         unsigned int remaining_rows_per_last_thread = (render_target_height_in_pixels % cpu_count);
 
         // RENDER MULTIPLE ROWS OF PIXELS ACROSS MULTIPLE THREADS.
-        const VIEWING::Camera& camera = rendering_settings.Camera;
         std::vector<std::future<void>> ray_tracing_threads;
         for (unsigned int pixel_start_y = 0; pixel_start_y < render_target_height_in_pixels; pixel_start_y += rows_per_thread)
         {
@@ -92,11 +91,11 @@ namespace GRAPHICS::RAY_TRACING
             // START RENDERING THE CURRENT BLOCK OF ROWS IN A NEW THREAD.
             std::future<void> ray_tracing_thread = std::async(
                 std::launch::async,
-                [this, &scene_with_world_space_objects, &camera, pixel_start_y, pixel_end_y, &render_target]()
+                [this, &scene_with_world_space_objects, &rendering_settings, pixel_start_y, pixel_end_y, &render_target]()
                 {
                     this->RenderRows(
                         scene_with_world_space_objects,
-                        camera,
+                        rendering_settings,
                         pixel_start_y,
                         pixel_end_y,
                         render_target);
@@ -111,10 +110,15 @@ namespace GRAPHICS::RAY_TRACING
         }
     }
 
-    /// @todo
+    /// Renders rows of pixels for a scene using ray tracing.
+    /// @param[in]  scene_with_world_space_objects - The scene with world space objects to render.
+    /// @param[in]  rendering_settings - General rendering settings to use.
+    /// @param[in]  pixel_start_y - The starting y coordinate of the rows to render.
+    /// @param[in]  pixel_end_y - The ending y coordinate of the rows to render.
+    /// @param[in,out]  render_target - The target to render to.
     void RayTracingAlgorithm::RenderRows(
         const Scene& scene_with_world_space_objects,
-        const VIEWING::Camera& camera,
+        const RenderingSettings& rendering_settings,
         const unsigned int pixel_start_y,
         const unsigned int pixel_end_y,
         GRAPHICS::IMAGES::Bitmap& render_target) const
@@ -128,7 +132,7 @@ namespace GRAPHICS::RAY_TRACING
             {
                 // COMPUTE THE VIEWING RAY.
                 MATH::Vector2ui pixel_coordinates(x, y);
-                Ray ray = camera.ViewingRay(pixel_coordinates, render_target);
+                Ray ray = rendering_settings.Camera.ViewingRay(pixel_coordinates, render_target);
 
                 // FIND THE CLOSEST OBJECT IN THE SCENE THAT THE RAY INTERSECTS.
                 std::optional<RayObjectIntersection> closest_intersection = ComputeClosestIntersection(scene_with_world_space_objects, ray);
@@ -137,7 +141,7 @@ namespace GRAPHICS::RAY_TRACING
                 if (closest_intersection)
                 {
                     // COMPUTE THE CURRENT PIXEL'S COLOR.
-                    Color color = ComputeColor(scene_with_world_space_objects, *closest_intersection, ReflectionCount);
+                    Color color = ComputeColor(scene_with_world_space_objects, *closest_intersection, rendering_settings, rendering_settings.MaxReflectionCount);
                     render_target.WritePixel(x, y, color);
                 }
                 else
@@ -152,6 +156,7 @@ namespace GRAPHICS::RAY_TRACING
     /// Computes color based on the specified intersection in the scene.
     /// @param[in]  scene - The scene in which the color is being computed.
     /// @param[in]  intersection - The intersection for which to compute the color.
+    /// @param[in]  rendering_settings - Settings to use for rendering.
     /// @param[in]  remaining_reflection_count - The remaining reflection depth for color computation.
     ///     To compute more accurate light, rays need to be reflected, but we don't want this to go on forever.
     ///     Furthermore, more rays can be computationally expensive for little more gain, which is why 
@@ -160,6 +165,7 @@ namespace GRAPHICS::RAY_TRACING
     GRAPHICS::Color RayTracingAlgorithm::ComputeColor(
         const Scene& scene, 
         const RayObjectIntersection& intersection,
+        const RenderingSettings& rendering_settings,
         const unsigned int remaining_reflection_count) const
     {
         // INITIALIZE THE COLOR TO HAVE NO CONTRIBUTION FROM ANY SOURCES.
@@ -167,7 +173,7 @@ namespace GRAPHICS::RAY_TRACING
 
         // ADD IN THE AMBIENT COLOR IF ENABLED.
         std::shared_ptr<Material> intersected_material = intersection.Object.GetMaterial();
-        if (Ambient)
+        if (rendering_settings.AmbientLighting)
         {
             final_color += intersected_material->AmbientColor;
         }
@@ -176,16 +182,16 @@ namespace GRAPHICS::RAY_TRACING
         std::vector<float> shadow_factors_by_light_index;
         MATH::Vector3f intersection_point = intersection.IntersectionPoint();
         MATH::Vector3f unit_surface_normal = intersection.Object.GetSurfaceNormal(intersection_point);
-        if (scene.PointLights)
+        if (rendering_settings.PointLighting)
         {
-            for (const LIGHTING::Light& light : (*scene.PointLights))
+            for (const LIGHTING::Light& light : scene.PointLights)
             {
                 // CAST A RAY OUT TO COMPUTE SHADOWS IF ENABLED.
                 // To simplify later parts of the algorithm, a shadow factor of 1 (no shadowing)
                 // should always be computed.
                 constexpr float NO_SHADOWING = 1.0f;
                 float shadow_factor = NO_SHADOWING;
-                if (Shadows)
+                if (rendering_settings.Shadows)
                 {
                     // SHOOT A SHADOW RAY OUT FROM THE INTERSECTION POINT TO THE LIGHT.
                     MATH::Vector3f direction_from_point_to_light = light.PointLightDirectionFrom(intersection_point);
@@ -219,35 +225,11 @@ namespace GRAPHICS::RAY_TRACING
                 shadow_factors_by_light_index.push_back(shadow_factor);
             }
 
-            // ADD IN DIFFUSE COLOR FROM LIGHTS IF ENABLED.
-            if (Diffuse)
+            // ADD IN TEXTURE COLORS IF ENABLED.
+            if (rendering_settings.TextureMapping)
             {
-                // ADD DIFFUSE CONTRIBUTIONS FROM ALL LIGHT SOURCES.
-                Color light_total_color = Color::BLACK;
-                for (std::size_t light_index = 0; light_index < scene.PointLights->size(); ++light_index)
-                {
-                    // ADD COLOR FROM THE CURRENT LIGHT.
-                    // This is based on the Lambertian shading model.
-                    // An object is maximally illuminated when facing toward the light.
-                    // An object tangent to the light direction or facing away receives no illumination.
-                    // In-between, the amount of illumination is proportional to the cosine of the angle between
-                    // the light and surface normal (where the cosine can be computed via the dot product).
-                    const LIGHTING::Light& light = scene.PointLights->at(light_index);
-                    MATH::Vector3f direction_from_point_to_light = light.PointLightDirectionFrom(intersection_point);
-                    MATH::Vector3f unit_direction_from_point_to_light = MATH::Vector3f::Normalize(direction_from_point_to_light);
-                    constexpr float NO_ILLUMINATION = 0.0f;
-                    float illumination_proportion = MATH::Vector3f::DotProduct(unit_surface_normal, unit_direction_from_point_to_light);
-                    illumination_proportion = std::max(NO_ILLUMINATION, illumination_proportion);
-
-                    // ADD THE CURRENT LIGHT'S COLOR.
-                    float shadow_factor = shadow_factors_by_light_index.at(light_index);
-                    Color current_light_color = Color::ScaleRedGreenBlue(illumination_proportion, light.Color);
-                    current_light_color = Color::ScaleRedGreenBlue(shadow_factor, current_light_color);
-                    light_total_color += current_light_color;
-                }
-
                 /// @todo   How to we know whether texture is for diffuse or not?
-                Color base_diffuse_color = intersected_material->DiffuseColor;
+                /// @todo   Color base_diffuse_color = intersected_material->DiffuseColor;
                 /// @todo   Handle spheres versus triangles.
                 const GEOMETRY::Triangle* const* intersected_triangle = std::get_if<const GEOMETRY::Triangle*>(&intersection.Object.Shape);
                 if (intersected_material->Texture && intersected_triangle)
@@ -256,7 +238,7 @@ namespace GRAPHICS::RAY_TRACING
                     VertexWithAttributes first_vertex = (*intersected_triangle)->Vertices[0];
                     VertexWithAttributes second_vertex = (*intersected_triangle)->Vertices[1];
                     VertexWithAttributes third_vertex = (*intersected_triangle)->Vertices[2];
-    
+
 #define BARYCENTRIC_COORDINATES_2D 1
 #if BARYCENTRIC_COORDINATES_2D
                     MATH::Vector2f current_point(intersection_point.X, intersection_point.Y);
@@ -305,34 +287,59 @@ namespace GRAPHICS::RAY_TRACING
                     unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
 
                     Color texture_color = intersected_material->Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
-                    base_diffuse_color = Color::ComponentMultiplyRedGreenBlue(base_diffuse_color, texture_color);;
+                    /// @todo   base_diffuse_color = Color::ComponentMultiplyRedGreenBlue(base_diffuse_color, texture_color);;
                     /// @todo   Hack to test out texture mapping.
-                    final_color = base_diffuse_color;
+                    /// @todo   final_color = base_diffuse_color;
+                    final_color += texture_color;
                 }
-                else
-                {
-                    /// @todo   else clause above is hack to test out texture mapping.
+            }
 
-                    // The diffuse color is multiplied component-wise by the amount of light.
-                    Color diffuse_color = Color::ComponentMultiplyRedGreenBlue(
-                        base_diffuse_color,
-                        light_total_color);
-                    final_color += diffuse_color;
+            // ADD IN DIFFUSE COLOR FROM LIGHTS IF ENABLED.
+            if (rendering_settings.DiffuseShading)
+            {
+                // ADD DIFFUSE CONTRIBUTIONS FROM ALL LIGHT SOURCES.
+                Color light_total_color = Color::BLACK;
+                for (std::size_t light_index = 0; light_index < scene.PointLights.size(); ++light_index)
+                {
+                    // ADD COLOR FROM THE CURRENT LIGHT.
+                    // This is based on the Lambertian shading model.
+                    // An object is maximally illuminated when facing toward the light.
+                    // An object tangent to the light direction or facing away receives no illumination.
+                    // In-between, the amount of illumination is proportional to the cosine of the angle between
+                    // the light and surface normal (where the cosine can be computed via the dot product).
+                    const LIGHTING::Light& light = scene.PointLights.at(light_index);
+                    MATH::Vector3f direction_from_point_to_light = light.PointLightDirectionFrom(intersection_point);
+                    MATH::Vector3f unit_direction_from_point_to_light = MATH::Vector3f::Normalize(direction_from_point_to_light);
+                    constexpr float NO_ILLUMINATION = 0.0f;
+                    float illumination_proportion = MATH::Vector3f::DotProduct(unit_surface_normal, unit_direction_from_point_to_light);
+                    illumination_proportion = std::max(NO_ILLUMINATION, illumination_proportion);
+
+                    // ADD THE CURRENT LIGHT'S COLOR.
+                    float shadow_factor = shadow_factors_by_light_index.at(light_index);
+                    Color current_light_color = Color::ScaleRedGreenBlue(illumination_proportion, light.Color);
+                    current_light_color = Color::ScaleRedGreenBlue(shadow_factor, current_light_color);
+                    light_total_color += current_light_color;
                 }
+
+                // The diffuse color is multiplied component-wise by the amount of light.
+                Color diffuse_color = Color::ComponentMultiplyRedGreenBlue(
+                    intersected_material->DiffuseColor,
+                    light_total_color);
+                final_color += diffuse_color;
             }
 
             // ADD IN SPECULAR COLOR IF ENABLED.
             // This is based on the Blinn-Phong model.
-            if (Specular)
+            if (rendering_settings.SpecularShading)
             {
                 // ADD SPECULAR CONTRIBUTIONS FROM ALL LIGHT SOURCES.
                 Color specular_light_total_color = Color::BLACK;
                 MATH::Vector3f ray_from_intersection_to_eye = intersection.Ray->Origin - intersection_point;
                 MATH::Vector3f normalized_ray_from_intersection_to_eye = MATH::Vector3f::Normalize(ray_from_intersection_to_eye);
-                for (std::size_t light_index = 0; light_index < scene.PointLights->size(); ++light_index)
+                for (std::size_t light_index = 0; light_index < scene.PointLights.size(); ++light_index)
                 {
                     // COMPUTE THE AMOUNT OF ILLUMINATION FROM THE CURRENT LIGHT.
-                    const LIGHTING::Light& light = scene.PointLights->at(light_index);
+                    const LIGHTING::Light& light = scene.PointLights.at(light_index);
                     MATH::Vector3f direction_from_point_to_light = light.PointLightDirectionFrom(intersection_point);
                     MATH::Vector3f unit_direction_from_point_to_light = MATH::Vector3f::Normalize(direction_from_point_to_light);
                     constexpr float NO_ILLUMINATION = 0.0f;
@@ -365,7 +372,7 @@ namespace GRAPHICS::RAY_TRACING
         }
 
         // COMPUTE REFLECTED LIGHT IF POSSIBLE.
-        if (Reflections)
+        if (rendering_settings.Reflections)
         {
             // CHECK IF THE RAY CAN BE REFLECTED.
             // In addition to the remaining reflections, there's no need to compute
@@ -393,7 +400,7 @@ namespace GRAPHICS::RAY_TRACING
             {
                 // COMPUTE THE REFLECTED COLOR.
                 const unsigned int child_reflection_count = remaining_reflection_count - 1;
-                Color raw_reflected_color = ComputeColor(scene, *reflected_intersection, child_reflection_count);
+                Color raw_reflected_color = ComputeColor(scene, *reflected_intersection, rendering_settings, child_reflection_count);
                 Color reflected_color = Color::ScaleRedGreenBlue(intersected_material->ReflectivityProportion, raw_reflected_color);
                 final_color += reflected_color;
             }

@@ -21,32 +21,18 @@ namespace GRAPHICS::RAY_TRACING
         // PUBLIC METHODS.
         void Render(const Scene& scene, const RenderingSettings& rendering_settings, GRAPHICS::IMAGES::Bitmap& render_target);
 
-        // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
-        /// True if ambient lighting should be calculated; false otherwise.
-        bool Ambient = true;
-        /// True if shadows should be calculated; false otherwise.
-        bool Shadows = true;
-        /// True if diffuse shading should be calculated; false otherwise.
-        bool Diffuse = true;
-        /// True if specular shading should be calculated; false otherwise.
-        bool Specular = true;
-        /// True if reflections should be calculated; false otherwise.
-        bool Reflections = true;
-        /// The maximum number of reflections to computer (if reflections are enabled).
-        /// More reflections will take longer to render an image.
-        unsigned int ReflectionCount = 5;
-
     private:
         // PRIVATE HELPER METHODS.
         void RenderRows(
             const Scene& scene_with_world_space_objects,
-            const VIEWING::Camera& camera,
+            const RenderingSettings& rendering_settings,
             const unsigned int pixel_start_y,
             const unsigned int pixel_end_y,
             GRAPHICS::IMAGES::Bitmap& render_target) const;
         GRAPHICS::Color ComputeColor(
             const Scene& scene,
             const RayObjectIntersection& intersection,
+            const RenderingSettings& rendering_settings,
             const unsigned int remaining_reflection_count) const;
         std::optional<RayObjectIntersection> ComputeClosestIntersection(
             const Scene& scene,

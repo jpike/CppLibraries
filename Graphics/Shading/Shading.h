@@ -4,6 +4,7 @@
 #include <vector>
 #include "Graphics/Lighting/Light.h"
 #include "Graphics/Material.h"
+#include "Graphics/RenderingSettings.h"
 #include "Graphics/VertexWithAttributes.h"
 #include "Math/Vector3.h"
 
@@ -18,6 +19,7 @@ namespace GRAPHICS::SHADING
             const MATH::Vector3f& unit_vertex_normal,
             const Material& material,
             const MATH::Vector3f& viewing_world_position,
-            const std::optional<std::vector<LIGHTING::Light>>& lights);
+            const std::vector<LIGHTING::Light>& lights,
+            const RenderingSettings& rendering_settings);
     };
 }

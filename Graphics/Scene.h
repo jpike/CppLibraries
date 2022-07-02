@@ -18,10 +18,6 @@ namespace GRAPHICS
         /// All objects in the scene.
         std::vector<Object3D> Objects = {};
         /// All point lights in the scene.
-        /// An empty optional means lighting should not be computed for the scene
-        /// (shading comes directly from vertex colors).
-        /// A populated optional with an empty list means that lighting should be
-        /// computed for the scene as if no lights existed.
-        std::optional<std::vector<LIGHTING::Light>> PointLights = std::nullopt;
+        std::vector<LIGHTING::Light> PointLights = {};
     };
 }

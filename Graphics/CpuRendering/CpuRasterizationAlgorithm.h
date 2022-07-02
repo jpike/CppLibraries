@@ -31,7 +31,7 @@ namespace GRAPHICS::CPU_RENDERING
             DepthBuffer* depth_buffer);
         static void Render(
             const Object3D& object_3D, 
-            const std::optional<std::vector<LIGHTING::Light>>& lights, 
+            const std::vector<LIGHTING::Light>& lights, 
             const RenderingSettings& rendering_settings,
             IMAGES::Bitmap& output_bitmap,
             DepthBuffer* depth_buffer);
@@ -40,6 +40,7 @@ namespace GRAPHICS::CPU_RENDERING
 
         static void Render(
             const GEOMETRY::Triangle& triangle,
+            const RenderingSettings& rendering_settings,
             IMAGES::Bitmap& render_target,
             DepthBuffer* depth_buffer);
 

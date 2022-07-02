@@ -14,13 +14,15 @@ namespace GRAPHICS::LIGHTING
         const MATH::Vector3f& unit_vertex_normal,
         const Material& material,
         const MATH::Vector3f& viewing_world_position,
-        const std::vector<Light>& lights)
+        const std::vector<Light>& lights,
+        const RenderingSettings& rendering_settings)
     {
         Color light_total_color = Color::BLACK;
         for (const Light& light : lights)
         {
             // COMPUTE SHADING BASED ON TYPE OF LIGHT.
-            if (LightType::AMBIENT == light.Type)
+            /// @todo   Cleanup.
+            if ((LightType::AMBIENT == light.Type) && rendering_settings.AmbientLighting)
             {
                 if (ShadingType::MATERIAL == material.Shading)
                 {
@@ -57,7 +59,8 @@ namespace GRAPHICS::LIGHTING
                 float illumination_proportion = MATH::Vector3f::DotProduct(unit_vertex_normal, unit_direction_from_point_to_light);
                 illumination_proportion = std::max(NO_ILLUMINATION, illumination_proportion);
                 Color current_light_color = Color::ScaleRedGreenBlue(illumination_proportion, light.Color);
-                if (ShadingType::MATERIAL == material.Shading)
+                /// @todo
+                if ((ShadingType::MATERIAL == material.Shading) && rendering_settings.DiffuseShading)
                 {
                     light_total_color += Color::ComponentMultiplyRedGreenBlue(current_light_color, material.DiffuseColor);
                 }
@@ -68,7 +71,8 @@ namespace GRAPHICS::LIGHTING
 
                 // ADD SPECULAR COLOR FROM THE CURRENT LIGHT.
                 /// @todo   Is this how we want to handle specularity?
-                if (material.SpecularPower > 1.0f)
+                /// @todo if (material.SpecularPower > 1.0f)
+                if (rendering_settings.SpecularShading)
                 {
                     MATH::Vector3f reflected_light_along_surface_normal = MATH::Vector3f::Scale(2.0f * illumination_proportion, unit_vertex_normal);
                     MATH::Vector3f reflected_light_direction = reflected_light_along_surface_normal - unit_direction_from_point_to_light;

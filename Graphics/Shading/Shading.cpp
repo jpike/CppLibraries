@@ -9,28 +9,27 @@ namespace GRAPHICS::SHADING
     /// @param[in]  material - The material for the vertex.
     /// @param[in]  viewing_world_position - The world position from where the vertex is being viewed.
     /// @param[in]  lights - The lights potentially shining on the vertex.
-    ///     An unpopulated optional means lighting shouldn't be computed for shading
-    ///     (shading just comes from vertex colors).
-    ///     A populated optional with an empty lists means to compute lighting as if
-    ///     there are no lights in the scene.
+    /// @param[in]  rendering_settings - Settings for rendering.
     /// @return The computed shading for the vertex.
     Color Shading::Compute(
         const VertexWithAttributes& world_vertex,
         const MATH::Vector3f& unit_vertex_normal,
         const Material& material,
         const MATH::Vector3f& viewing_world_position,
-        const std::optional<std::vector<LIGHTING::Light>>& lights)
+        const std::vector<LIGHTING::Light>& lights,
+        const RenderingSettings& rendering_settings)
     {
         // COMPUTE COLOR FROM LIGHTS IF APPLICABLE.
         Color light_color = Color::WHITE;
-        if (lights)
+        if (rendering_settings.PointLighting)
         {
             light_color = LIGHTING::Lighting::Compute(
                 world_vertex.Position,
                 unit_vertex_normal,
                 material,
                 viewing_world_position,
-                *lights);
+                lights,
+                rendering_settings);
         }
 
         // COMBINE LIGHTING WITH THE BASE VERTEX COLOR.
