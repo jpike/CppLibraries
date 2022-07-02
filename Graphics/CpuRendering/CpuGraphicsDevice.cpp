@@ -72,19 +72,16 @@ namespace GRAPHICS::CPU_RENDERING
     /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
     void CpuGraphicsDevice::Render(
         const GRAPHICS::Scene& scene,
-        const GRAPHICS::VIEWING::Camera& camera,
-        const bool cull_backfaces,
-        const bool depth_buffering)
+        const GRAPHICS::RenderingSettings& rendering_settings)
     {
         switch (DeviceType)
         {
             case GRAPHICS::HARDWARE::GraphicsDeviceType::CPU_RASTERIZER:
             {
-                GRAPHICS::DepthBuffer* depth_buffer = depth_buffering ? &DepthBuffer : nullptr;
+                GRAPHICS::DepthBuffer* depth_buffer = rendering_settings.DepthBuffering ? &DepthBuffer : nullptr;
                 CpuRasterizationAlgorithm::Render(
                     scene,
-                    camera,
-                    cull_backfaces,
+                    rendering_settings,
                     ColorBuffer,
                     depth_buffer);
                 break;
@@ -94,7 +91,7 @@ namespace GRAPHICS::CPU_RENDERING
                 GRAPHICS::RAY_TRACING::RayTracingAlgorithm ray_tracing_algorithm;
                 ray_tracing_algorithm.Render(
                     scene,
-                    camera,
+                    rendering_settings,
                     ColorBuffer);
                 break;
             }

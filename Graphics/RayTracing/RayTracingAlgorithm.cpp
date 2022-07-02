@@ -11,9 +11,9 @@ namespace GRAPHICS::RAY_TRACING
 {
     /// Renders a scene to the specified render target.
     /// @param[in]  scene - The scene to render.
-    /// @param[in]  camera - The camera to use to view the scene.
+    /// @param[in]  rendering_settings - The settings to use for rendering.
     /// @param[in,out]  render_target - The target to render to.
-    void RayTracingAlgorithm::Render(const Scene& scene, const VIEWING::Camera& camera, GRAPHICS::IMAGES::Bitmap& render_target)
+    void RayTracingAlgorithm::Render(const Scene& scene, const RenderingSettings& rendering_settings, GRAPHICS::IMAGES::Bitmap& render_target)
     {
         // TRANSFORM OBJECTS IN THE SCENE INTO WORLD SPACE.
         Scene scene_with_world_space_objects;
@@ -76,6 +76,7 @@ namespace GRAPHICS::RAY_TRACING
         unsigned int remaining_rows_per_last_thread = (render_target_height_in_pixels % cpu_count);
 
         // RENDER MULTIPLE ROWS OF PIXELS ACROSS MULTIPLE THREADS.
+        const VIEWING::Camera& camera = rendering_settings.Camera;
         std::vector<std::future<void>> ray_tracing_threads;
         for (unsigned int pixel_start_y = 0; pixel_start_y < render_target_height_in_pixels; pixel_start_y += rows_per_thread)
         {

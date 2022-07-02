@@ -27,9 +27,7 @@ namespace GRAPHICS::OPEN_GL
         void ClearBackground(const GRAPHICS::Color& color) override;
         void Render(
             const GRAPHICS::Scene& scene,
-            const GRAPHICS::VIEWING::Camera& camera,
-            const bool cull_backfaces,
-            const bool depth_buffering) override;
+            const GRAPHICS::RenderingSettings& rendering_settings) override;
         void DisplayRenderedImage(WINDOWING::IWindow& window) override;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.

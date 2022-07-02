@@ -9,6 +9,7 @@
 #include "Graphics/Gui/Text.h"
 #include "Graphics/Images/Bitmap.h"
 #include "Graphics/Lighting/Light.h"
+#include "Graphics/RenderingSettings.h"
 #include "Graphics/Scene.h"
 #include "Graphics/VertexWithAttributes.h"
 #include "Graphics/Viewing/Camera.h"
@@ -25,15 +26,13 @@ namespace GRAPHICS::CPU_RENDERING
 
         static void Render(
             const Scene& scene, 
-            const VIEWING::Camera& camera, 
-            const bool cull_backfaces, 
+            const RenderingSettings& rendering_settings,
             IMAGES::Bitmap& output_bitmap,
             DepthBuffer* depth_buffer);
         static void Render(
             const Object3D& object_3D, 
             const std::optional<std::vector<LIGHTING::Light>>& lights, 
-            const VIEWING::Camera& camera,
-            const bool cull_backfaces, 
+            const RenderingSettings& rendering_settings,
             IMAGES::Bitmap& output_bitmap,
             DepthBuffer* depth_buffer);
 

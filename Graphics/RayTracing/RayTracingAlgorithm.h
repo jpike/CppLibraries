@@ -7,6 +7,7 @@
 #include "Graphics/RayTracing/Ray.h"
 #include "Graphics/RayTracing/RayObjectIntersection.h"
 #include "Graphics/RayTracing/RayTraceableShape.h"
+#include "Graphics/RenderingSettings.h"
 #include "Graphics/Scene.h"
 #include "Graphics/Viewing/Camera.h"
 
@@ -18,7 +19,7 @@ namespace GRAPHICS::RAY_TRACING
     {
     public:
         // PUBLIC METHODS.
-        void Render(const Scene& scene, const VIEWING::Camera& camera, GRAPHICS::IMAGES::Bitmap& render_target);
+        void Render(const Scene& scene, const RenderingSettings& rendering_settings, GRAPHICS::IMAGES::Bitmap& render_target);
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// True if ambient lighting should be calculated; false otherwise.

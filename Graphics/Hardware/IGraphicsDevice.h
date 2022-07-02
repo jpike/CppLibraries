@@ -4,6 +4,7 @@
 #include "Graphics/Color.h"
 #include "Graphics/Hardware/GraphicsDeviceType.h"
 #include "Graphics/Object3D.h"
+#include "Graphics/RenderingSettings.h"
 #include "Graphics/Scene.h"
 #include "Graphics/Viewing/Camera.h"
 #include "Windowing/IWindow.h"
@@ -38,14 +39,10 @@ namespace GRAPHICS::HARDWARE
         virtual void ClearBackground(const GRAPHICS::Color& color) = 0;
         /// Renders the specified scene using the graphics device.
         /// @param[in]  scene - The scene to render.
-        /// @param[in]  camera - The camera to use for viewing.
-        /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
-        /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
+        /// @param[in]  rendering_settings - The settings to use for rendering.
         virtual void Render(
             const GRAPHICS::Scene& scene,
-            const GRAPHICS::VIEWING::Camera& camera,
-            const bool cull_backfaces,
-            const bool depth_buffering) = 0;
+            const GRAPHICS::RenderingSettings& rendering_settings) = 0;
         /// Displays the rendered image from the graphics device.
         /// @param[in,out]  window - The window in which to display the image.
         ///     Note that the image may not necessarily be displayed in the provided window.  Due to the way many graphics APIs

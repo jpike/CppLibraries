@@ -198,17 +198,13 @@ namespace GRAPHICS::OPEN_GL
 
     /// Renders the specified scene using the graphics device.
     /// @param[in]  scene - The scene to render.
-    /// @param[in]  camera - The camera to use for viewing.
-    /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
-    /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
-    /// @todo   Use all parameters above.
+    /// @param[in]  rendering_settings - The settings to use for rendering.
+    /// @todo   Use all of rendering settings.
     void OpenGLGraphicsDevice::Render(
         const GRAPHICS::Scene& scene,
-        const GRAPHICS::VIEWING::Camera& camera,
-        const bool cull_backfaces,
-        const bool depth_buffering)
+        const GRAPHICS::RenderingSettings& rendering_settings)
     {
-        if (depth_buffering)
+        if (rendering_settings.DepthBuffering)
         {
             glEnable(GL_DEPTH_TEST);
         }
@@ -217,7 +213,7 @@ namespace GRAPHICS::OPEN_GL
             glDisable(GL_DEPTH_TEST);
         }
 
-        VIEWING::ViewingTransformations viewing_transformations(camera);
+        VIEWING::ViewingTransformations viewing_transformations(rendering_settings.Camera);
 
         std::optional< std::vector<GRAPHICS::LIGHTING::Light>> lights = std::vector<GRAPHICS::LIGHTING::Light>();
         lights->emplace_back(

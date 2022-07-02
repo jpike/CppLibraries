@@ -52,14 +52,12 @@ namespace GRAPHICS::CPU_RENDERING
 
     /// Renders an entire 3D scene.
     /// @param[in]  scene - The scene to render.
-    /// @param[in]  camera - The camera to use to view the scene.
-    /// @param[in]  cull_backfaces - True if backfaces should be culled; false otherwise.
+    /// @param[in]  rendering_settings - The settings to use for rendering.
     /// @param[in,out]  output_bitmap - The bitmap to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
     void CpuRasterizationAlgorithm::Render(
         const Scene& scene, 
-        const VIEWING::Camera& camera,
-        const bool cull_backfaces, 
+        const GRAPHICS::RenderingSettings& rendering_settings,
         IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
     {
@@ -73,28 +71,27 @@ namespace GRAPHICS::CPU_RENDERING
         // RENDER EACH OBJECT IN THE SCENE.
         for (const auto& object_3D : scene.Objects)
         {
-            Render(object_3D, scene.PointLights, camera, cull_backfaces, output_bitmap, depth_buffer);
+            Render(object_3D, scene.PointLights, rendering_settings, output_bitmap, depth_buffer);
         }
     }
 
     /// Renders a 3D object to the render target.
     /// @param[in]  object_3D - The object to render.
     /// @param[in]  lights - Any lights that should illuminate the object.
-    /// @param[in]  camera - The camera to use to view the object.
+    /// @param[in]  rendering_settings - The settings to use for rendering.
     /// @param[in,out]  output_bitmap - The bitmap to render to.
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
     void CpuRasterizationAlgorithm::Render(
         const Object3D& object_3D, 
         const std::optional<std::vector<LIGHTING::Light>>& lights,
-        const VIEWING::Camera& camera,
-        const bool cull_backfaces, 
+        const RenderingSettings& rendering_settings,
         IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
     {
         // GET RE-USED TRANSFORMATIONS.
         // This is done before the loop to avoid performance hits for repeatedly calculating these matrices.
         MATH::Matrix4x4f object_world_transform = object_3D.WorldTransform();
-        VIEWING::ViewingTransformations viewing_transformations(camera, output_bitmap);
+        VIEWING::ViewingTransformations viewing_transformations(rendering_settings.Camera, output_bitmap);
 
         // RENDER EACH MESH OF THE OBJECT.
         for (const auto& [mesh_name, mesh] : object_3D.Model.MeshesByName)
@@ -113,11 +110,11 @@ namespace GRAPHICS::CPU_RENDERING
 
                 // CULL BACKFACES IF APPLICABLE.
                 MATH::Vector3f unit_surface_normal = world_space_triangle.SurfaceNormal();
-                if (cull_backfaces)
+                if (rendering_settings.CullBackfaces)
                 {
                     // If the surface normal is facing opposite of the camera's view direction (negative dot product),
                     // then the surface normal should be facing the camera.
-                    MATH::Vector3f view_direction = -camera.CoordinateFrame.Forward;
+                    MATH::Vector3f view_direction = -rendering_settings.Camera.CoordinateFrame.Forward;
                     float surface_normal_camera_view_direction_dot_product = MATH::Vector3f::DotProduct(unit_surface_normal, view_direction);
                     bool triangle_facing_toward_camera = (surface_normal_camera_view_direction_dot_product < 0.0f);
                     if (!triangle_facing_toward_camera)
@@ -143,7 +140,7 @@ namespace GRAPHICS::CPU_RENDERING
                         current_world_vertex,
                         unit_surface_normal,
                         *screen_space_triangle->Material,
-                        camera.WorldPosition,
+                        rendering_settings.Camera.WorldPosition,
                         lights);
 
                     screen_space_triangle->Vertices[vertex_index].Color = final_vertex_color;

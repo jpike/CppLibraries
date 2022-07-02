@@ -712,29 +712,25 @@ namespace GRAPHICS::DIRECT_X
 
     /// Renders the specified scene using the graphics device.
     /// @param[in]  scene - The scene to render.
-    /// @param[in]  camera - The camera to use for viewing.
-    /// @param[in]  cull_backfaces - True if backface culling should occur; false if not.
-    /// @param[in]  depth_buffering - True if depth buffering should be used; false if not.
-    /// @todo   Use all parameters above.
+    /// @param[in]  rendering_settings - The settings to use for rendering.
+    /// @todo   Use all of rendering settings.
     void Direct3DGraphicsDevice::Render(
         const GRAPHICS::Scene& scene,
-        const GRAPHICS::VIEWING::Camera& camera,
-        const bool cull_backfaces,
-        const bool depth_buffering)
+        const GRAPHICS::RenderingSettings& rendering_settings)
     {
         unsigned int width_in_pixels = Window->GetWidthInPixels();
         unsigned int height_in_pixels = Window->GetHeightInPixels();
         float aspect_ratio = static_cast<float>(width_in_pixels) / static_cast<float>(height_in_pixels);
         DirectX::XMMATRIX perspective_matrix = DirectX::XMMatrixPerspectiveFovLH(
-            MATH::Angle<float>::DegreesToRadians(camera.FieldOfView).Value,
+            MATH::Angle<float>::DegreesToRadians(rendering_settings.Camera.FieldOfView).Value,
             aspect_ratio,
-            camera.NearClipPlaneViewDistance,
-            camera.FarClipPlaneViewDistance);
+            rendering_settings.Camera.NearClipPlaneViewDistance,
+            rendering_settings.Camera.FarClipPlaneViewDistance);
         DirectX::XMMATRIX orthographic_matrix = DirectX::XMMatrixOrthographicLH(
             (float)width_in_pixels,
             (float)height_in_pixels,
-            camera.NearClipPlaneViewDistance,
-            camera.FarClipPlaneViewDistance);
+            rendering_settings.Camera.NearClipPlaneViewDistance,
+            rendering_settings.Camera.FarClipPlaneViewDistance);
 
 #define TRANSPOSE 0
 #if TRANSPOSE
@@ -744,10 +740,10 @@ namespace GRAPHICS::DIRECT_X
         MATH::Matrix4x4f projection_transform = camera.ProjectionTransform();
         DirectX::XMMATRIX projection_matrix = DirectX::XMMATRIX(projection_transform.ElementsInRowMajorOrder());
 #else
-        MATH::Matrix4x4f camera_view_transform = camera.ViewTransform();
+        MATH::Matrix4x4f camera_view_transform = rendering_settings.Camera.ViewTransform();
         DirectX::XMMATRIX view_matrix = DirectX::XMMATRIX(camera_view_transform.Elements.ValuesInColumnMajorOrder().data());
 
-        MATH::Matrix4x4f projection_transform = camera.ProjectionTransform();
+        MATH::Matrix4x4f projection_transform = rendering_settings.Camera.ProjectionTransform();
         DirectX::XMMATRIX projection_matrix = DirectX::XMMATRIX(projection_transform.Elements.ValuesInColumnMajorOrder().data());
 #endif
 
