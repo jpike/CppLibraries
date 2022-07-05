@@ -21,7 +21,7 @@ namespace GRAPHICS::SHADING
     {
         // COMPUTE COLOR FROM LIGHTS IF APPLICABLE.
         Color light_color = Color::WHITE;
-        if (rendering_settings.PointLighting)
+        if (rendering_settings.LightingSettings.Enabled)
         {
             light_color = LIGHTING::Lighting::Compute(
                 world_vertex.Position,

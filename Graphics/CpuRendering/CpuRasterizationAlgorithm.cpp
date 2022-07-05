@@ -71,7 +71,7 @@ namespace GRAPHICS::CPU_RENDERING
         // RENDER EACH OBJECT IN THE SCENE.
         for (const auto& object_3D : scene.Objects)
         {
-            Render(object_3D, scene.PointLights, rendering_settings, output_bitmap, depth_buffer);
+            Render(object_3D, scene.Lights, rendering_settings, output_bitmap, depth_buffer);
         }
     }
 

@@ -3,7 +3,7 @@
 #include <limits>
 #include <limits>
 #include "Graphics/RayTracing/Ray.h"
-#include "Graphics/RayTracing/RayTraceableShape.h"
+#include "Graphics/RayTracing/Surface.h"
 #include "Math/Vector3.h"
 
 namespace GRAPHICS::RAY_TRACING
@@ -23,6 +23,6 @@ namespace GRAPHICS::RAY_TRACING
         /// if this distance is closer between two intersections.
         float DistanceFromRayToObject = std::numeric_limits<float>::infinity();
         /// The intersected object.
-        RayTraceableShape Object = {};
+        Surface Object = {};
     };
 }

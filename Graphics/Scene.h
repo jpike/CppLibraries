@@ -17,7 +17,7 @@ namespace GRAPHICS
         GRAPHICS::Color BackgroundColor = GRAPHICS::Color::BLACK;
         /// All objects in the scene.
         std::vector<Object3D> Objects = {};
-        /// All point lights in the scene.
-        std::vector<LIGHTING::Light> PointLights = {};
+        /// All lights in the scene.
+        std::vector<LIGHTING::Light> Lights = {};
     };
 }

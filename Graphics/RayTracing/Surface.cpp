@@ -1,10 +1,10 @@
-#include "Graphics/RayTracing/RayTraceableShape.h"
+#include "Graphics/RayTracing/Surface.h"
 
 namespace GRAPHICS::RAY_TRACING
 {
-    /// Gets the material associated with the shape, if one exists.
-    /// @return The material associated with the shape, if one exists; null otherwise.
-    std::shared_ptr<Material> RayTraceableShape::GetMaterial() const
+    /// Gets the material associated with the surface, if one exists.
+    /// @return The material associated with the surface, if one exists; null otherwise.
+    std::shared_ptr<Material> Surface::GetMaterial() const
     {
         // GET THE MATERIAL ASSOCIATED WITH THE APPOPRIATE KIND OF SHAPE.
         const GEOMETRY::Triangle* const* triangle = std::get_if<const GEOMETRY::Triangle*>(&Shape);
@@ -27,7 +27,7 @@ namespace GRAPHICS::RAY_TRACING
     /// Gets the surface normal of the shape at the specified point.
     /// @param[in]  surface_point - The point on the shape for which to get the normal.
     /// @return The surface normal of the shape at the specified point.
-    MATH::Vector3f RayTraceableShape::GetSurfaceNormal(const MATH::Vector3f& surface_point) const
+    MATH::Vector3f Surface::GetNormal(const MATH::Vector3f& surface_point) const
     {
         // GET THE SURFACE NORMAL FOR THE APPOPRIATE KIND OF SHAPE.
         const GEOMETRY::Triangle* const* triangle = std::get_if<const GEOMETRY::Triangle*>(&Shape);

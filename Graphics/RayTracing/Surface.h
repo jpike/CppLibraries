@@ -14,17 +14,17 @@ namespace GRAPHICS::GEOMETRY
 
 namespace GRAPHICS::RAY_TRACING
 {
-    /// A shape that is supported for ray tracing.
-    /// This class helps encapsulate some functionality related to ray tracing different kinds of shapes.
-    class RayTraceableShape
+    /// A surface that is supported for ray tracing.
+    /// This class helps encapsulate some functionality related to ray tracing surfaces for different kinds of shapes.
+    class Surface
     {
     public:
         // PUBLIC METHODS.
         std::shared_ptr<Material> GetMaterial() const;
-        MATH::Vector3f GetSurfaceNormal(const MATH::Vector3f& surface_point) const;
+        MATH::Vector3f GetNormal(const MATH::Vector3f& surface_point) const;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
-        /// The shape.  Memory is managed externally (outside of this class).
+        /// The underlying shape for the surface.  Memory is managed externally (outside of this class).
         std::variant<std::monostate, const GRAPHICS::GEOMETRY::Triangle*, const GRAPHICS::GEOMETRY::Sphere*> Shape = {};
     };
 }

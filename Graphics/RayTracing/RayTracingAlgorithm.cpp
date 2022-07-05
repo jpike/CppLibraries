@@ -3,6 +3,7 @@
 #include <future>
 #include <thread>
 #include <vector>
+#include "Graphics/Lighting/Lighting.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/RayTracing/RayTracingAlgorithm.h"
 #include "Math/Angle.h"
@@ -18,11 +19,10 @@ namespace GRAPHICS::RAY_TRACING
         // TRANSFORM OBJECTS IN THE SCENE INTO WORLD SPACE.
         Scene scene_with_world_space_objects;
         scene_with_world_space_objects.BackgroundColor = scene.BackgroundColor;
-        scene_with_world_space_objects.PointLights = scene.PointLights;
+        scene_with_world_space_objects.Lights = scene.Lights;
         for (const Object3D& untransformed_object : scene.Objects)
         {
             // INITIALIZE THE TRANSFORMED VERSION OF THE OBJECT.
-            /// @todo   We don't really need full objects here - just final triangles.
             Object3D transformed_object;
             transformed_object.Spheres = untransformed_object.Spheres;
             transformed_object.Scale = untransformed_object.Scale;
@@ -49,7 +49,7 @@ namespace GRAPHICS::RAY_TRACING
                         const VertexWithAttributes& untransformed_vertex = untransformed_triangle.Vertices[vertex_index];
                         MATH::Vector4f homogeneous_vertex = MATH::Vector4f::HomogeneousPositionVector(untransformed_vertex.Position);
                         MATH::Vector4f transformed_vertex = world_transform * homogeneous_vertex;
-                        /// @todo   Clearn this up a bit?
+                        // Other non-positional attributes of the vertex need to be preserved at this stage.
                         transformed_triangle.Vertices[vertex_index] = untransformed_vertex;
                         transformed_triangle.Vertices[vertex_index].Position = MATH::Vector3f(transformed_vertex.X, transformed_vertex.Y, transformed_vertex.Z);
                     }
@@ -65,8 +65,6 @@ namespace GRAPHICS::RAY_TRACING
             // STORE THE TRANSFORMED OBJECT.
             scene_with_world_space_objects.Objects.push_back(transformed_object);
         }
-
-        /// @todo   A lot of this ray tracing stuff still isn't working correctly.  Needs more updates!
 
         // COMPUTE HOW TO DIVIDE UP RENDERING OF PIXELS ACROSS MULTIPLE THREADS.
         unsigned int cpu_count = std::thread::hardware_concurrency();
@@ -171,30 +169,104 @@ namespace GRAPHICS::RAY_TRACING
         // INITIALIZE THE COLOR TO HAVE NO CONTRIBUTION FROM ANY SOURCES.
         Color final_color = Color::BLACK;
 
-        // ADD IN THE AMBIENT COLOR IF ENABLED.
+        // ADD IN TEXTURE COLORS IF ENABLED.
         std::shared_ptr<Material> intersected_material = intersection.Object.GetMaterial();
-        if (rendering_settings.AmbientLighting)
+        MATH::Vector3f intersection_point = intersection.IntersectionPoint();
+        if (rendering_settings.TextureMapping)
         {
-            final_color += intersected_material->AmbientColor;
+            /// @todo   How to we know whether texture is for diffuse or not?
+            /// @todo   Color base_diffuse_color = intersected_material->DiffuseColor;
+            /// @todo   Handle spheres versus triangles.
+            const GEOMETRY::Triangle* const* intersected_triangle = std::get_if<const GEOMETRY::Triangle*>(&intersection.Object.Shape);
+            if (intersected_material->Texture && intersected_triangle)
+            {
+                // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
+                VertexWithAttributes first_vertex = (*intersected_triangle)->Vertices[0];
+                VertexWithAttributes second_vertex = (*intersected_triangle)->Vertices[1];
+                VertexWithAttributes third_vertex = (*intersected_triangle)->Vertices[2];
+
+#define BARYCENTRIC_COORDINATES_2D 1
+#if BARYCENTRIC_COORDINATES_2D
+                MATH::Vector2f current_point(intersection_point.X, intersection_point.Y);
+                MATH::Vector3f current_point_barycentric_coordinates = (*intersected_triangle)->BarycentricCoordinates2DOf(current_point);
+#else
+                MATH::Vector3f current_point_barycentric_coordinates = (*intersected_triangle)->BarycentricCoordinates3DOf(intersection_point);
+#endif
+
+                // INTERPOLATE THE TEXTURE COORDINATES.
+                const MATH::Vector2f& first_texture_coordinate = first_vertex.TextureCoordinates;
+                const MATH::Vector2f& second_texture_coordinate = second_vertex.TextureCoordinates;
+                const MATH::Vector2f& third_texture_coordinate = third_vertex.TextureCoordinates;
+
+                MATH::Vector2f interpolated_texture_coordinate;
+                interpolated_texture_coordinate.X = (
+                    (current_point_barycentric_coordinates.X * second_texture_coordinate.X) +
+                    (current_point_barycentric_coordinates.Y * third_texture_coordinate.X) +
+                    (current_point_barycentric_coordinates.Z * first_texture_coordinate.X));
+                interpolated_texture_coordinate.Y = (
+                    (current_point_barycentric_coordinates.X * second_texture_coordinate.Y) +
+                    (current_point_barycentric_coordinates.Y * third_texture_coordinate.Y) +
+                    (current_point_barycentric_coordinates.Z * first_texture_coordinate.Y));
+                // Clamping.
+                if (interpolated_texture_coordinate.X < 0.0f)
+                {
+                    interpolated_texture_coordinate.X = 0.0f;
+                }
+                else if (interpolated_texture_coordinate.X > 1.0f)
+                {
+                    interpolated_texture_coordinate.X = 1.0f;
+                }
+                if (interpolated_texture_coordinate.Y < 0.0f)
+                {
+                    interpolated_texture_coordinate.Y = 0.0f;
+                }
+                else if (interpolated_texture_coordinate.Y > 1.0f)
+                {
+                    interpolated_texture_coordinate.Y = 1.0f;
+                }
+
+                // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
+                unsigned int texture_width_in_pixels = intersected_material->Texture->GetWidthInPixels();
+                unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
+
+                unsigned int texture_height_in_pixels = intersected_material->Texture->GetHeightInPixels();
+                unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
+
+                Color texture_color = intersected_material->Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
+                /// @todo   base_diffuse_color = Color::ComponentMultiplyRedGreenBlue(base_diffuse_color, texture_color);;
+                /// @todo   Hack to test out texture mapping.
+                /// @todo   final_color = base_diffuse_color;
+                final_color += texture_color;
+            }
         }
 
-        // COMPUTE SHADOWS.
-        std::vector<float> shadow_factors_by_light_index;
-        MATH::Vector3f intersection_point = intersection.IntersectionPoint();
-        MATH::Vector3f unit_surface_normal = intersection.Object.GetSurfaceNormal(intersection_point);
-        if (rendering_settings.PointLighting)
+        // ADD IN ANY LIGHTING IF ENABLED.
+        if (rendering_settings.LightingSettings.Enabled)
         {
-            for (const LIGHTING::Light& light : scene.PointLights)
+            // COMPUTE SHADOWING FACTORS IF ENABLED.
+            std::vector<float> shadow_factors_by_light_index;
+            if (rendering_settings.LightingSettings.ShadowsEnabled)
             {
-                // CAST A RAY OUT TO COMPUTE SHADOWS IF ENABLED.
-                // To simplify later parts of the algorithm, a shadow factor of 1 (no shadowing)
-                // should always be computed.
-                constexpr float NO_SHADOWING = 1.0f;
-                float shadow_factor = NO_SHADOWING;
-                if (rendering_settings.Shadows)
+                for (const LIGHTING::Light& light : scene.Lights)
                 {
+                    // CAST A RAY OUT TO COMPUTE SHADOWS IF ENABLED.
+                    // To simplify later parts of the algorithm, a shadow factor of 1 (no shadowing) should always be computed.
+                    constexpr float NO_SHADOWING = 1.0f;
+                    float shadow_factor = NO_SHADOWING;
+
+                    // The direction may need to be computed differently based on the type of light.
+                    MATH::Vector3f direction_from_point_to_light;
+                    if (LIGHTING::LightType::DIRECTIONAL == light.Type)
+                    {
+                        // The computations are based on the opposite direction.
+                        direction_from_point_to_light = MATH::Vector3f::Scale(-1.0f, light.DirectionalLightDirection);
+                    }
+                    else if (LIGHTING::LightType::POINT == light.Type)
+                    {
+                        direction_from_point_to_light = light.PointLightWorldPosition - intersection_point;
+                    }
+
                     // SHOOT A SHADOW RAY OUT FROM THE INTERSECTION POINT TO THE LIGHT.
-                    MATH::Vector3f direction_from_point_to_light = light.PointLightDirectionFrom(intersection_point);
                     Ray shadow_ray(intersection_point, direction_from_point_to_light);
                     std::optional<RayObjectIntersection> shadow_intersection = ComputeClosestIntersection(scene, shadow_ray, intersection.Object);
                     if (shadow_intersection)
@@ -219,156 +291,21 @@ namespace GRAPHICS::RAY_TRACING
                             shadow_factor = NO_SHADOWING;
                         }
                     }
-                }
 
-                // STORE THE SHADOW FACTOR FOR THE LIGHT.
-                shadow_factors_by_light_index.push_back(shadow_factor);
-            }
-
-            // ADD IN TEXTURE COLORS IF ENABLED.
-            if (rendering_settings.TextureMapping)
-            {
-                /// @todo   How to we know whether texture is for diffuse or not?
-                /// @todo   Color base_diffuse_color = intersected_material->DiffuseColor;
-                /// @todo   Handle spheres versus triangles.
-                const GEOMETRY::Triangle* const* intersected_triangle = std::get_if<const GEOMETRY::Triangle*>(&intersection.Object.Shape);
-                if (intersected_material->Texture && intersected_triangle)
-                {
-                    // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
-                    VertexWithAttributes first_vertex = (*intersected_triangle)->Vertices[0];
-                    VertexWithAttributes second_vertex = (*intersected_triangle)->Vertices[1];
-                    VertexWithAttributes third_vertex = (*intersected_triangle)->Vertices[2];
-
-#define BARYCENTRIC_COORDINATES_2D 1
-#if BARYCENTRIC_COORDINATES_2D
-                    MATH::Vector2f current_point(intersection_point.X, intersection_point.Y);
-                    MATH::Vector3f current_point_barycentric_coordinates = (*intersected_triangle)->BarycentricCoordinates2DOf(current_point);
-#else
-                    MATH::Vector3f current_point_barycentric_coordinates = (*intersected_triangle)->BarycentricCoordinates3DOf(intersection_point);
-#endif
-
-                    // INTERPOLATE THE TEXTURE COORDINATES.
-                    const MATH::Vector2f& first_texture_coordinate = first_vertex.TextureCoordinates;
-                    const MATH::Vector2f& second_texture_coordinate = second_vertex.TextureCoordinates;
-                    const MATH::Vector2f& third_texture_coordinate = third_vertex.TextureCoordinates;
-
-                    MATH::Vector2f interpolated_texture_coordinate;
-                    interpolated_texture_coordinate.X = (
-                        (current_point_barycentric_coordinates.X * second_texture_coordinate.X) +
-                        (current_point_barycentric_coordinates.Y * third_texture_coordinate.X) +
-                        (current_point_barycentric_coordinates.Z * first_texture_coordinate.X));
-                    interpolated_texture_coordinate.Y = (
-                        (current_point_barycentric_coordinates.X * second_texture_coordinate.Y) +
-                        (current_point_barycentric_coordinates.Y * third_texture_coordinate.Y) +
-                        (current_point_barycentric_coordinates.Z * first_texture_coordinate.Y));
-                    // Clamping.
-                    if (interpolated_texture_coordinate.X < 0.0f)
-                    {
-                        interpolated_texture_coordinate.X = 0.0f;
-                    }
-                    else if (interpolated_texture_coordinate.X > 1.0f)
-                    {
-                        interpolated_texture_coordinate.X = 1.0f;
-                    }
-                    if (interpolated_texture_coordinate.Y < 0.0f)
-                    {
-                        interpolated_texture_coordinate.Y = 0.0f;
-                    }
-                    else if (interpolated_texture_coordinate.Y > 1.0f)
-                    {
-                        interpolated_texture_coordinate.Y = 1.0f;
-                    }
-
-                    // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
-                    unsigned int texture_width_in_pixels = intersected_material->Texture->GetWidthInPixels();
-                    unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
-
-                    unsigned int texture_height_in_pixels = intersected_material->Texture->GetHeightInPixels();
-                    unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
-
-                    Color texture_color = intersected_material->Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
-                    /// @todo   base_diffuse_color = Color::ComponentMultiplyRedGreenBlue(base_diffuse_color, texture_color);;
-                    /// @todo   Hack to test out texture mapping.
-                    /// @todo   final_color = base_diffuse_color;
-                    final_color += texture_color;
+                    // STORE THE SHADOW FACTOR FOR THE LIGHT.
+                    shadow_factors_by_light_index.push_back(shadow_factor);
                 }
             }
 
-            // ADD IN DIFFUSE COLOR FROM LIGHTS IF ENABLED.
-            if (rendering_settings.DiffuseShading)
-            {
-                // ADD DIFFUSE CONTRIBUTIONS FROM ALL LIGHT SOURCES.
-                Color light_total_color = Color::BLACK;
-                for (std::size_t light_index = 0; light_index < scene.PointLights.size(); ++light_index)
-                {
-                    // ADD COLOR FROM THE CURRENT LIGHT.
-                    // This is based on the Lambertian shading model.
-                    // An object is maximally illuminated when facing toward the light.
-                    // An object tangent to the light direction or facing away receives no illumination.
-                    // In-between, the amount of illumination is proportional to the cosine of the angle between
-                    // the light and surface normal (where the cosine can be computed via the dot product).
-                    const LIGHTING::Light& light = scene.PointLights.at(light_index);
-                    MATH::Vector3f direction_from_point_to_light = light.PointLightDirectionFrom(intersection_point);
-                    MATH::Vector3f unit_direction_from_point_to_light = MATH::Vector3f::Normalize(direction_from_point_to_light);
-                    constexpr float NO_ILLUMINATION = 0.0f;
-                    float illumination_proportion = MATH::Vector3f::DotProduct(unit_surface_normal, unit_direction_from_point_to_light);
-                    illumination_proportion = std::max(NO_ILLUMINATION, illumination_proportion);
-
-                    // ADD THE CURRENT LIGHT'S COLOR.
-                    float shadow_factor = shadow_factors_by_light_index.at(light_index);
-                    Color current_light_color = Color::ScaleRedGreenBlue(illumination_proportion, light.Color);
-                    current_light_color = Color::ScaleRedGreenBlue(shadow_factor, current_light_color);
-                    light_total_color += current_light_color;
-                }
-
-                // The diffuse color is multiplied component-wise by the amount of light.
-                Color diffuse_color = Color::ComponentMultiplyRedGreenBlue(
-                    intersected_material->DiffuseColor,
-                    light_total_color);
-                final_color += diffuse_color;
-            }
-
-            // ADD IN SPECULAR COLOR IF ENABLED.
-            // This is based on the Blinn-Phong model.
-            if (rendering_settings.SpecularShading)
-            {
-                // ADD SPECULAR CONTRIBUTIONS FROM ALL LIGHT SOURCES.
-                Color specular_light_total_color = Color::BLACK;
-                MATH::Vector3f ray_from_intersection_to_eye = intersection.Ray->Origin - intersection_point;
-                MATH::Vector3f normalized_ray_from_intersection_to_eye = MATH::Vector3f::Normalize(ray_from_intersection_to_eye);
-                for (std::size_t light_index = 0; light_index < scene.PointLights.size(); ++light_index)
-                {
-                    // COMPUTE THE AMOUNT OF ILLUMINATION FROM THE CURRENT LIGHT.
-                    const LIGHTING::Light& light = scene.PointLights.at(light_index);
-                    MATH::Vector3f direction_from_point_to_light = light.PointLightDirectionFrom(intersection_point);
-                    MATH::Vector3f unit_direction_from_point_to_light = MATH::Vector3f::Normalize(direction_from_point_to_light);
-                    constexpr float NO_ILLUMINATION = 0.0f;
-                    float illumination_proportion = MATH::Vector3f::DotProduct(unit_surface_normal, unit_direction_from_point_to_light);
-                    illumination_proportion = std::max(NO_ILLUMINATION, illumination_proportion);
-
-                    // COMPUTE THE REFLECTED LIGHT DIRECTION.
-                    MATH::Vector3f reflected_light_along_surface_normal = MATH::Vector3f::Scale(2.0f * illumination_proportion, unit_surface_normal);
-                    MATH::Vector3f reflected_light_direction = reflected_light_along_surface_normal - unit_direction_from_point_to_light;
-                    MATH::Vector3f unit_reflected_light_direction = MATH::Vector3f::Normalize(reflected_light_direction);
-
-                    // COMPUTE THE SPECULAR AMOUNT.
-                    float specular_proportion = MATH::Vector3f::DotProduct(normalized_ray_from_intersection_to_eye, unit_reflected_light_direction);
-                    specular_proportion = std::max(NO_ILLUMINATION, specular_proportion);
-                    specular_proportion = std::pow(specular_proportion, intersected_material->SpecularPower);
-
-                    // ADD THE CURRENT LIGHT'S SPECULAR COLOR.
-                    float shadow_factor = shadow_factors_by_light_index.at(light_index);
-                    float light_proportion = shadow_factor * specular_proportion;
-                    Color current_light_specular_color = Color::ScaleRedGreenBlue(light_proportion, light.Color);
-                    specular_light_total_color += current_light_specular_color;
-                }
-
-                // The specular color is multiplied component-wise by the amount of light.
-                Color specular_color = Color::ComponentMultiplyRedGreenBlue(
-                    intersected_material->SpecularColor,
-                    specular_light_total_color);
-                final_color += specular_color;
-            }
+            // ADD IN LIGHTING.
+            Color light_color = GRAPHICS::LIGHTING::Lighting::Compute(
+                intersection.Ray->Origin,
+                scene.Lights,
+                intersection.Object,
+                intersection_point,
+                rendering_settings.LightingSettings,
+                shadow_factors_by_light_index);
+            final_color += light_color;
         }
 
         // COMPUTE REFLECTED LIGHT IF POSSIBLE.
@@ -387,6 +324,7 @@ namespace GRAPHICS::RAY_TRACING
             // COMPUTE THE REFLECTED RAY.
             MATH::Vector3f direction_from_ray_origin_to_intersection = intersection_point - intersection.Ray->Origin;
             MATH::Vector3f normalized_direction_from_ray_origin_to_intersection = MATH::Vector3f::Normalize(direction_from_ray_origin_to_intersection);
+            MATH::Vector3f unit_surface_normal = intersection.Object.GetNormal(intersection_point);
             float length_of_ray_along_surface_normal = MATH::Vector3f::DotProduct(normalized_direction_from_ray_origin_to_intersection, unit_surface_normal);
             float twice_length_of_ray_along_surface_normal = 2.0f * length_of_ray_along_surface_normal;
             MATH::Vector3f twice_reflected_ray_along_surface_normal = MATH::Vector3f::Scale(twice_length_of_ray_along_surface_normal, unit_surface_normal);
@@ -427,7 +365,7 @@ namespace GRAPHICS::RAY_TRACING
     std::optional<RayObjectIntersection> RayTracingAlgorithm::ComputeClosestIntersection(
         const Scene& scene,
         const Ray& ray,
-        const RayTraceableShape& ignored_object) const
+        const Surface& ignored_object) const
     {
         // FIND THE CLOSEST OBJECT IN THE SCENE THAT THE RAY INTERSECTS.
         std::optional<RayObjectIntersection> closest_intersection = std::nullopt;

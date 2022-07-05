@@ -6,6 +6,20 @@
 
 namespace GRAPHICS
 {
+    /// @todo   Separate file.
+    struct LightingSettings
+    {
+        bool Enabled = true;
+        /// True if ambient lighting should be calculated; false otherwise.
+        bool AmbientLightingEnabled = true;
+        /// True if diffuse shading should be calculated; false otherwise.
+        bool DiffuseLightingEnabled = true;
+        /// True if specular shading should be calculated; false otherwise.
+        bool SpecularLightingEnabled = true;
+        /// True if shadows should be calculated; false otherwise.
+        bool ShadowsEnabled = true;
+    };
+
     /// Various settings controlling rendering.
     struct RenderingSettings
     {
@@ -19,16 +33,8 @@ namespace GRAPHICS
         bool CullBackfaces = false;
         /// True if depth buffering should be used; false if not.
         bool DepthBuffering = false;
-        /// True if ambient lighting should be calculated; false otherwise.
-        bool AmbientLighting = true;
-        /// True if point lighting should be calculated; false otherwise.
-        bool PointLighting = true;
-        /// True if shadows should be calculated; false otherwise.
-        bool Shadows = true;
-        /// True if diffuse shading should be calculated; false otherwise.
-        bool DiffuseShading = true;
-        /// True if specular shading should be calculated; false otherwise.
-        bool SpecularShading = true;
+        /// @todo
+        LightingSettings LightingSettings = {};
         /// True if reflections should be calculated; false otherwise.
         bool Reflections = true;
         /// The maximum number of reflections to computer (if reflections are enabled).
