@@ -300,12 +300,12 @@ namespace GRAPHICS::OPEN_GL
                             GL_TEXTURE_2D,
                             0, // level of detail
                             GL_RGBA, // this is the only thing we currently support
-                            triangle.Material->Texture->GetWidthInPixels(),
-                            triangle.Material->Texture->GetHeightInPixels(),
+                            triangle.Material->DiffuseTexture->GetWidthInPixels(),
+                            triangle.Material->DiffuseTexture->GetHeightInPixels(),
                             0, // no border
                             GL_RGBA,
                             GL_UNSIGNED_BYTE, // one byte per color component
-                            triangle.Material->Texture->GetRawData());
+                            triangle.Material->DiffuseTexture->GetRawData());
                     }
                     GLint is_textured_variable = glGetUniformLocation(ShaderProgram->Id, "is_textured");
                     glUniform1i(is_textured_variable, is_textured);

@@ -178,7 +178,7 @@ namespace GRAPHICS::RAY_TRACING
             /// @todo   Color base_diffuse_color = intersected_material->DiffuseColor;
             /// @todo   Handle spheres versus triangles.
             const GEOMETRY::Triangle* const* intersected_triangle = std::get_if<const GEOMETRY::Triangle*>(&intersection.Object.Shape);
-            if (intersected_material->Texture && intersected_triangle)
+            if (intersected_material->DiffuseTexture && intersected_triangle)
             {
                 // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
                 VertexWithAttributes first_vertex = (*intersected_triangle)->Vertices[0];
@@ -226,13 +226,13 @@ namespace GRAPHICS::RAY_TRACING
                 }
 
                 // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
-                unsigned int texture_width_in_pixels = intersected_material->Texture->GetWidthInPixels();
+                unsigned int texture_width_in_pixels = intersected_material->DiffuseTexture->GetWidthInPixels();
                 unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
 
-                unsigned int texture_height_in_pixels = intersected_material->Texture->GetHeightInPixels();
+                unsigned int texture_height_in_pixels = intersected_material->DiffuseTexture->GetHeightInPixels();
                 unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
 
-                Color texture_color = intersected_material->Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
+                Color texture_color = intersected_material->DiffuseTexture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
                 /// @todo   base_diffuse_color = Color::ComponentMultiplyRedGreenBlue(base_diffuse_color, texture_color);;
                 /// @todo   Hack to test out texture mapping.
                 /// @todo   final_color = base_diffuse_color;

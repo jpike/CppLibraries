@@ -605,13 +605,13 @@ namespace GRAPHICS::CPU_RENDERING
                                 }
 
                                 // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
-                                unsigned int texture_width_in_pixels = triangle.Material->Texture->GetWidthInPixels();
+                                unsigned int texture_width_in_pixels = triangle.Material->DiffuseTexture->GetWidthInPixels();
                                 unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
 
-                                unsigned int texture_height_in_pixels = triangle.Material->Texture->GetHeightInPixels();
+                                unsigned int texture_height_in_pixels = triangle.Material->DiffuseTexture->GetHeightInPixels();
                                 unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
 
-                                Color texture_color = triangle.Material->Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
+                                Color texture_color = triangle.Material->DiffuseTexture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
 
                                 interpolated_color = Color::ComponentMultiplyRedGreenBlue(interpolated_color, texture_color);
                                 interpolated_color.Clamp();

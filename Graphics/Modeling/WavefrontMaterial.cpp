@@ -285,20 +285,41 @@ namespace GRAPHICS::MODELING
                 continue;
             }
 
-            // READ IN ANY TEXTURE.
+            // READ IN ANY TEXTURES.
             const std::string TEXTURE_MAP_INDICATOR = "map";
             bool is_texture_map_line = first_line_component.starts_with(TEXTURE_MAP_INDICATOR);
             if (is_texture_map_line)
             {
-                /// @todo Handle multiple texture maps? - including bump, disp, decal, refl
-
+                // LOAD THE TEXTURE FROM FILE.
                 const std::string& texture_filename = current_line_components.back();
                 std::filesystem::path material_directory_path = mtl_filepath.parent_path();
                 std::filesystem::path texture_filepath = material_directory_path / texture_filename;
 
                 /// @todo   Error-handling...different file types and texture formats!
-                current_material->Texture = GRAPHICS::IMAGES::Bitmap::LoadPng(texture_filepath, ColorFormat::RGBA);
+                std::shared_ptr<GRAPHICS::IMAGES::Bitmap> texture = GRAPHICS::IMAGES::Bitmap::LoadPng(texture_filepath, ColorFormat::RGBA);
                 current_material->Shading = ShadingType::TEXTURED;
+
+                // SET THE APPROPRIATE TYPE OF TEXTURE ON THE MATERIAL.
+                /// @todo   Handle more kinds of texture maps besides ambient, diffuse, and specular!
+                ///     Bump and displacement maps are of particular interest.
+                const std::string DIFFUSE_TEXTURE_MAP_INDICATOR = "map_Kd";
+                const std::string SPECULAR_TEXTURE_MAP_INDICATOR = "map_Ks";
+                bool is_diffuse_texture = first_line_component.starts_with(DIFFUSE_TEXTURE_MAP_INDICATOR);
+                bool is_specular_texture = first_line_component.starts_with(SPECULAR_TEXTURE_MAP_INDICATOR);
+                if (is_diffuse_texture)
+                {
+                    current_material->DiffuseTexture = texture;
+                }
+                else if (is_specular_texture)
+                {
+                    current_material->SpecularTexture = texture;
+                }
+                else
+                {
+                    // For now, all remaining textures are assumed to be ambient,
+                    // which generally provides maximum visibility into texture contents.
+                    current_material->AmbientTexture = texture;
+                }
 
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
                 continue;

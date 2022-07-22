@@ -777,7 +777,7 @@ namespace GRAPHICS::DIRECT_X
                     PrintResultIfFailed(result);
                     TransformationMatrixBuffer* matrix_buffer = (TransformationMatrixBuffer*)mapped_matrix_buffer.pData;
 
-                    bool is_textured = static_cast<bool>(triangle.Material->Texture);
+                    bool is_textured = static_cast<bool>(triangle.Material->DiffuseTexture);
                     matrix_buffer->IsTexturedAndIsLit.x = is_textured;
 
                     matrix_buffer->IsTexturedAndIsLit.y = is_lit;
@@ -829,8 +829,8 @@ namespace GRAPHICS::DIRECT_X
                     {
                         D3D11_TEXTURE2D_DESC texture_description =
                         {
-                            .Width = triangle.Material->Texture->GetWidthInPixels(),
-                            .Height = triangle.Material->Texture->GetHeightInPixels(),
+                            .Width = triangle.Material->DiffuseTexture->GetWidthInPixels(),
+                            .Height = triangle.Material->DiffuseTexture->GetHeightInPixels(),
                             .MipLevels = 0,
                             .ArraySize = 1,
                             .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -847,7 +847,7 @@ namespace GRAPHICS::DIRECT_X
                             object_texture,
                             0,
                             NULL,
-                            triangle.Material->Texture->GetRawData(),
+                            triangle.Material->DiffuseTexture->GetRawData(),
                             texture_row_pitch,
                             0);
 

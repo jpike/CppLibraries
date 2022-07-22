@@ -56,7 +56,11 @@ namespace GRAPHICS
         /// The emissive color if the material emits light.
         Color EmissiveColor = Color::BLACK;
 
-        /// Any texture defining the look of the material.
-        std::shared_ptr<IMAGES::Bitmap> Texture = nullptr;
+        /// Any ambient texture defining the look of the material.
+        std::shared_ptr<IMAGES::Bitmap> AmbientTexture = nullptr;
+        /// Any diffuse texture defining the look of the material.
+        std::shared_ptr<IMAGES::Bitmap> DiffuseTexture = nullptr;
+        /// Any specular texture defining the look of the material.
+        std::shared_ptr<IMAGES::Bitmap> SpecularTexture = nullptr;
     };
 }
