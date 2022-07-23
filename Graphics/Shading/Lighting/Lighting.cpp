@@ -1,144 +1,10 @@
 #include "ErrorHandling/Asserts.h"
-#include "Graphics/Lighting/Lighting.h"
+#include "Graphics/Shading/DiffuseReflection.h"
+#include "Graphics/Shading/Lighting/Lighting.h"
+#include "Graphics/Shading/SpecularReflection.h"
 
-namespace GRAPHICS::LIGHTING
+namespace GRAPHICS::SHADING::LIGHTING
 {
-    /// Computes the diffuse reflection for a single light for a particular surface point.
-    /// @param[in]  light - The light for which to compute the diffuse reflection at the surface point.
-    /// @param[in]  shadow_factor - A shadowing factor to add in additional shadowing
-    ///     (0 == full shadowing, 1 == no shadowing).  If desired, this must be computed and passed in externally
-    ///     as shadowing imposes too high a cost to dynamically compute all the time.
-    /// @param[in]  surface - The surface for which diffuse reflection is being computed.
-    /// @param[in]  surface_point - The point on the surface for which to compute the diffuse reflection.
-    /// @return The color of diffuse reflection from the light at the specified surface point.
-    Color DiffuseReflection::Compute(
-        const Light& light,
-        const float shadow_factor,
-        const RAY_TRACING::Surface& surface,
-        const MATH::Vector3f& surface_point)
-    {
-        // ENSURE A MATERIAL EXISTS.
-        std::shared_ptr<Material> material = surface.GetMaterial();
-        ASSERT_THEN_IF_NOT(material)
-        {
-            // INDICATE THAT NO LIGHTING CAN EXIST WITHOUT A MATERIAL.
-            return Color::BLACK;
-        }
-
-        // GET THE DIRECTION FROM THE SURFACE POINT TO THE LIGHT.
-        MATH::Vector3f direction_from_point_to_light;
-        if (LightType::DIRECTIONAL == light.Type)
-        {
-            // The computations are based on the opposite direction.
-            direction_from_point_to_light = MATH::Vector3f::Scale(-1.0f, light.DirectionalLightDirection);
-        }
-        else if (LightType::POINT == light.Type)
-        {
-            direction_from_point_to_light = light.PointLightWorldPosition - surface_point;
-        }
-        else
-        {
-            // Other types of light do not result in any diffuse reflection.
-            return Color::BLACK;
-        }
-
-        // COMPUTE THE PROPORTION OF THE SURFACE POINT THAT IS ILLUMINATED BY THE LIGHT.
-        // The illumination proportion is based on the Lambertian shading model.
-        // An object is maximally illuminated when facing toward the light.
-        // An object tangent to the light direction or facing away receives no illumination.
-        // In-between, the amount of illumination is proportional to the cosine of the angle between
-        // the light and surface normal (where the cosine can be computed via the dot product).
-        constexpr float NO_ILLUMINATION = 0.0f;
-        MATH::Vector3f unit_surface_normal = surface.GetNormal(surface_point);
-        MATH::Vector3f unit_direction_from_point_to_light = MATH::Vector3f::Normalize(direction_from_point_to_light);
-        float illumination_proportion = MATH::Vector3f::DotProduct(unit_surface_normal, unit_direction_from_point_to_light);
-        illumination_proportion = std::max(NO_ILLUMINATION, illumination_proportion);
-
-        // COMPUTE THE AMOUNT OF LIGHT SHINING ON THE SURFACE.
-        Color current_light_color = Color::ScaleRedGreenBlue(illumination_proportion, light.Color);
-        current_light_color = Color::ScaleRedGreenBlue(shadow_factor, current_light_color);
-
-        // COMPUTE THE DIFFUSE COLOR REFLECTED ON THE SURFACE.
-        Color diffuse_color = Color::ComponentMultiplyRedGreenBlue(material->DiffuseColor, current_light_color);
-        return diffuse_color;
-    }
-
-    /// Computes the specular reflection for a single light for a particular surface point.
-    /// @param[in]  viewing_point - The point from which the surface is being viewed.
-    /// @param[in]  light - The light for which to compute the specular reflection at the surface point.
-    /// @param[in]  shadow_factor - A shadowing factor to add in additional shadowing
-    ///     (0 == full shadowing, 1 == no shadowing).  If desired, this must be computed and passed in externally
-    ///     as shadowing imposes too high a cost to dynamically compute all the time.
-    /// @param[in]  surface - The surface for which specular reflection is being computed.
-    /// @param[in]  surface_point - The point on the surface for which to compute the specular reflection.
-    /// @return The color of specular reflection from the light at the specified surface point.
-    Color SpecularReflection::Compute(
-        const MATH::Vector3f& viewing_point,
-        const Light& light,
-        const float shadow_factor,
-        const RAY_TRACING::Surface& surface,
-        const MATH::Vector3f& surface_point)
-    {
-        // ENSURE A MATERIAL EXISTS.
-        std::shared_ptr<Material> material = surface.GetMaterial();
-        ASSERT_THEN_IF_NOT(material)
-        {
-            // INDICATE THAT NO LIGHTING CAN EXIST WITHOUT A MATERIAL.
-            return Color::BLACK;
-        }
-
-        // GET THE DIRECTION FROM THE SURFACE POINT TO THE LIGHT.
-        MATH::Vector3f direction_from_point_to_light;
-        if (LightType::DIRECTIONAL == light.Type)
-        {
-            // The computations are based on the opposite direction.
-            direction_from_point_to_light = MATH::Vector3f::Scale(-1.0f, light.DirectionalLightDirection);
-        }
-        else if (LightType::POINT == light.Type)
-        {
-            direction_from_point_to_light = light.PointLightWorldPosition - surface_point;
-        }
-        else
-        {
-            // Other types of light do not result in any specular reflection.
-            return Color::BLACK;
-        }
-
-        // COMPUTE THE PROPORTION OF THE SURFACE POINT THAT IS ILLUMINATED BY THE LIGHT.
-        // The illumination proportion is based on the Lambertian shading model.
-        // An object is maximally illuminated when facing toward the light.
-        // An object tangent to the light direction or facing away receives no illumination.
-        // In-between, the amount of illumination is proportional to the cosine of the angle between
-        // the light and surface normal (where the cosine can be computed via the dot product).
-        constexpr float NO_ILLUMINATION = 0.0f;
-        MATH::Vector3f unit_surface_normal = surface.GetNormal(surface_point);
-        MATH::Vector3f unit_direction_from_point_to_light = MATH::Vector3f::Normalize(direction_from_point_to_light);
-        float illumination_proportion = MATH::Vector3f::DotProduct(unit_surface_normal, unit_direction_from_point_to_light);
-        illumination_proportion = std::max(NO_ILLUMINATION, illumination_proportion);
-
-        // COMPUTE THE REFLECTED LIGHT DIRECTION.
-        MATH::Vector3f reflected_light_along_surface_normal = MATH::Vector3f::Scale(2.0f * illumination_proportion, unit_surface_normal);
-        MATH::Vector3f reflected_light_direction = reflected_light_along_surface_normal - unit_direction_from_point_to_light;
-        MATH::Vector3f unit_reflected_light_direction = MATH::Vector3f::Normalize(reflected_light_direction);
-
-        // COMPUTE THE SPECULAR AMOUNT.
-        // The closer the ray from the surface point to the viewing point is to the ideal (perfect) reflected direction,
-        // the shinier (more specular reflection) occurs.
-        MATH::Vector3f ray_from_surface_point_to_viewing_point = viewing_point - surface_point;
-        MATH::Vector3f normalized_ray_from_surface_point_to_viewing_point = MATH::Vector3f::Normalize(ray_from_surface_point_to_viewing_point);
-        float specular_proportion = MATH::Vector3f::DotProduct(normalized_ray_from_surface_point_to_viewing_point, unit_reflected_light_direction);
-        specular_proportion = std::max(NO_ILLUMINATION, specular_proportion);
-        specular_proportion = std::pow(specular_proportion, material->SpecularPower);
-
-        // COMPUTE THE AMOUNT OF SPECULAR LIGHT SHINING ON THE SURFACE.
-        float light_proportion = shadow_factor * specular_proportion;
-        Color current_light_specular_color = Color::ScaleRedGreenBlue(light_proportion, light.Color);
-
-        // COMPUTE THE SPECULAR COLOR REFLECTED ON THE SURFACE.
-        Color specular_color = Color::ComponentMultiplyRedGreenBlue(material->SpecularColor, current_light_specular_color);
-        return specular_color;
-    }
-
     /// Computes lighting for a vertex.
     /// @param[in]  world_vertex - The world space vertex for which to compute lighting.
     /// @param[in]  unit_vertex_normal - The unit surface normal for the vertex.
@@ -163,7 +29,7 @@ namespace GRAPHICS::LIGHTING
             {
                 if (ShadingType::MATERIAL == material.Shading)
                 {
-                    light_total_color += Color::ComponentMultiplyRedGreenBlue(light.Color, material.AmbientColor);
+                    light_total_color += Color::ComponentMultiplyRedGreenBlue(light.Color, material.AmbientProperties.Color);
                 }
                 else
                 {
@@ -199,7 +65,7 @@ namespace GRAPHICS::LIGHTING
                 /// @todo
                 if ((ShadingType::MATERIAL == material.Shading) && rendering_settings.LightingSettings.DiffuseLightingEnabled)
                 {
-                    light_total_color += Color::ComponentMultiplyRedGreenBlue(current_light_color, material.DiffuseColor);
+                    light_total_color += Color::ComponentMultiplyRedGreenBlue(current_light_color, material.DiffuseProperties.Color);
                 }
                 else
                 {
@@ -219,13 +85,13 @@ namespace GRAPHICS::LIGHTING
                     MATH::Vector3f normalized_ray_from_vertex_to_camera = MATH::Vector3f::Normalize(ray_from_vertex_to_camera);
                     float specular_proportion = MATH::Vector3f::DotProduct(normalized_ray_from_vertex_to_camera, unit_reflected_light_direction);
                     specular_proportion = std::max(NO_ILLUMINATION, specular_proportion);
-                    specular_proportion = std::pow(specular_proportion, material.SpecularPower);
+                    specular_proportion = std::pow(specular_proportion, material.SpecularProperties.SpecularPower);
 
                     Color current_light_specular_color = Color::ScaleRedGreenBlue(specular_proportion, light.Color);
 
                     if (ShadingType::MATERIAL == material.Shading)
                     {
-                        light_total_color += Color::ComponentMultiplyRedGreenBlue(current_light_specular_color, material.SpecularColor);
+                        light_total_color += Color::ComponentMultiplyRedGreenBlue(current_light_specular_color, material.SpecularProperties.Color);
                     }
                     else
                     {
@@ -252,7 +118,7 @@ namespace GRAPHICS::LIGHTING
     Color Lighting::Compute(
         const MATH::Vector3f& viewing_point,
         const std::vector<Light>& lights,
-        const RAY_TRACING::Surface& surface,
+        const Surface& surface,
         const MATH::Vector3f& surface_point,
         const LightingSettings& lighting_settings,
         const std::vector<float> shadow_factors_by_light_index)
@@ -321,7 +187,7 @@ namespace GRAPHICS::LIGHTING
     Color Lighting::Compute(
         const MATH::Vector3f& viewing_point,
         const Light& light,
-        const RAY_TRACING::Surface& surface,
+        const Surface& surface,
         const MATH::Vector3f& surface_point,
         const LightingSettings& lighting_settings,
         float shadow_factor)
@@ -432,7 +298,7 @@ namespace GRAPHICS::LIGHTING
     Color Lighting::Compute(
         const MATH::Vector3f& viewing_point,
         const Light& light,
-        const RAY_TRACING::Surface& surface,
+        const Surface& surface,
         const MATH::Vector3f& surface_point,
         const LightingSettings& lighting_settings,
         float shadow_factor)
@@ -455,7 +321,7 @@ namespace GRAPHICS::LIGHTING
             if (lighting_settings.AmbientLightingEnabled)
             {
                 Color ambient_light_color = Color::ComponentMultiplyRedGreenBlue(
-                    material->AmbientColor,
+                    material->AmbientProperties.Color,
                     light.Color);
                 light_total_color += ambient_light_color;
             }

@@ -17,9 +17,6 @@
 
 #include "Graphics/Images/Bitmap.cpp"
 
-#include "Graphics/Lighting/Light.cpp"
-#include "Graphics/Lighting/Lighting.cpp"
-
 #include "Graphics/Modeling/WavefrontMaterial.cpp"
 #include "Graphics/Modeling/WavefrontObjectModel.cpp"
 
@@ -30,9 +27,12 @@
 #include "Graphics/RayTracing/Ray.cpp"
 #include "Graphics/RayTracing/RayObjectIntersection.cpp"
 #include "Graphics/RayTracing/RayTracingAlgorithm.cpp"
-#include "Graphics/RayTracing/Surface.cpp"
 
+#include "Graphics/Shading/DiffuseReflection.cpp"
+#include "Graphics/Shading/Lighting/Light.cpp"
+#include "Graphics/Shading/Lighting/Lighting.cpp"
 #include "Graphics/Shading/Shading.cpp"
+#include "Graphics/Shading/SpecularReflection.cpp"
 
 #include "Graphics/Viewing/Camera.cpp"
 #include "Graphics/Viewing/ViewingTransformations.cpp"
@@ -41,3 +41,4 @@
 #include "Graphics/DepthBuffer.cpp"
 #include "Graphics/FrameTimer.cpp"
 #include "Graphics/Object3D.cpp"
+#include "Graphics/Surface.cpp"

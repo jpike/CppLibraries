@@ -12,7 +12,7 @@ namespace GRAPHICS::GEOMETRY
     class Triangle;
 }
 
-namespace GRAPHICS::RAY_TRACING
+namespace GRAPHICS
 {
     /// A surface that is supported for ray tracing.
     /// This class helps encapsulate some functionality related to ray tracing surfaces for different kinds of shapes.

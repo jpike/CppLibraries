@@ -3,8 +3,8 @@
 #include <optional>
 #include <vector>
 #include "Graphics/Color.h"
-#include "Graphics/Lighting/Light.h"
 #include "Graphics/Object3D.h"
+#include "Graphics/Shading/Lighting/Light.h"
 
 namespace GRAPHICS
 {
@@ -15,9 +15,9 @@ namespace GRAPHICS
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The background color of the scene.
         GRAPHICS::Color BackgroundColor = GRAPHICS::Color::BLACK;
+        /// All lights in the scene.
+        std::vector<SHADING::LIGHTING::Light> Lights = {};
         /// All objects in the scene.
         std::vector<Object3D> Objects = {};
-        /// All lights in the scene.
-        std::vector<LIGHTING::Light> Lights = {};
     };
 }

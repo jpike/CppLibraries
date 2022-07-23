@@ -1,4 +1,4 @@
-#include "Graphics/Lighting/Lighting.h"
+#include "Graphics/Shading/Lighting/Lighting.h"
 #include "Graphics/Shading/Shading.h"
 
 namespace GRAPHICS::SHADING

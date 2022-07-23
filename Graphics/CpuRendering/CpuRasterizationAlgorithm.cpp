@@ -83,7 +83,7 @@ namespace GRAPHICS::CPU_RENDERING
     /// @param[in,out]  depth_buffer - The depth buffer to use for any depth buffering.
     void CpuRasterizationAlgorithm::Render(
         const Object3D& object_3D, 
-        const std::vector<LIGHTING::Light>& lights,
+        const std::vector<SHADING::LIGHTING::Light>& lights,
         const RenderingSettings& rendering_settings,
         IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
@@ -224,10 +224,10 @@ namespace GRAPHICS::CPU_RENDERING
 
         // RENDER THE TRIANGLE BASED ON SHADING TYPE.
         /// @todo   Enable this to be an override of material only if set?
-        ShadingType shading_type = rendering_settings.Shading;
+        SHADING::ShadingType shading_type = rendering_settings.Shading;
         switch (shading_type)
         {
-            case ShadingType::WIREFRAME:
+            case SHADING::ShadingType::WIREFRAME:
             {
                 // DRAW THE FIRST EDGE.
                 DrawLineWithInterpolatedColor(
@@ -251,7 +251,7 @@ namespace GRAPHICS::CPU_RENDERING
                     depth_buffer);
                 break;
             }
-            case ShadingType::FLAT:
+            case SHADING::ShadingType::FLAT:
             {
 #if OLD_BARYCENTRIC_COORDINATES
                 // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
@@ -403,10 +403,10 @@ namespace GRAPHICS::CPU_RENDERING
                 }
                 break;
             }
-            case ShadingType::FACE_VERTEX_COLOR_INTERPOLATION:
-            case ShadingType::GOURAUD: /// @todo    This should be the same?
-            case ShadingType::TEXTURED: /// @todo    This should be the same?
-            case ShadingType::MATERIAL: /// @todo    This should be the same?
+            case SHADING::ShadingType::FACE_VERTEX_COLOR_INTERPOLATION:
+            case SHADING::ShadingType::GOURAUD: /// @todo    This should be the same?
+            case SHADING::ShadingType::TEXTURED: /// @todo    This should be the same?
+            case SHADING::ShadingType::MATERIAL: /// @todo    This should be the same?
             {
 #if OLD_BARYCENTRIC_COORDINATES
                 // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
@@ -559,7 +559,7 @@ namespace GRAPHICS::CPU_RENDERING
                                 (current_point_barycentric_coordinates.Z * first_vertex.Position.Z));
 #endif
 
-                            if ((ShadingType::TEXTURED == triangle.Material->Shading) && rendering_settings.TextureMapping)
+                            if ((SHADING::ShadingType::TEXTURED == triangle.Material->Shading) && rendering_settings.TextureMapping)
                             {
                                 // INTERPOLATE THE TEXTURE COORDINATES.
                                 const MATH::Vector2f& first_texture_coordinate = first_vertex.TextureCoordinates;
@@ -605,13 +605,13 @@ namespace GRAPHICS::CPU_RENDERING
                                 }
 
                                 // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
-                                unsigned int texture_width_in_pixels = triangle.Material->DiffuseTexture->GetWidthInPixels();
+                                unsigned int texture_width_in_pixels = triangle.Material->DiffuseProperties.Texture->GetWidthInPixels();
                                 unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
 
-                                unsigned int texture_height_in_pixels = triangle.Material->DiffuseTexture->GetHeightInPixels();
+                                unsigned int texture_height_in_pixels = triangle.Material->DiffuseProperties.Texture->GetHeightInPixels();
                                 unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
 
-                                Color texture_color = triangle.Material->DiffuseTexture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
+                                Color texture_color = triangle.Material->DiffuseProperties.Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
 
                                 interpolated_color = Color::ComponentMultiplyRedGreenBlue(interpolated_color, texture_color);
                                 interpolated_color.Clamp();

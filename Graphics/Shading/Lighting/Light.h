@@ -1,22 +1,11 @@
 #pragma once
 
 #include "Graphics/Color.h"
+#include "Graphics/Shading/Lighting/LightType.h"
 #include "Math/Vector3.h"
 
-namespace GRAPHICS::LIGHTING
+namespace GRAPHICS::SHADING::LIGHTING
 {
-    /// The type of light.
-    enum class LightType
-    {
-        /// Ambient light that basically illuminates an entire scene.
-        AMBIENT = 0,
-        /// Directional light that has a consistent direction and appears infinitely far away.
-        DIRECTIONAL,
-        /// A point light with a position in space and provides illumination in all directions
-        POINT
-        /// @todo   Spotlight for advanced functionality?
-    };
-
     /// A light that an provide illumination in a 3D scene.
     class Light
     {
@@ -31,6 +20,5 @@ namespace GRAPHICS::LIGHTING
         MATH::Vector3f DirectionalLightDirection = MATH::Vector3f();
         /// The world position for a point light.
         MATH::Vector3f PointLightWorldPosition = MATH::Vector3f();
-        
     };
 }

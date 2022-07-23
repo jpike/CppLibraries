@@ -77,7 +77,7 @@ namespace GRAPHICS::MODELING
                 // CREATE THE NEW MATERIAL.
                 current_material = std::make_shared<Material>();
                 current_material->Name = current_line_components.back();
-                current_material->Shading = ShadingType::MATERIAL;
+                current_material->Shading = SHADING::ShadingType::MATERIAL;
 
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
                 continue;
@@ -109,7 +109,7 @@ namespace GRAPHICS::MODELING
                 const std::string& blue_string = current_line_components.at(BLUE_INDEX);
                 color.Blue = std::stof(blue_string);
 
-                current_material->AmbientColor = color;
+                current_material->AmbientProperties.Color = color;
 
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
                 continue;
@@ -137,7 +137,7 @@ namespace GRAPHICS::MODELING
                 const std::string& blue_string = current_line_components.at(BLUE_INDEX);
                 color.Blue = std::stof(blue_string);
 
-                current_material->DiffuseColor = color;
+                current_material->DiffuseProperties.Color = color;
 
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
                 continue;
@@ -165,7 +165,7 @@ namespace GRAPHICS::MODELING
                 const std::string& blue_string = current_line_components.at(BLUE_INDEX);
                 color.Blue = std::stof(blue_string);
 
-                current_material->SpecularColor = color;
+                current_material->SpecularProperties.Color = color;
 
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
                 continue;
@@ -178,7 +178,7 @@ namespace GRAPHICS::MODELING
             {
                 // PARSE THE SPECULAR EXPONENT.
                 const std::string& specular_exponent_string = current_line_components.back();
-                current_material->SpecularPower = std::stof(specular_exponent_string);
+                current_material->SpecularProperties.SpecularPower = std::stof(specular_exponent_string);
 
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
                 continue;
@@ -221,9 +221,9 @@ namespace GRAPHICS::MODELING
                 const std::string& alpha_string = current_line_components.back();
                 float alpha = std::stof(alpha_string);
 
-                current_material->AmbientColor.Alpha = alpha;
-                current_material->DiffuseColor.Alpha = alpha;
-                current_material->SpecularColor.Alpha = alpha;
+                current_material->AmbientProperties.Color.Alpha = alpha;
+                current_material->DiffuseProperties.Color.Alpha = alpha;
+                current_material->SpecularProperties.Color.Alpha = alpha;
                 current_material->EmissiveColor.Alpha = alpha;
                 
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
@@ -240,9 +240,9 @@ namespace GRAPHICS::MODELING
                 const std::string& transparency_string = current_line_components.back();
                 float alpha = GRAPHICS::Color::MAX_FLOAT_COLOR_COMPONENT - std::stof(transparency_string);
 
-                current_material->AmbientColor.Alpha = alpha;
-                current_material->DiffuseColor.Alpha = alpha;
-                current_material->SpecularColor.Alpha = alpha;
+                current_material->AmbientProperties.Color.Alpha = alpha;
+                current_material->DiffuseProperties.Color.Alpha = alpha;
+                current_material->SpecularProperties.Color.Alpha = alpha;
                 current_material->EmissiveColor.Alpha = alpha;
 
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
@@ -297,7 +297,7 @@ namespace GRAPHICS::MODELING
 
                 /// @todo   Error-handling...different file types and texture formats!
                 std::shared_ptr<GRAPHICS::IMAGES::Bitmap> texture = GRAPHICS::IMAGES::Bitmap::LoadPng(texture_filepath, ColorFormat::RGBA);
-                current_material->Shading = ShadingType::TEXTURED;
+                current_material->Shading = SHADING::ShadingType::TEXTURED;
 
                 // SET THE APPROPRIATE TYPE OF TEXTURE ON THE MATERIAL.
                 /// @todo   Handle more kinds of texture maps besides ambient, diffuse, and specular!
@@ -308,17 +308,17 @@ namespace GRAPHICS::MODELING
                 bool is_specular_texture = first_line_component.starts_with(SPECULAR_TEXTURE_MAP_INDICATOR);
                 if (is_diffuse_texture)
                 {
-                    current_material->DiffuseTexture = texture;
+                    current_material->DiffuseProperties.Texture = texture;
                 }
                 else if (is_specular_texture)
                 {
-                    current_material->SpecularTexture = texture;
+                    current_material->SpecularProperties.Texture = texture;
                 }
                 else
                 {
                     // For now, all remaining textures are assumed to be ambient,
                     // which generally provides maximum visibility into texture contents.
-                    current_material->AmbientTexture = texture;
+                    current_material->AmbientProperties.Texture = texture;
                 }
 
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.

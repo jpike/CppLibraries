@@ -1,10 +1,10 @@
 #pragma once
 
-#include <optional>
 #include <vector>
-#include "Graphics/Lighting/Light.h"
+#include "Graphics/Color.h"
 #include "Graphics/Material.h"
 #include "Graphics/RenderingSettings.h"
+#include "Graphics/Shading/Lighting/Light.h"
 #include "Graphics/VertexWithAttributes.h"
 #include "Math/Vector3.h"
 

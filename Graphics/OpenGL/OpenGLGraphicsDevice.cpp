@@ -1,9 +1,9 @@
 #include <vector>
 #include <gl3w/GL/gl3w.h>
 #include "ErrorHandling/Asserts.h"
-#include "Graphics/Lighting/Light.h"
 #include "Graphics/OpenGL/OpenGL.h"
 #include "Graphics/OpenGL/OpenGLGraphicsDevice.h"
+#include "Graphics/Shading/Lighting/Light.h"
 #include "Graphics/Viewing/ViewingTransformations.h"
 #include "Windowing/Win32Window.h"
 
@@ -215,11 +215,11 @@ namespace GRAPHICS::OPEN_GL
 
         VIEWING::ViewingTransformations viewing_transformations(rendering_settings.Camera);
 
-        std::optional< std::vector<GRAPHICS::LIGHTING::Light>> lights = std::vector<GRAPHICS::LIGHTING::Light>();
+        std::optional< std::vector<GRAPHICS::SHADING::LIGHTING::Light>> lights = std::vector<GRAPHICS::SHADING::LIGHTING::Light>();
         lights->emplace_back(
-            GRAPHICS::LIGHTING::Light
+            GRAPHICS::SHADING::LIGHTING::Light
             {
-                .Type = GRAPHICS::LIGHTING::LightType::POINT,
+                .Type = GRAPHICS::SHADING::LIGHTING::LightType::POINT,
                 .Color = GRAPHICS::Color(1.0f, 1.0f, 1.0f, 1.0f),
                 .PointLightWorldPosition = MATH::Vector3f(0.0f, 0.0f, 5.0f)
             });
@@ -256,7 +256,7 @@ namespace GRAPHICS::OPEN_GL
             if (is_lit)
             {
                 // Single arbitrary light for now.
-                const LIGHTING::Light& first_light = lights->at(0);
+                const SHADING::LIGHTING::Light& first_light = lights->at(0);
 
                 GLint light_position_variable = glGetUniformLocation(ShaderProgram->Id, "light_position");
                 glUniform4f(
@@ -284,7 +284,7 @@ namespace GRAPHICS::OPEN_GL
                     // ALLOCATE A TEXTURE IF APPLICABLE.
                     // Must be done outside of glBegin()/glEnd() (http://docs.gl/gl2/glGenTextures).
                     GLuint texture = 0;
-                    bool is_textured = (ShadingType::TEXTURED == triangle.Material->Shading);
+                    bool is_textured = (SHADING::ShadingType::TEXTURED == triangle.Material->Shading);
                     if (is_textured)
                     {
                         glGenTextures(1, &texture);
@@ -300,12 +300,12 @@ namespace GRAPHICS::OPEN_GL
                             GL_TEXTURE_2D,
                             0, // level of detail
                             GL_RGBA, // this is the only thing we currently support
-                            triangle.Material->DiffuseTexture->GetWidthInPixels(),
-                            triangle.Material->DiffuseTexture->GetHeightInPixels(),
+                            triangle.Material->DiffuseProperties.Texture->GetWidthInPixels(),
+                            triangle.Material->DiffuseProperties.Texture->GetHeightInPixels(),
                             0, // no border
                             GL_RGBA,
                             GL_UNSIGNED_BYTE, // one byte per color component
-                            triangle.Material->DiffuseTexture->GetRawData());
+                            triangle.Material->DiffuseProperties.Texture->GetRawData());
                     }
                     GLint is_textured_variable = glGetUniformLocation(ShaderProgram->Id, "is_textured");
                     glUniform1i(is_textured_variable, is_textured);

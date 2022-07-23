@@ -1,6 +1,6 @@
-#include "Graphics/RayTracing/Surface.h"
+#include "Graphics/Surface.h"
 
-namespace GRAPHICS::RAY_TRACING
+namespace GRAPHICS
 {
     /// Gets the material associated with the surface, if one exists.
     /// @return The material associated with the surface, if one exists; null otherwise.

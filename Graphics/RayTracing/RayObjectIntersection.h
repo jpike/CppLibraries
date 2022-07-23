@@ -3,7 +3,7 @@
 #include <limits>
 #include <limits>
 #include "Graphics/RayTracing/Ray.h"
-#include "Graphics/RayTracing/Surface.h"
+#include "Graphics/Surface.h"
 #include "Math/Vector3.h"
 
 namespace GRAPHICS::RAY_TRACING

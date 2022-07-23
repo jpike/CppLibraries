@@ -1,8 +1,6 @@
 #include "Graphics/RayTracing/RayObjectIntersection.h"
 
-namespace GRAPHICS
-{
-namespace RAY_TRACING
+namespace GRAPHICS::RAY_TRACING
 {
     /// Computes the intersection point.
     /// @return The intersection point.
@@ -17,5 +15,4 @@ namespace RAY_TRACING
 
         return intersection_point;
     }
-}
 }

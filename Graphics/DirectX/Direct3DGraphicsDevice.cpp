@@ -7,7 +7,7 @@
 #include <wrl/client.h>
 #include "ErrorHandling/Asserts.h"
 #include "Graphics/DirectX/Direct3DGraphicsDevice.h"
-#include "Graphics/Lighting/Light.h"
+#include "Graphics/Shading/Lighting/Light.h"
 #include "Windowing/Win32Window.h"
 
 static std::string VERTEX_SHADER = R"HLSL( 
@@ -747,11 +747,11 @@ namespace GRAPHICS::DIRECT_X
         DirectX::XMMATRIX projection_matrix = DirectX::XMMATRIX(projection_transform.Elements.ValuesInColumnMajorOrder().data());
 #endif
 
-        std::optional< std::vector<GRAPHICS::LIGHTING::Light>> lights = std::vector<GRAPHICS::LIGHTING::Light>();
+        std::optional< std::vector<GRAPHICS::SHADING::LIGHTING::Light>> lights = std::vector<GRAPHICS::SHADING::LIGHTING::Light>();
         lights->emplace_back(
-            GRAPHICS::LIGHTING::Light
+            GRAPHICS::SHADING::LIGHTING::Light
             {
-                .Type = GRAPHICS::LIGHTING::LightType::POINT,
+                .Type = GRAPHICS::SHADING::LIGHTING::LightType::POINT,
                 .Color = GRAPHICS::Color(1.0f, 1.0f, 1.0f, 1.0f),
                 .PointLightWorldPosition = MATH::Vector3f(0.0f, 0.0f, 5.0f)
             });
@@ -777,13 +777,13 @@ namespace GRAPHICS::DIRECT_X
                     PrintResultIfFailed(result);
                     TransformationMatrixBuffer* matrix_buffer = (TransformationMatrixBuffer*)mapped_matrix_buffer.pData;
 
-                    bool is_textured = static_cast<bool>(triangle.Material->DiffuseTexture);
+                    bool is_textured = static_cast<bool>(triangle.Material->DiffuseProperties.Texture);
                     matrix_buffer->IsTexturedAndIsLit.x = is_textured;
 
                     matrix_buffer->IsTexturedAndIsLit.y = is_lit;
                     if (is_lit)
                     {
-                        const GRAPHICS::LIGHTING::Light& first_light = lights->at(0);
+                        const GRAPHICS::SHADING::LIGHTING::Light& first_light = lights->at(0);
                         matrix_buffer->LightPosition = DirectX::XMFLOAT4(
                             first_light.PointLightWorldPosition.X,
                             first_light.PointLightWorldPosition.Y,
@@ -829,8 +829,8 @@ namespace GRAPHICS::DIRECT_X
                     {
                         D3D11_TEXTURE2D_DESC texture_description =
                         {
-                            .Width = triangle.Material->DiffuseTexture->GetWidthInPixels(),
-                            .Height = triangle.Material->DiffuseTexture->GetHeightInPixels(),
+                            .Width = triangle.Material->DiffuseProperties.Texture->GetWidthInPixels(),
+                            .Height = triangle.Material->DiffuseProperties.Texture->GetHeightInPixels(),
                             .MipLevels = 0,
                             .ArraySize = 1,
                             .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -847,7 +847,7 @@ namespace GRAPHICS::DIRECT_X
                             object_texture,
                             0,
                             NULL,
-                            triangle.Material->DiffuseTexture->GetRawData(),
+                            triangle.Material->DiffuseProperties.Texture->GetRawData(),
                             texture_row_pitch,
                             0);
 
@@ -958,6 +958,9 @@ namespace GRAPHICS::DIRECT_X
     /// @param[in]  window - The window in which to display the image.
     void Direct3DGraphicsDevice::DisplayRenderedImage(WINDOWING::IWindow& window)
     {
+        // Referenced to avoid compiler warnings for an unused parameter.
+        window;
+
         SwapChain->Present(1, 0);
     }
 }

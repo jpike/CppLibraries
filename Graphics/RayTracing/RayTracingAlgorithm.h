@@ -6,9 +6,9 @@
 #include "Graphics/Images/Bitmap.h"
 #include "Graphics/RayTracing/Ray.h"
 #include "Graphics/RayTracing/RayObjectIntersection.h"
-#include "Graphics/RayTracing/Surface.h"
 #include "Graphics/RenderingSettings.h"
 #include "Graphics/Scene.h"
+#include "Graphics/Surface.h"
 #include "Graphics/Viewing/Camera.h"
 
 /// Holds code related to ray tracing.

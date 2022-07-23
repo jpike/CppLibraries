@@ -3,9 +3,9 @@
 #include <future>
 #include <thread>
 #include <vector>
-#include "Graphics/Lighting/Lighting.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/RayTracing/RayTracingAlgorithm.h"
+#include "Graphics/Shading/Lighting/Lighting.h"
 #include "Math/Angle.h"
 
 namespace GRAPHICS::RAY_TRACING
@@ -178,7 +178,7 @@ namespace GRAPHICS::RAY_TRACING
             /// @todo   Color base_diffuse_color = intersected_material->DiffuseColor;
             /// @todo   Handle spheres versus triangles.
             const GEOMETRY::Triangle* const* intersected_triangle = std::get_if<const GEOMETRY::Triangle*>(&intersection.Object.Shape);
-            if (intersected_material->DiffuseTexture && intersected_triangle)
+            if (intersected_material->DiffuseProperties.Texture && intersected_triangle)
             {
                 // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
                 VertexWithAttributes first_vertex = (*intersected_triangle)->Vertices[0];
@@ -226,13 +226,13 @@ namespace GRAPHICS::RAY_TRACING
                 }
 
                 // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
-                unsigned int texture_width_in_pixels = intersected_material->DiffuseTexture->GetWidthInPixels();
+                unsigned int texture_width_in_pixels = intersected_material->DiffuseProperties.Texture->GetWidthInPixels();
                 unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
 
-                unsigned int texture_height_in_pixels = intersected_material->DiffuseTexture->GetHeightInPixels();
+                unsigned int texture_height_in_pixels = intersected_material->DiffuseProperties.Texture->GetHeightInPixels();
                 unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
 
-                Color texture_color = intersected_material->DiffuseTexture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
+                Color texture_color = intersected_material->DiffuseProperties.Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
                 /// @todo   base_diffuse_color = Color::ComponentMultiplyRedGreenBlue(base_diffuse_color, texture_color);;
                 /// @todo   Hack to test out texture mapping.
                 /// @todo   final_color = base_diffuse_color;
@@ -247,7 +247,7 @@ namespace GRAPHICS::RAY_TRACING
             std::vector<float> shadow_factors_by_light_index;
             if (rendering_settings.LightingSettings.ShadowsEnabled)
             {
-                for (const LIGHTING::Light& light : scene.Lights)
+                for (const SHADING::LIGHTING::Light& light : scene.Lights)
                 {
                     // CAST A RAY OUT TO COMPUTE SHADOWS IF ENABLED.
                     // To simplify later parts of the algorithm, a shadow factor of 1 (no shadowing) should always be computed.
@@ -256,12 +256,12 @@ namespace GRAPHICS::RAY_TRACING
 
                     // The direction may need to be computed differently based on the type of light.
                     MATH::Vector3f direction_from_point_to_light;
-                    if (LIGHTING::LightType::DIRECTIONAL == light.Type)
+                    if (SHADING::LIGHTING::LightType::DIRECTIONAL == light.Type)
                     {
                         // The computations are based on the opposite direction.
                         direction_from_point_to_light = MATH::Vector3f::Scale(-1.0f, light.DirectionalLightDirection);
                     }
-                    else if (LIGHTING::LightType::POINT == light.Type)
+                    else if (SHADING::LIGHTING::LightType::POINT == light.Type)
                     {
                         direction_from_point_to_light = light.PointLightWorldPosition - intersection_point;
                     }
@@ -298,7 +298,7 @@ namespace GRAPHICS::RAY_TRACING
             }
 
             // ADD IN LIGHTING.
-            Color light_color = GRAPHICS::LIGHTING::Lighting::Compute(
+            Color light_color = GRAPHICS::SHADING::LIGHTING::Lighting::Compute(
                 intersection.Ray->Origin,
                 scene.Lights,
                 intersection.Object,
