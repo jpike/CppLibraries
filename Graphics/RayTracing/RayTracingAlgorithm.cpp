@@ -6,6 +6,7 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/RayTracing/RayTracingAlgorithm.h"
 #include "Graphics/Shading/Lighting/Lighting.h"
+#include "Graphics/TextureMappingAlgorithm.h"
 #include "Math/Angle.h"
 
 namespace GRAPHICS::RAY_TRACING
@@ -89,9 +90,9 @@ namespace GRAPHICS::RAY_TRACING
             // START RENDERING THE CURRENT BLOCK OF ROWS IN A NEW THREAD.
             std::future<void> ray_tracing_thread = std::async(
                 std::launch::async,
-                [this, &scene_with_world_space_objects, &rendering_settings, pixel_start_y, pixel_end_y, &render_target]()
+                [&scene_with_world_space_objects, &rendering_settings, pixel_start_y, pixel_end_y, &render_target]()
                 {
-                    this->RenderRows(
+                    RayTracingAlgorithm::RenderRows(
                         scene_with_world_space_objects,
                         rendering_settings,
                         pixel_start_y,
@@ -119,7 +120,7 @@ namespace GRAPHICS::RAY_TRACING
         const RenderingSettings& rendering_settings,
         const unsigned int pixel_start_y,
         const unsigned int pixel_end_y,
-        GRAPHICS::IMAGES::Bitmap& render_target) const
+        GRAPHICS::IMAGES::Bitmap& render_target)
     {
         // RENDER EACH ROW OF PIXELS IN THE RANGE.
         for (unsigned int y = pixel_start_y; y <= pixel_end_y; ++y)
@@ -151,6 +152,113 @@ namespace GRAPHICS::RAY_TRACING
         }
     }
 
+    /// Computes the closest intersection in the scene of a specific ray.
+    /// @param[in]  scene - The scene in which to search for intersections.
+    /// @param[in]  ray - The ray to use for searching for intersections.
+    /// @param[in]  ignored_object - An optional object to be ignored.  If provided,
+    ///     this object will be ignored for intersections.  This provides an easy way
+    ///     to calculate intersections from reflected rays without having the object
+    ///     being reflected off of infinitely intersected with.
+    /// @return The closest intersection, if one was found; unpopulated if no intersection
+    ///     was found between the ray and an object in the scene.
+    std::optional<RayObjectIntersection> RayTracingAlgorithm::ComputeClosestIntersection(
+        const Scene& scene,
+        const Ray& ray,
+        const Surface& ignored_object)
+    {
+        // FIND THE CLOSEST OBJECT IN THE SCENE THAT THE RAY INTERSECTS.
+        std::optional<RayObjectIntersection> closest_intersection = std::nullopt;
+        for (const auto& current_object : scene.Objects)
+        {
+            // SEARCH FOR INTERSECTIONS IN SPHERES.
+            for (const auto& current_sphere : current_object.Spheres)
+            {
+                // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
+                const GEOMETRY::Sphere* const* ignored_sphere = std::get_if<const GEOMETRY::Sphere*>(&ignored_object.Shape);
+                if (ignored_sphere)
+                {
+                    bool ignore_current_object = ((*ignored_sphere) == &current_sphere);
+                    if (ignore_current_object)
+                    {
+                        continue;
+                    }
+                }
+
+                // CHECK IF THE RAY INTERSECTS THE CURRENT OBJECT.
+                std::optional<RayObjectIntersection> intersection = current_sphere.Intersect(ray);
+                bool ray_hit_object = (std::nullopt != intersection);
+                if (!ray_hit_object)
+                {
+                    // CONTINUE SEEING IF OTHER OBJECTS ARE HIT.
+                    continue;
+                }
+
+                // UPDATE THE CLOSEST INTERSECTION APPROPRIATELY.
+                if (closest_intersection)
+                {
+                    // ONLY OVERWRITE THE CLOSEST INTERSECTION IF THE NEWEST ONE IS CLOSER.
+                    bool new_intersection_closer = (intersection->DistanceFromRayToObject < closest_intersection->DistanceFromRayToObject);
+                    if (new_intersection_closer)
+                    {
+                        closest_intersection = intersection;
+                    }
+                }
+                else
+                {
+                    // SET THIS FIRST INTERSECTION AS THE CLOSEST.
+                    closest_intersection = intersection;
+                }
+            }
+
+            // SEARCH FOR INTERSECTIONS IN ALL MESHES OF THE OBJECT.
+            for (const auto& [mesh_name, mesh] : current_object.Model.MeshesByName)
+            {
+                // SEARCH FOR INTERSECTIONS IN ALL TRIANGLES OF THE CURRENT MESH.
+                /// @todo   Convert things to operate on triangles as opposed to "objects"?
+                for (const auto& current_triangle : mesh.Triangles)
+                {
+                    // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
+                    const GEOMETRY::Triangle* const* ignored_triangle = std::get_if<const GEOMETRY::Triangle*>(&ignored_object.Shape);
+                    if (ignored_triangle)
+                    {
+                        bool ignore_current_object = ((*ignored_triangle) == &current_triangle);
+                        if (ignore_current_object)
+                        {
+                            continue;
+                        }
+                    }
+
+                    // CHECK IF THE RAY INTERSECTS THE CURRENT OBJECT.
+                    std::optional<RayObjectIntersection> intersection = current_triangle.Intersect(ray);
+                    bool ray_hit_object = (std::nullopt != intersection);
+                    if (!ray_hit_object)
+                    {
+                        // CONTINUE SEEING IF OTHER OBJECTS ARE HIT.
+                        continue;
+                    }
+
+                    // UPDATE THE CLOSEST INTERSECTION APPROPRIATELY.
+                    if (closest_intersection)
+                    {
+                        // ONLY OVERWRITE THE CLOSEST INTERSECTION IF THE NEWEST ONE IS CLOSER.
+                        bool new_intersection_closer = (intersection->DistanceFromRayToObject < closest_intersection->DistanceFromRayToObject);
+                        if (new_intersection_closer)
+                        {
+                            closest_intersection = intersection;
+                        }
+                    }
+                    else
+                    {
+                        // SET THIS FIRST INTERSECTION AS THE CLOSEST.
+                        closest_intersection = intersection;
+                    }
+                }
+            }
+        }
+
+        return closest_intersection;
+    }
+
     /// Computes color based on the specified intersection in the scene.
     /// @param[in]  scene - The scene in which the color is being computed.
     /// @param[in]  intersection - The intersection for which to compute the color.
@@ -164,7 +272,7 @@ namespace GRAPHICS::RAY_TRACING
         const Scene& scene, 
         const RayObjectIntersection& intersection,
         const RenderingSettings& rendering_settings,
-        const unsigned int remaining_reflection_count) const
+        const unsigned int remaining_reflection_count)
     {
         // INITIALIZE THE COLOR TO HAVE NO CONTRIBUTION FROM ANY SOURCES.
         Color final_color = Color::BLACK;
@@ -180,62 +288,11 @@ namespace GRAPHICS::RAY_TRACING
             const GEOMETRY::Triangle* const* intersected_triangle = std::get_if<const GEOMETRY::Triangle*>(&intersection.Object.Shape);
             if (intersected_material->DiffuseProperties.Texture && intersected_triangle)
             {
-                // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
-                VertexWithAttributes first_vertex = (*intersected_triangle)->Vertices[0];
-                VertexWithAttributes second_vertex = (*intersected_triangle)->Vertices[1];
-                VertexWithAttributes third_vertex = (*intersected_triangle)->Vertices[2];
-
-#define BARYCENTRIC_COORDINATES_2D 1
-#if BARYCENTRIC_COORDINATES_2D
                 MATH::Vector2f current_point(intersection_point.X, intersection_point.Y);
-                MATH::Vector3f current_point_barycentric_coordinates = (*intersected_triangle)->BarycentricCoordinates2DOf(current_point);
-#else
-                MATH::Vector3f current_point_barycentric_coordinates = (*intersected_triangle)->BarycentricCoordinates3DOf(intersection_point);
-#endif
-
-                // INTERPOLATE THE TEXTURE COORDINATES.
-                const MATH::Vector2f& first_texture_coordinate = first_vertex.TextureCoordinates;
-                const MATH::Vector2f& second_texture_coordinate = second_vertex.TextureCoordinates;
-                const MATH::Vector2f& third_texture_coordinate = third_vertex.TextureCoordinates;
-
-                MATH::Vector2f interpolated_texture_coordinate;
-                interpolated_texture_coordinate.X = (
-                    (current_point_barycentric_coordinates.X * second_texture_coordinate.X) +
-                    (current_point_barycentric_coordinates.Y * third_texture_coordinate.X) +
-                    (current_point_barycentric_coordinates.Z * first_texture_coordinate.X));
-                interpolated_texture_coordinate.Y = (
-                    (current_point_barycentric_coordinates.X * second_texture_coordinate.Y) +
-                    (current_point_barycentric_coordinates.Y * third_texture_coordinate.Y) +
-                    (current_point_barycentric_coordinates.Z * first_texture_coordinate.Y));
-                // Clamping.
-                if (interpolated_texture_coordinate.X < 0.0f)
-                {
-                    interpolated_texture_coordinate.X = 0.0f;
-                }
-                else if (interpolated_texture_coordinate.X > 1.0f)
-                {
-                    interpolated_texture_coordinate.X = 1.0f;
-                }
-                if (interpolated_texture_coordinate.Y < 0.0f)
-                {
-                    interpolated_texture_coordinate.Y = 0.0f;
-                }
-                else if (interpolated_texture_coordinate.Y > 1.0f)
-                {
-                    interpolated_texture_coordinate.Y = 1.0f;
-                }
-
-                // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
-                unsigned int texture_width_in_pixels = intersected_material->DiffuseProperties.Texture->GetWidthInPixels();
-                unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
-
-                unsigned int texture_height_in_pixels = intersected_material->DiffuseProperties.Texture->GetHeightInPixels();
-                unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
-
-                Color texture_color = intersected_material->DiffuseProperties.Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
-                /// @todo   base_diffuse_color = Color::ComponentMultiplyRedGreenBlue(base_diffuse_color, texture_color);;
-                /// @todo   Hack to test out texture mapping.
-                /// @todo   final_color = base_diffuse_color;
+                Color texture_color = TextureMappingAlgorithm::LookupTexel(
+                    **intersected_triangle,
+                    current_point,
+                    *intersected_material->DiffuseProperties.Texture);
                 final_color += texture_color;
             }
         }
@@ -351,112 +408,5 @@ namespace GRAPHICS::RAY_TRACING
         }
 
         return final_color;
-    }
-
-    /// Computes the closest intersection in the scene of a specific ray.
-    /// @param[in]  scene - The scene in which to search for intersections.
-    /// @param[in]  ray - The ray to use for searching for intersections.
-    /// @param[in]  ignored_object - An optional object to be ignored.  If provided,
-    ///     this object will be ignored for intersections.  This provides an easy way
-    ///     to calculate intersections from reflected rays without having the object
-    ///     being reflected off of infinitely intersected with.
-    /// @return The closest intersection, if one was found; unpopulated if no intersection
-    ///     was found between the ray and an object in the scene.
-    std::optional<RayObjectIntersection> RayTracingAlgorithm::ComputeClosestIntersection(
-        const Scene& scene,
-        const Ray& ray,
-        const Surface& ignored_object) const
-    {
-        // FIND THE CLOSEST OBJECT IN THE SCENE THAT THE RAY INTERSECTS.
-        std::optional<RayObjectIntersection> closest_intersection = std::nullopt;
-        for (const auto& current_object : scene.Objects)
-        {
-            // SEARCH FOR INTERSECTIONS IN SPHERES.
-            for (const auto& current_sphere : current_object.Spheres)
-            {
-                // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
-                const GEOMETRY::Sphere* const* ignored_sphere = std::get_if<const GEOMETRY::Sphere*>(&ignored_object.Shape);
-                if (ignored_sphere)
-                {
-                    bool ignore_current_object = ((*ignored_sphere) == &current_sphere);
-                    if (ignore_current_object)
-                    {
-                        continue;
-                    }
-                }
-
-                // CHECK IF THE RAY INTERSECTS THE CURRENT OBJECT.
-                std::optional<RayObjectIntersection> intersection = current_sphere.Intersect(ray);
-                bool ray_hit_object = (std::nullopt != intersection);
-                if (!ray_hit_object)
-                {
-                    // CONTINUE SEEING IF OTHER OBJECTS ARE HIT.
-                    continue;
-                }
-
-                // UPDATE THE CLOSEST INTERSECTION APPROPRIATELY.
-                if (closest_intersection)
-                {
-                    // ONLY OVERWRITE THE CLOSEST INTERSECTION IF THE NEWEST ONE IS CLOSER.
-                    bool new_intersection_closer = (intersection->DistanceFromRayToObject < closest_intersection->DistanceFromRayToObject);
-                    if (new_intersection_closer)
-                    {
-                        closest_intersection = intersection;
-                    }
-                }
-                else
-                {
-                    // SET THIS FIRST INTERSECTION AS THE CLOSEST.
-                    closest_intersection = intersection;
-                }
-            }
-
-            // SEARCH FOR INTERSECTIONS IN ALL MESHES OF THE OBJECT.
-            for (const auto& [mesh_name, mesh] : current_object.Model.MeshesByName)
-            {
-                // SEARCH FOR INTERSECTIONS IN ALL TRIANGLES OF THE CURRENT MESH.
-                /// @todo   Convert things to operate on triangles as opposed to "objects"?
-                for (const auto& current_triangle : mesh.Triangles)
-                {
-                    // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
-                    const GEOMETRY::Triangle* const* ignored_triangle = std::get_if<const GEOMETRY::Triangle*>(&ignored_object.Shape);
-                    if (ignored_triangle)
-                    {
-                        bool ignore_current_object = ((*ignored_triangle) == &current_triangle);
-                        if (ignore_current_object)
-                        {
-                            continue;
-                        }
-                    }
-
-                    // CHECK IF THE RAY INTERSECTS THE CURRENT OBJECT.
-                    std::optional<RayObjectIntersection> intersection = current_triangle.Intersect(ray);
-                    bool ray_hit_object = (std::nullopt != intersection);
-                    if (!ray_hit_object)
-                    {
-                        // CONTINUE SEEING IF OTHER OBJECTS ARE HIT.
-                        continue;
-                    }
-
-                    // UPDATE THE CLOSEST INTERSECTION APPROPRIATELY.
-                    if (closest_intersection)
-                    {
-                        // ONLY OVERWRITE THE CLOSEST INTERSECTION IF THE NEWEST ONE IS CLOSER.
-                        bool new_intersection_closer = (intersection->DistanceFromRayToObject < closest_intersection->DistanceFromRayToObject);
-                        if (new_intersection_closer)
-                        {
-                            closest_intersection = intersection;
-                        }
-                    }
-                    else
-                    {
-                        // SET THIS FIRST INTERSECTION AS THE CLOSEST.
-                        closest_intersection = intersection;
-                    }
-                }
-            }
-        }
-
-        return closest_intersection;
     }
 }

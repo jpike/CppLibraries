@@ -5,6 +5,7 @@
 
 #include "Graphics/CpuRendering/CpuRasterizationAlgorithm.h"
 #include "Graphics/Shading/Shading.h"
+#include "Graphics/TextureMappingAlgorithm.h"
 #include "Graphics/Viewing/ViewingTransformations.h"
 #include "Math/Number.h"
 
@@ -561,58 +562,10 @@ namespace GRAPHICS::CPU_RENDERING
 
                             if ((SHADING::ShadingType::TEXTURED == triangle.Material->Shading) && rendering_settings.TextureMapping)
                             {
-                                // INTERPOLATE THE TEXTURE COORDINATES.
-                                const MATH::Vector2f& first_texture_coordinate = first_vertex.TextureCoordinates;
-                                const MATH::Vector2f& second_texture_coordinate = second_vertex.TextureCoordinates;
-                                const MATH::Vector2f& third_texture_coordinate = third_vertex.TextureCoordinates;
-
-                                MATH::Vector2f interpolated_texture_coordinate;
-#if OLD_BARYCENTRIC_COORDINATES
-                                interpolated_texture_coordinate.X = (
-                                    (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_texture_coordinate.X) +
-                                    (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_texture_coordinate.X) +
-                                    (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_texture_coordinate.X));
-                                interpolated_texture_coordinate.Y = (
-                                    (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_texture_coordinate.Y) +
-                                    (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_texture_coordinate.Y) +
-                                    (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_texture_coordinate.Y));
-#else
-                                interpolated_texture_coordinate.X = (
-                                    (current_point_barycentric_coordinates.X * second_texture_coordinate.X) +
-                                    (current_point_barycentric_coordinates.Y * third_texture_coordinate.X) +
-                                    (current_point_barycentric_coordinates.Z * first_texture_coordinate.X));
-                                interpolated_texture_coordinate.Y = (
-                                    (current_point_barycentric_coordinates.X * second_texture_coordinate.Y) +
-                                    (current_point_barycentric_coordinates.Y * third_texture_coordinate.Y) +
-                                    (current_point_barycentric_coordinates.Z * first_texture_coordinate.Y));
-#endif
-                                // Clamping.
-                                if (interpolated_texture_coordinate.X < 0.0f)
-                                {
-                                    interpolated_texture_coordinate.X = 0.0f;
-                                }
-                                else if (interpolated_texture_coordinate.X > 1.0f)
-                                {
-                                    interpolated_texture_coordinate.X = 1.0f;
-                                }
-                                if (interpolated_texture_coordinate.Y < 0.0f)
-                                {
-                                    interpolated_texture_coordinate.Y = 0.0f;
-                                }
-                                else if (interpolated_texture_coordinate.Y > 1.0f)
-                                {
-                                    interpolated_texture_coordinate.Y = 1.0f;
-                                }
-
-                                // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
-                                unsigned int texture_width_in_pixels = triangle.Material->DiffuseProperties.Texture->GetWidthInPixels();
-                                unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
-
-                                unsigned int texture_height_in_pixels = triangle.Material->DiffuseProperties.Texture->GetHeightInPixels();
-                                unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
-
-                                Color texture_color = triangle.Material->DiffuseProperties.Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
-
+                                Color texture_color = TextureMappingAlgorithm::LookupTexel(
+                                    triangle,
+                                    current_point,
+                                    *triangle.Material->DiffuseProperties.Texture);
                                 interpolated_color = Color::ComponentMultiplyRedGreenBlue(interpolated_color, texture_color);
                                 interpolated_color.Clamp();
                             }

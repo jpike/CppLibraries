@@ -2,7 +2,6 @@
 
 #include <optional>
 #include "Graphics/Color.h"
-#include "Graphics/Geometry/Sphere.h"
 #include "Graphics/Images/Bitmap.h"
 #include "Graphics/RayTracing/Ray.h"
 #include "Graphics/RayTracing/RayObjectIntersection.h"
@@ -18,25 +17,28 @@ namespace GRAPHICS::RAY_TRACING
     class RayTracingAlgorithm
     {
     public:
-        // PUBLIC METHODS.
-        void Render(const Scene& scene, const RenderingSettings& rendering_settings, GRAPHICS::IMAGES::Bitmap& render_target);
+        // MAIN RENDERING METHOD.
+        static void Render(const Scene& scene, const RenderingSettings& rendering_settings, GRAPHICS::IMAGES::Bitmap& render_target);
 
-    private:
-        // PRIVATE HELPER METHODS.
-        void RenderRows(
+        // RENDERING PARALLELIZATION HELPER METHOD.
+        static void RenderRows(
             const Scene& scene_with_world_space_objects,
             const RenderingSettings& rendering_settings,
             const unsigned int pixel_start_y,
             const unsigned int pixel_end_y,
-            GRAPHICS::IMAGES::Bitmap& render_target) const;
-        GRAPHICS::Color ComputeColor(
+            GRAPHICS::IMAGES::Bitmap& render_target);
+
+        // OBJECT INTERSECTION.
+        static std::optional<RayObjectIntersection> ComputeClosestIntersection(
+            const Scene& scene,
+            const Ray& ray,
+            const Surface& ignored_object = {});
+
+        // COLOR COMPUTATION.
+        static GRAPHICS::Color ComputeColor(
             const Scene& scene,
             const RayObjectIntersection& intersection,
             const RenderingSettings& rendering_settings,
-            const unsigned int remaining_reflection_count) const;
-        std::optional<RayObjectIntersection> ComputeClosestIntersection(
-            const Scene& scene,
-            const Ray& ray,
-            const Surface& ignored_object = {}) const;
+            const unsigned int remaining_reflection_count);
     };
 }

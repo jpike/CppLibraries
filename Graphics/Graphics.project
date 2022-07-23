@@ -42,3 +42,4 @@
 #include "Graphics/FrameTimer.cpp"
 #include "Graphics/Object3D.cpp"
 #include "Graphics/Surface.cpp"
+#include "Graphics/TextureMappingAlgorithm.cpp"
