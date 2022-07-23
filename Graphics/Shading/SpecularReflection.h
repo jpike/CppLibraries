@@ -2,6 +2,7 @@
 
 #include "Graphics/Color.h"
 #include "Graphics/Shading/Lighting/Light.h"
+#include "Graphics/Shading/ShadingSettings.h"
 #include "Graphics/Surface.h"
 #include "Math/Vector3.h"
 
@@ -15,6 +16,7 @@ namespace GRAPHICS::SHADING
     {
     public:
         static Color Compute(
+            const ShadingSettings& shading_settings,
             const MATH::Vector3f& viewing_point,
             const LIGHTING::Light& light,
             const float shadow_factor,

@@ -225,7 +225,7 @@ namespace GRAPHICS::CPU_RENDERING
 
         // RENDER THE TRIANGLE BASED ON SHADING TYPE.
         /// @todo   Enable this to be an override of material only if set?
-        SHADING::ShadingType shading_type = rendering_settings.Shading;
+        SHADING::ShadingType shading_type = rendering_settings.Shading.ShadingType;
         switch (shading_type)
         {
             case SHADING::ShadingType::WIREFRAME:
@@ -560,7 +560,7 @@ namespace GRAPHICS::CPU_RENDERING
                                 (current_point_barycentric_coordinates.Z * first_vertex.Position.Z));
 #endif
 
-                            if ((SHADING::ShadingType::TEXTURED == triangle.Material->Shading) && rendering_settings.TextureMapping)
+                            if ((SHADING::ShadingType::TEXTURED == triangle.Material->Shading) && rendering_settings.Shading.TextureMappingEnabled)
                             {
                                 Color texture_color = TextureMappingAlgorithm::LookupTexel(
                                     triangle,

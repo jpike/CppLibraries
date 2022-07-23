@@ -2,10 +2,12 @@
 #include <cmath>
 #include "ErrorHandling/Asserts.h"
 #include "Graphics/Shading/SpecularReflection.h"
+#include "Graphics/TextureMappingAlgorithm.h"
 
 namespace GRAPHICS::SHADING
 {
     /// Computes the specular reflection for a single light for a particular surface point.
+    /// @param[in]  shading_settings - Settings affecting the shading.
     /// @param[in]  viewing_point - The point from which the surface is being viewed.
     /// @param[in]  light - The light for which to compute the specular reflection at the surface point.
     /// @param[in]  shadow_factor - A shadowing factor to add in additional shadowing
@@ -15,6 +17,7 @@ namespace GRAPHICS::SHADING
     /// @param[in]  surface_point - The point on the surface for which to compute the specular reflection.
     /// @return The color of specular reflection from the light at the specified surface point.
     Color SpecularReflection::Compute(
+        const ShadingSettings& shading_settings,
         const MATH::Vector3f& viewing_point,
         const LIGHTING::Light& light,
         const float shadow_factor,
@@ -76,8 +79,22 @@ namespace GRAPHICS::SHADING
         float light_proportion = shadow_factor * specular_proportion;
         Color current_light_specular_color = Color::ScaleRedGreenBlue(light_proportion, light.Color);
 
+        // COMPUTE THE RAW SPECULAR SURFACE COLOR.
+        Color specular_surface_color = material->SpecularProperties.Color;
+        /// @todo   Figure out better way to handle this triangle texture mapping stuff!
+        const GEOMETRY::Triangle* const* triangle = std::get_if<const GEOMETRY::Triangle*>(&surface.Shape);
+        if (shading_settings.TextureMappingEnabled && triangle && material->SpecularProperties.Texture)
+        {
+            MATH::Vector2f triangle_point(surface_point.X, surface_point.Y);
+            Color texture_color = TextureMappingAlgorithm::LookupTexel(
+                **triangle,
+                triangle_point,
+                *material->SpecularProperties.Texture);
+            specular_surface_color = Color::ComponentMultiplyRedGreenBlue(specular_surface_color, texture_color);
+        }
+
         // COMPUTE THE SPECULAR COLOR REFLECTED ON THE SURFACE.
-        Color specular_color = Color::ComponentMultiplyRedGreenBlue(material->SpecularProperties.Color, current_light_specular_color);
+        Color specular_color = Color::ComponentMultiplyRedGreenBlue(specular_surface_color, current_light_specular_color);
         return specular_color;
     }
 }

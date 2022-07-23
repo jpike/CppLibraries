@@ -34,6 +34,11 @@ namespace GRAPHICS::RAY_TRACING
             const Ray& ray,
             const Surface& ignored_object = {});
 
+        // SHADOWING.
+        static std::vector<float> ComputeShadowFactors(
+            const Scene& scene,
+            const RayObjectIntersection& intersection);
+
         // COLOR COMPUTATION.
         static GRAPHICS::Color ComputeColor(
             const Scene& scene,

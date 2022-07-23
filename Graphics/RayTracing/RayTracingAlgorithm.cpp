@@ -214,7 +214,6 @@ namespace GRAPHICS::RAY_TRACING
             for (const auto& [mesh_name, mesh] : current_object.Model.MeshesByName)
             {
                 // SEARCH FOR INTERSECTIONS IN ALL TRIANGLES OF THE CURRENT MESH.
-                /// @todo   Convert things to operate on triangles as opposed to "objects"?
                 for (const auto& current_triangle : mesh.Triangles)
                 {
                     // SKIP OVER THE CURRENT OBJECT IF IT SHOULD BE IGNORED.
@@ -259,6 +258,71 @@ namespace GRAPHICS::RAY_TRACING
         return closest_intersection;
     }
 
+    /// Computes shadow factors for a given point based on light sources.
+    /// @param[in]  scene - The scene within which to compute shadow factors.
+    /// @param[in]  intersection - The intersection for which to compute shadowing.
+    /// @return The shadow factors for each light source in the scene.
+    ///     Shadow factor indices match light indices.
+    ///     0 == in full shadow; 1 == no shadowing.
+    std::vector<float> RayTracingAlgorithm::ComputeShadowFactors(
+        const Scene& scene,
+        const RayObjectIntersection& intersection)
+    {
+        // COMPUTE SHADOW FACTORS FOR EACH LIGHT FOR THE INTERSECTION POINT.
+        std::vector<float> shadow_factors_by_light_index;
+        MATH::Vector3f intersection_point = intersection.IntersectionPoint();
+        for (const SHADING::LIGHTING::Light& light : scene.Lights)
+        {
+            // CAST A RAY OUT TO COMPUTE SHADOWS.
+            // To simplify other parts of the algorithm, a shadow factor of 1 (no shadowing) should always be computed.
+            constexpr float NO_SHADOWING = 1.0f;
+            float shadow_factor = NO_SHADOWING;
+
+            // The direction may need to be computed differently based on the type of light.
+            MATH::Vector3f direction_from_point_to_light;
+            if (SHADING::LIGHTING::LightType::DIRECTIONAL == light.Type)
+            {
+                // The computations are based on the opposite direction.
+                direction_from_point_to_light = MATH::Vector3f::Scale(-1.0f, light.DirectionalLightDirection);
+            }
+            else if (SHADING::LIGHTING::LightType::POINT == light.Type)
+            {
+                direction_from_point_to_light = light.PointLightWorldPosition - intersection_point;
+            }
+
+            // SHOOT A SHADOW RAY OUT FROM THE INTERSECTION POINT TO THE LIGHT.
+            Ray shadow_ray(intersection_point, direction_from_point_to_light);
+            std::optional<RayObjectIntersection> shadow_intersection = ComputeClosestIntersection(scene, shadow_ray, intersection.Object);
+            if (shadow_intersection)
+            {
+                // DETERMINE THE SHADOW FACTOR BASED ON THE INTERSECTION.
+                // For a shadow to occur, the intersection with another object must occur in front of the shadow ray.
+                // Similarly, the intersection must occur before the ray hits the light (hence why the shadow ray
+                // is computed with a direction that is not unit length but the full length from the intersection
+                // point to the light - it makes checking for the distance to the light easier).
+                constexpr float NO_DISTANCE_IN_FRONT_OF_SHADOW_RAY = 0.0f;
+                constexpr float DISTANCE_AT_LIGHT = 1.0f;
+                bool shadow_intersection_in_range = (
+                    (NO_DISTANCE_IN_FRONT_OF_SHADOW_RAY < shadow_intersection->DistanceFromRayToObject) &&
+                    (shadow_intersection->DistanceFromRayToObject < DISTANCE_AT_LIGHT));
+                if (shadow_intersection_in_range)
+                {
+                    constexpr float FULL_SHADOWING = 0.0f;
+                    shadow_factor = FULL_SHADOWING;
+                }
+                else
+                {
+                    shadow_factor = NO_SHADOWING;
+                }
+            }
+
+            // STORE THE SHADOW FACTOR FOR THE LIGHT.
+            shadow_factors_by_light_index.push_back(shadow_factor);
+        }
+
+        return shadow_factors_by_light_index;
+    }
+
     /// Computes color based on the specified intersection in the scene.
     /// @param[in]  scene - The scene in which the color is being computed.
     /// @param[in]  intersection - The intersection for which to compute the color.
@@ -277,92 +341,23 @@ namespace GRAPHICS::RAY_TRACING
         // INITIALIZE THE COLOR TO HAVE NO CONTRIBUTION FROM ANY SOURCES.
         Color final_color = Color::BLACK;
 
-        // ADD IN TEXTURE COLORS IF ENABLED.
-        std::shared_ptr<Material> intersected_material = intersection.Object.GetMaterial();
-        MATH::Vector3f intersection_point = intersection.IntersectionPoint();
-        if (rendering_settings.TextureMapping)
-        {
-            /// @todo   How to we know whether texture is for diffuse or not?
-            /// @todo   Color base_diffuse_color = intersected_material->DiffuseColor;
-            /// @todo   Handle spheres versus triangles.
-            const GEOMETRY::Triangle* const* intersected_triangle = std::get_if<const GEOMETRY::Triangle*>(&intersection.Object.Shape);
-            if (intersected_material->DiffuseProperties.Texture && intersected_triangle)
-            {
-                MATH::Vector2f current_point(intersection_point.X, intersection_point.Y);
-                Color texture_color = TextureMappingAlgorithm::LookupTexel(
-                    **intersected_triangle,
-                    current_point,
-                    *intersected_material->DiffuseProperties.Texture);
-                final_color += texture_color;
-            }
-        }
-
         // ADD IN ANY LIGHTING IF ENABLED.
-        if (rendering_settings.LightingSettings.Enabled)
+        if (rendering_settings.Shading.Lighting.Enabled)
         {
             // COMPUTE SHADOWING FACTORS IF ENABLED.
             std::vector<float> shadow_factors_by_light_index;
-            if (rendering_settings.LightingSettings.ShadowsEnabled)
+            if (rendering_settings.Shading.Lighting.ShadowsEnabled)
             {
-                for (const SHADING::LIGHTING::Light& light : scene.Lights)
-                {
-                    // CAST A RAY OUT TO COMPUTE SHADOWS IF ENABLED.
-                    // To simplify later parts of the algorithm, a shadow factor of 1 (no shadowing) should always be computed.
-                    constexpr float NO_SHADOWING = 1.0f;
-                    float shadow_factor = NO_SHADOWING;
-
-                    // The direction may need to be computed differently based on the type of light.
-                    MATH::Vector3f direction_from_point_to_light;
-                    if (SHADING::LIGHTING::LightType::DIRECTIONAL == light.Type)
-                    {
-                        // The computations are based on the opposite direction.
-                        direction_from_point_to_light = MATH::Vector3f::Scale(-1.0f, light.DirectionalLightDirection);
-                    }
-                    else if (SHADING::LIGHTING::LightType::POINT == light.Type)
-                    {
-                        direction_from_point_to_light = light.PointLightWorldPosition - intersection_point;
-                    }
-
-                    // SHOOT A SHADOW RAY OUT FROM THE INTERSECTION POINT TO THE LIGHT.
-                    Ray shadow_ray(intersection_point, direction_from_point_to_light);
-                    std::optional<RayObjectIntersection> shadow_intersection = ComputeClosestIntersection(scene, shadow_ray, intersection.Object);
-                    if (shadow_intersection)
-                    {
-                        // DETERMINE THE SHADOW FACTOR BASED ON THE INTERSECTION.
-                        // For a shadow to occur, the intersection with another object must occur in front of the shadow ray.
-                        // Similarly, the intersection must occur before the ray hits the light (hence why the shadow ray
-                        // is computed with a direction that is not unit length but the full length from the intersection
-                        // point to the light - it makes checking for the distance to the light easier).
-                        constexpr float NO_DISTANCE_IN_FRONT_OF_SHADOW_RAY = 0.0f;
-                        constexpr float DISTANCE_AT_LIGHT = 1.0f;
-                        bool shadow_intersection_in_range = (
-                            (NO_DISTANCE_IN_FRONT_OF_SHADOW_RAY < shadow_intersection->DistanceFromRayToObject) &&
-                            (shadow_intersection->DistanceFromRayToObject < DISTANCE_AT_LIGHT));
-                        if (shadow_intersection_in_range)
-                        {
-                            constexpr float FULL_SHADOWING = 0.0f;
-                            shadow_factor = FULL_SHADOWING;
-                        }
-                        else
-                        {
-                            shadow_factor = NO_SHADOWING;
-                        }
-                    }
-
-                    // STORE THE SHADOW FACTOR FOR THE LIGHT.
-                    shadow_factors_by_light_index.push_back(shadow_factor);
-                }
+                shadow_factors_by_light_index = ComputeShadowFactors(scene, intersection);
             }
 
-            // ADD IN LIGHTING.
-            Color light_color = GRAPHICS::SHADING::LIGHTING::Lighting::Compute(
-                intersection.Ray->Origin,
+            // ADD IN SHADING BASED ON LIGHTS.
+            Color shaded_color = GRAPHICS::SHADING::Shading::Compute(
+                intersection,
                 scene.Lights,
-                intersection.Object,
-                intersection_point,
-                rendering_settings.LightingSettings,
+                rendering_settings.Shading,
                 shadow_factors_by_light_index);
-            final_color += light_color;
+            final_color += shaded_color;
         }
 
         // COMPUTE REFLECTED LIGHT IF POSSIBLE.
@@ -371,6 +366,7 @@ namespace GRAPHICS::RAY_TRACING
             // CHECK IF THE RAY CAN BE REFLECTED.
             // In addition to the remaining reflections, there's no need to compute
             // color from reflected light in the material isn't reflective.
+            std::shared_ptr<Material> intersected_material = intersection.Object.GetMaterial();
             bool ray_can_be_reflected = (remaining_reflection_count > 0) && (intersected_material->ReflectivityProportion > 0.0f);
             if (!ray_can_be_reflected)
             {
@@ -379,6 +375,7 @@ namespace GRAPHICS::RAY_TRACING
             }
 
             // COMPUTE THE REFLECTED RAY.
+            MATH::Vector3f intersection_point = intersection.IntersectionPoint();
             MATH::Vector3f direction_from_ray_origin_to_intersection = intersection_point - intersection.Ray->Origin;
             MATH::Vector3f normalized_direction_from_ray_origin_to_intersection = MATH::Vector3f::Normalize(direction_from_ray_origin_to_intersection);
             MATH::Vector3f unit_surface_normal = intersection.Object.GetNormal(intersection_point);

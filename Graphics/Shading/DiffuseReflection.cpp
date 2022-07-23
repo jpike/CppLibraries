@@ -5,6 +5,7 @@
 namespace GRAPHICS::SHADING
 {
     /// Computes the diffuse reflection for a single light for a particular surface point.
+    /// @param[in]  shading_settings - Settings affecting the shading.
     /// @param[in]  light - The light for which to compute the diffuse reflection at the surface point.
     /// @param[in]  shadow_factor - A shadowing factor to add in additional shadowing
     ///     (0 == full shadowing, 1 == no shadowing).  If desired, this must be computed and passed in externally
@@ -13,6 +14,7 @@ namespace GRAPHICS::SHADING
     /// @param[in]  surface_point - The point on the surface for which to compute the diffuse reflection.
     /// @return The color of diffuse reflection from the light at the specified surface point.
     Color DiffuseReflection::Compute(
+        const ShadingSettings& shading_settings,
         const LIGHTING::Light& light,
         const float shadow_factor,
         const Surface& surface,
@@ -59,8 +61,22 @@ namespace GRAPHICS::SHADING
         Color current_light_color = Color::ScaleRedGreenBlue(illumination_proportion, light.Color);
         current_light_color = Color::ScaleRedGreenBlue(shadow_factor, current_light_color);
 
+        // COMPUTE THE RAW DIFFUSE SURFACE COLOR.
+        Color diffuse_surface_color = material->DiffuseProperties.Color;
+        /// @todo   Figure out better way to handle this triangle texture mapping stuff!
+        const GEOMETRY::Triangle* const* triangle = std::get_if<const GEOMETRY::Triangle*>(&surface.Shape);
+        if (shading_settings.TextureMappingEnabled && triangle && material->DiffuseProperties.Texture)
+        {
+            MATH::Vector2f triangle_point(surface_point.X, surface_point.Y);
+            Color texture_color = TextureMappingAlgorithm::LookupTexel(
+                **triangle,
+                triangle_point,
+                *material->DiffuseProperties.Texture);
+            diffuse_surface_color = Color::ComponentMultiplyRedGreenBlue(diffuse_surface_color, texture_color);
+        }
+
         // COMPUTE THE DIFFUSE COLOR REFLECTED ON THE SURFACE.
-        Color diffuse_color = Color::ComponentMultiplyRedGreenBlue(material->DiffuseProperties.Color, current_light_color);
+        Color diffuse_color = Color::ComponentMultiplyRedGreenBlue(diffuse_surface_color, current_light_color);
         return diffuse_color;
     }
 }

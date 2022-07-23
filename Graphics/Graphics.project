@@ -28,6 +28,7 @@
 #include "Graphics/RayTracing/RayObjectIntersection.cpp"
 #include "Graphics/RayTracing/RayTracingAlgorithm.cpp"
 
+#include "Graphics/Shading/AmbientShading.cpp"
 #include "Graphics/Shading/DiffuseReflection.cpp"
 #include "Graphics/Shading/Lighting/Light.cpp"
 #include "Graphics/Shading/Lighting/Lighting.cpp"
