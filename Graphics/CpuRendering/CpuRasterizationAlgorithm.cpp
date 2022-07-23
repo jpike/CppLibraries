@@ -4,7 +4,7 @@
 #define NOMINMAX
 
 #include "Graphics/CpuRendering/CpuRasterizationAlgorithm.h"
-#include "Graphics/Shading/Shading.h"
+#include "Graphics/Shading/WorldSpaceShading.h"
 #include "Graphics/TextureMappingAlgorithm.h"
 #include "Graphics/Viewing/ViewingTransformations.h"
 #include "Math/Number.h"
@@ -137,13 +137,18 @@ namespace GRAPHICS::CPU_RENDERING
                     // SHADE THE CURRENT VERTEX.
                     const VertexWithAttributes& current_world_vertex = world_space_triangle.Vertices[vertex_index];
 
-                    Color final_vertex_color = SHADING::Shading::Compute(
-                        current_world_vertex,
-                        unit_surface_normal,
-                        *screen_space_triangle->Material,
+                    /// @todo   Think about whether we want a triangle-only version of this.
+                    Surface surface = { .Shape = &world_space_triangle };
+                    SHADING::ShadingSettings vertex_shading_settings = rendering_settings.Shading;
+                    vertex_shading_settings.TextureMappingEnabled = false;
+                    const std::vector<float> NO_SHADOWING;
+                    Color final_vertex_color = SHADING::WorldSpaceShading::ComputeMaterialShading(
+                        current_world_vertex.Position,
+                        surface,
                         rendering_settings.Camera.WorldPosition,
                         lights,
-                        rendering_settings);
+                        NO_SHADOWING,
+                        vertex_shading_settings);
 
                     screen_space_triangle->Vertices[vertex_index].Color = final_vertex_color;
                 }
@@ -252,24 +257,11 @@ namespace GRAPHICS::CPU_RENDERING
                     depth_buffer);
                 break;
             }
+            // Flat and material-based shading are nearly the same, with only differences in color computation.
             case SHADING::ShadingType::FLAT:
+            case SHADING::ShadingType::MATERIAL:
             {
-#if OLD_BARYCENTRIC_COORDINATES
-                // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
-                float top_vertex_signed_distance_from_bottom_edge = (
-                    ((second_vertex.Position.Y - third_vertex.Position.Y) * first_vertex.Position.X) +
-                    ((third_vertex.Position.X - second_vertex.Position.X) * first_vertex.Position.Y) +
-                    (second_vertex.Position.X * third_vertex.Position.Y) -
-                    (third_vertex.Position.X * second_vertex.Position.Y));
-                float right_vertex_signed_distance_from_left_edge = (
-                    ((second_vertex.Position.Y - first_vertex.Position.Y) * third_vertex.Position.X) +
-                    ((first_vertex.Position.X - second_vertex.Position.X) * third_vertex.Position.Y) +
-                    (second_vertex.Position.X * first_vertex.Position.Y) -
-                    (first_vertex.Position.X * second_vertex.Position.Y));
-#endif
-
                 // GET THE BOUNDING RECTANGLE OF THE TRIANGLE.
-                /// @todo   Create rectangle class.
                 float min_x = std::min({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
                 float max_x = std::max({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
                 float min_y = std::min({ first_vertex.Position.Y, second_vertex.Position.Y, third_vertex.Position.Y });
@@ -292,50 +284,7 @@ namespace GRAPHICS::CPU_RENDERING
                 {
                     for (float x = clamped_min_x; x <= clamped_max_x; x += ONE_PIXEL)
                     {
-#if OLD_BARYCENTRIC_COORDINATES
-                        // COMPUTE THE BARYCENTRIC COORDINATES OF THE CURRENT PIXEL POSITION.
-                        // The following diagram shows the order of the vertices:
-                        //             first_vertex
-                        //                 /\
-                        //                /  \
-                        // second_vertex /____\ third_vertex
-                        float current_pixel_signed_distance_from_bottom_edge = (
-                            ((second_vertex.Position.Y - third_vertex.Position.Y) * x) +
-                            ((third_vertex.Position.X - second_vertex.Position.X) * y) +
-                            (second_vertex.Position.X * third_vertex.Position.Y) -
-                            (third_vertex.Position.X * second_vertex.Position.Y));
-                        float scaled_signed_distance_of_current_pixel_relative_to_bottom_edge = (current_pixel_signed_distance_from_bottom_edge / top_vertex_signed_distance_from_bottom_edge);
-
-                        float current_pixel_signed_distance_from_left_edge = (
-                            ((second_vertex.Position.Y - first_vertex.Position.Y) * x) +
-                            ((first_vertex.Position.X - second_vertex.Position.X) * y) +
-                            (second_vertex.Position.X * first_vertex.Position.Y) -
-                            (first_vertex.Position.X * second_vertex.Position.Y));
-                        float scaled_signed_distance_of_current_pixel_relative_to_left_edge = (current_pixel_signed_distance_from_left_edge / right_vertex_signed_distance_from_left_edge);
-
-                        float scaled_signed_distance_of_current_pixel_relative_to_right_edge = (
-                            1.0f -
-                            scaled_signed_distance_of_current_pixel_relative_to_left_edge -
-                            scaled_signed_distance_of_current_pixel_relative_to_bottom_edge);
-
-                        // CHECK IF THE PIXEL IS WITHIN THE TRIANGLE.
-                        // It's allowed to be on the borders too.
-                        constexpr float MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE = 0.0f;
-                        constexpr float MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX = 1.0f;
-                        bool pixel_between_bottom_edge_and_top_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= scaled_signed_distance_of_current_pixel_relative_to_bottom_edge) &&
-                            (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_between_left_edge_and_right_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= scaled_signed_distance_of_current_pixel_relative_to_left_edge) &&
-                            (scaled_signed_distance_of_current_pixel_relative_to_left_edge <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_between_right_edge_and_left_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= scaled_signed_distance_of_current_pixel_relative_to_right_edge) &&
-                            (scaled_signed_distance_of_current_pixel_relative_to_right_edge <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_in_triangle = (
-                            pixel_between_bottom_edge_and_top_vertex &&
-                            pixel_between_left_edge_and_right_vertex &&
-                            pixel_between_right_edge_and_left_vertex);
-#else
+                        // CHECK IF THE CURRENT PIXEL IS WITHIN THE TRIANGLE.
                         MATH::Vector2f current_point(x, y);
                         MATH::Vector3f current_point_barycentric_coordinates = triangle.BarycentricCoordinates2DOf(current_point);
 
@@ -354,223 +303,118 @@ namespace GRAPHICS::CPU_RENDERING
                             pixel_between_opposite_edge_and_center_vertex &&
                             pixel_between_left_edge_and_right_vertex &&
                             pixel_between_right_edge_and_left_vertex);
-#endif
                         if (pixel_in_triangle)
                         {
-#if OLD_BARYCENTRIC_COORDINATES
-                            float interpolated_z = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex.Position.Z) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex.Position.Z) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex.Position.Z));
-#else
-                            float interpolated_z = (
-                                (current_point_barycentric_coordinates.X * second_vertex.Position.Z) +
-                                (current_point_barycentric_coordinates.Y * third_vertex.Position.Z) +
-                                (current_point_barycentric_coordinates.Z * first_vertex.Position.Z));
-#endif
-
-                            // Apply depth buffering filtering if applicable.
-                            unsigned int current_pixel_x = static_cast<unsigned int>(std::round(x));
-                            unsigned int current_pixel_y = static_cast<unsigned int>(std::round(y));
-                            if (depth_buffer)
+                            // COMPUTE THE PIXEL COLOR BASED ON THE TYPE OF SHADING.
+                            // If flat shading is not specified, then regular interpolation is assumed.
+                            Color pixel_color = Color::BLACK;
+                            bool is_flat_shading = (SHADING::ShadingType::FLAT == shading_type);
+                            if (is_flat_shading)
                             {
-                                float current_pixel_depth = depth_buffer->GetDepth(current_pixel_x, current_pixel_y);
-                                bool current_pixel_in_front_of_old_pixels = (interpolated_z <= current_pixel_depth);
-                                if (!current_pixel_in_front_of_old_pixels)
+                                // AVERAGE THE VERTEX COLORS.
+                                const Color& first_vertex_color = triangle.Vertices[0].Color;
+                                const Color& second_vertex_color = triangle.Vertices[1].Color;
+                                const Color& third_vertex_color = triangle.Vertices[2].Color;
+
+                                constexpr float VERTEX_COUNT = static_cast<float>(GEOMETRY::Triangle::VERTEX_COUNT);
+                                float average_red = (first_vertex_color.Red + second_vertex_color.Red + third_vertex_color.Red) / VERTEX_COUNT;
+                                float average_green = (first_vertex_color.Green + second_vertex_color.Green + third_vertex_color.Green) / VERTEX_COUNT;
+                                float average_blue = (first_vertex_color.Blue + second_vertex_color.Blue + third_vertex_color.Blue) / VERTEX_COUNT;
+                                float average_alpha = (first_vertex_color.Alpha + second_vertex_color.Alpha + third_vertex_color.Alpha) / VERTEX_COUNT;
+
+                                /// @todo   Should we try some kind of texture mapping here?
+
+                                pixel_color = Color(average_red, average_green, average_blue, average_alpha);
+                            }
+                            else
+                            {
+                                // INTERPOLATE THE VERTEX COLORS.
+                                // The color needs to be interpolated for other kinds of shading.
+                                const Color& first_vertex_color = triangle.Vertices[0].Color;
+                                const Color& second_vertex_color = triangle.Vertices[1].Color;
+                                const Color& third_vertex_color = triangle.Vertices[2].Color;
+
+                                pixel_color.Red = (
+                                    (current_point_barycentric_coordinates.X * second_vertex_color.Red) +
+                                    (current_point_barycentric_coordinates.Y * third_vertex_color.Red) +
+                                    (current_point_barycentric_coordinates.Z * first_vertex_color.Red));
+                                pixel_color.Green = (
+                                    (current_point_barycentric_coordinates.X * second_vertex_color.Green) +
+                                    (current_point_barycentric_coordinates.Y * third_vertex_color.Green) +
+                                    (current_point_barycentric_coordinates.Z * first_vertex_color.Green));
+                                pixel_color.Blue = (
+                                    (current_point_barycentric_coordinates.X * second_vertex_color.Blue) +
+                                    (current_point_barycentric_coordinates.Y * third_vertex_color.Blue) +
+                                    (current_point_barycentric_coordinates.Z * first_vertex_color.Blue));
+                                
+                                // ADD TEXTURING IF APPLICABLE.
+                                if (rendering_settings.Shading.TextureMappingEnabled)
                                 {
-                                    // Continue to the next iteration of the loop in
-                                    // case there is another pixel to draw.
-                                    continue;
+                                    Color texture_color = Color::BLACK;
+
+                                    // ADD AMBIENT TEXTURING IF APPLICABLE.
+                                    if (rendering_settings.Shading.Lighting.AmbientLightingEnabled)
+                                    {
+                                        bool ambient_texture_exists = (nullptr != triangle.Material->AmbientProperties.Texture);
+                                        if (ambient_texture_exists)
+                                        {
+                                            Color ambient_texture_color = TextureMappingAlgorithm::LookupTexel(
+                                                triangle,
+                                                current_point,
+                                                *triangle.Material->AmbientProperties.Texture);
+                                            texture_color += ambient_texture_color;
+                                        }
+                                    }
+
+                                    // ADD DIFFUSE TEXTURING IF APPLICABLE.
+                                    if (rendering_settings.Shading.Lighting.DiffuseLightingEnabled)
+                                    {
+                                        bool diffuse_texture_exists = (nullptr != triangle.Material->DiffuseProperties.Texture);
+                                        if (diffuse_texture_exists)
+                                        {
+                                            Color diffuse_texture_color = TextureMappingAlgorithm::LookupTexel(
+                                                triangle,
+                                                current_point,
+                                                *triangle.Material->DiffuseProperties.Texture);
+                                            texture_color += diffuse_texture_color;
+                                        }
+                                    }
+
+                                    // ADD SPECULAR TEXTURING IF APPLICABLE.
+                                    if (rendering_settings.Shading.Lighting.SpecularLightingEnabled)
+                                    {
+                                        bool specular_texture_exists = (nullptr != triangle.Material->SpecularProperties.Texture);
+                                        if (specular_texture_exists)
+                                        {
+                                            Color specular_texture_color = TextureMappingAlgorithm::LookupTexel(
+                                                triangle,
+                                                current_point,
+                                                *triangle.Material->SpecularProperties.Texture);
+                                            specular_texture_color += specular_texture_color;
+                                        }
+                                    }
+
+                                    // ADD THE FINAL COMPUTED TEXTURE COLOR IF IT EXISTS.
+                                    // If no textures exist, the texture color would be left black, which would cancel out normal coloring
+                                    // (which is not desirable).
+                                    bool texture_coloring_exists = (Color::BLACK != texture_color);
+                                    if (texture_coloring_exists)
+                                    {
+                                        pixel_color = Color::ComponentMultiplyRedGreenBlue(pixel_color, texture_color);
+                                    }
                                 }
+
+                                // ENSURE THE COLOR IS WITHIN THE PROPER RANGE
+                                pixel_color.Clamp();
                             }
 
-                            // GET THE COLOR.
-                            /// @todo   Assuming all vertices have the same color here.
-                            Color face_color = triangle.Vertices[0].Color;
-
-                            // DRAW THE COLORED PIXEL.
-                            // The coordinates need to be rounded to integer in order
-                            // to plot a pixel on a fixed grid.
-                            render_target.WritePixel(
-                                current_pixel_x,
-                                current_pixel_y,
-                                face_color);
-                            if (depth_buffer)
-                            {
-                                depth_buffer->WriteDepth(current_pixel_x, current_pixel_y, interpolated_z);
-                            }
-                        }
-                    }
-                }
-                break;
-            }
-            case SHADING::ShadingType::FACE_VERTEX_COLOR_INTERPOLATION:
-            case SHADING::ShadingType::GOURAUD: /// @todo    This should be the same?
-            case SHADING::ShadingType::TEXTURED: /// @todo    This should be the same?
-            case SHADING::ShadingType::MATERIAL: /// @todo    This should be the same?
-            {
-#if OLD_BARYCENTRIC_COORDINATES
-                // COMPUTE THE BARYCENTRIC COORDINATES OF THE TRIANGLE VERTICES.
-                float top_vertex_signed_distance_from_bottom_edge = (
-                    ((second_vertex.Position.Y - third_vertex.Position.Y) * first_vertex.Position.X) +
-                    ((third_vertex.Position.X - second_vertex.Position.X) * first_vertex.Position.Y) +
-                    (second_vertex.Position.X * third_vertex.Position.Y) -
-                    (third_vertex.Position.X * second_vertex.Position.Y));
-                float right_vertex_signed_distance_from_left_edge = (
-                    ((second_vertex.Position.Y - first_vertex.Position.Y) * third_vertex.Position.X) +
-                    ((first_vertex.Position.X - second_vertex.Position.X) * third_vertex.Position.Y) +
-                    (second_vertex.Position.X * first_vertex.Position.Y) -
-                    (first_vertex.Position.X * second_vertex.Position.Y));
-#endif
-
-                // GET THE BOUNDING RECTANGLE OF THE TRIANGLE.
-                /// @todo   Create rectangle class.
-                float min_x = std::min({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
-                float max_x = std::max({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
-                float min_y = std::min({ first_vertex.Position.Y, second_vertex.Position.Y, third_vertex.Position.Y });
-                float max_y = std::max({ first_vertex.Position.Y, second_vertex.Position.Y, third_vertex.Position.Y });
-
-                // Endpoints are clamped to avoid trying to draw really huge lines off-screen.
-                constexpr float MIN_BITMAP_COORDINATE = 1.0f;
-
-                float max_x_position = static_cast<float>(render_target.GetWidthInPixels() - 1);
-                float clamped_min_x = MATH::Number::Clamp<float>(min_x, MIN_BITMAP_COORDINATE, max_x_position);
-                float clamped_max_x = MATH::Number::Clamp<float>(max_x, MIN_BITMAP_COORDINATE, max_x_position);
-
-                float max_y_position = static_cast<float>(render_target.GetHeightInPixels() - 1);
-                float clamped_min_y = MATH::Number::Clamp<float>(min_y, MIN_BITMAP_COORDINATE, max_y_position);
-                float clamped_max_y = MATH::Number::Clamp<float>(max_y, MIN_BITMAP_COORDINATE, max_y_position);
-
-                // COLOR PIXELS WITHIN THE TRIANGLE.
-                constexpr float ONE_PIXEL = 1.0f;
-                for (float y = clamped_min_y; y <= clamped_max_y; y += ONE_PIXEL)
-                {
-                    for (float x = clamped_min_x; x <= clamped_max_x; x += ONE_PIXEL)
-                    {
-#if OLD_BARYCENTRIC_COODINATES
-                        // COMPUTE THE BARYCENTRIC COORDINATES OF THE CURRENT PIXEL POSITION.
-                        // The following diagram shows the order of the vertices:
-                        //             first_vertex
-                        //                 /\
-                        //                /  \
-                        // second_vertex /____\ third_vertex
-                        float current_pixel_signed_distance_from_bottom_edge = (
-                            ((second_vertex.Position.Y - third_vertex.Position.Y) * x) +
-                            ((third_vertex.Position.X - second_vertex.Position.X) * y) +
-                            (second_vertex.Position.X * third_vertex.Position.Y) -
-                            (third_vertex.Position.X * second_vertex.Position.Y));
-                        float scaled_signed_distance_of_current_pixel_relative_to_bottom_edge = (current_pixel_signed_distance_from_bottom_edge / top_vertex_signed_distance_from_bottom_edge);
-
-                        float current_pixel_signed_distance_from_left_edge = (
-                            ((second_vertex.Position.Y - first_vertex.Position.Y) * x) +
-                            ((first_vertex.Position.X - second_vertex.Position.X) * y) +
-                            (second_vertex.Position.X * first_vertex.Position.Y) -
-                            (first_vertex.Position.X * second_vertex.Position.Y));
-                        float scaled_signed_distance_of_current_pixel_relative_to_left_edge = (current_pixel_signed_distance_from_left_edge / right_vertex_signed_distance_from_left_edge);
-
-                        float scaled_signed_distance_of_current_pixel_relative_to_right_edge = (
-                            1.0f -
-                            scaled_signed_distance_of_current_pixel_relative_to_left_edge -
-                            scaled_signed_distance_of_current_pixel_relative_to_bottom_edge);
-
-                        // CHECK IF THE PIXEL IS WITHIN THE TRIANGLE.
-                        float interpolated_z = DepthBuffer::MAX_DEPTH;
-                        // It's allowed to be on the borders too.
-                        constexpr float MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE = 0.0f;
-                        constexpr float MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX = 1.0f;
-                        bool pixel_between_bottom_edge_and_top_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= scaled_signed_distance_of_current_pixel_relative_to_bottom_edge) &&
-                            (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_between_left_edge_and_right_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= scaled_signed_distance_of_current_pixel_relative_to_left_edge) &&
-                            (scaled_signed_distance_of_current_pixel_relative_to_left_edge <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_between_right_edge_and_left_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= scaled_signed_distance_of_current_pixel_relative_to_right_edge) &&
-                            (scaled_signed_distance_of_current_pixel_relative_to_right_edge <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_in_triangle = (
-                            pixel_between_bottom_edge_and_top_vertex &&
-                            pixel_between_left_edge_and_right_vertex &&
-                            pixel_between_right_edge_and_left_vertex);
-#else
-                        float interpolated_z = DepthBuffer::MAX_DEPTH;
-                        MATH::Vector2f current_point(x, y);
-                        MATH::Vector3f current_point_barycentric_coordinates = triangle.BarycentricCoordinates2DOf(current_point);
-
-                        constexpr float MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE = 0.0f;
-                        constexpr float MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX = 1.0f;
-                        bool pixel_between_opposite_edge_and_center_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.X) &&
-                            (current_point_barycentric_coordinates.X <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_between_left_edge_and_right_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Y) &&
-                            (current_point_barycentric_coordinates.Y <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_between_right_edge_and_left_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Z) &&
-                            (current_point_barycentric_coordinates.Z <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_in_triangle = (
-                            pixel_between_opposite_edge_and_center_vertex &&
-                            pixel_between_left_edge_and_right_vertex &&
-                            pixel_between_right_edge_and_left_vertex);
-#endif
-                        if (pixel_in_triangle)
-                        {
-                            // The color needs to be interpolated with this kind of shading.
-                            Color interpolated_color = GRAPHICS::Color::BLACK;
-
-                            const Color& first_vertex_color = triangle.Vertices[0].Color;
-                            const Color& second_vertex_color = triangle.Vertices[1].Color;
-                            const Color& third_vertex_color = triangle.Vertices[2].Color;
-#if OLD_BARYCENTRIC_COORDINATES
-                            interpolated_color.Red = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_vertex_color.Red) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_vertex_color.Red) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex_color.Red));
-                            interpolated_color.Green = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_vertex_color.Green) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_vertex_color.Green) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex_color.Green));
-                            interpolated_color.Blue = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * second_vertex_color.Blue) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * third_vertex_color.Blue) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex_color.Blue));
-                            interpolated_color.Clamp();
-
-                            interpolated_z = (
-                                (scaled_signed_distance_of_current_pixel_relative_to_right_edge * third_vertex.Position.Z) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_left_edge * second_vertex.Position.Z) +
-                                (scaled_signed_distance_of_current_pixel_relative_to_bottom_edge * first_vertex.Position.Z));
-#else
-                            interpolated_color.Red = (
-                                (current_point_barycentric_coordinates.X * second_vertex_color.Red) +
-                                (current_point_barycentric_coordinates.Y * third_vertex_color.Red) +
-                                (current_point_barycentric_coordinates.Z * first_vertex_color.Red));
-                            interpolated_color.Green = (
-                                (current_point_barycentric_coordinates.X * second_vertex_color.Green) +
-                                (current_point_barycentric_coordinates.Y * third_vertex_color.Green) +
-                                (current_point_barycentric_coordinates.Z * first_vertex_color.Green));
-                            interpolated_color.Blue = (
-                                (current_point_barycentric_coordinates.X * second_vertex_color.Blue) +
-                                (current_point_barycentric_coordinates.Y * third_vertex_color.Blue) +
-                                (current_point_barycentric_coordinates.Z * first_vertex_color.Blue));
-                            interpolated_color.Clamp();
-
-                            interpolated_z = (
+                            // AVOID WRITING THE PIXEL IF ANOTHER PIXEL IS ALREADY IN FRONT OF IT.
+                            // The z-coordinate needs to be properly interpolated first.
+                            float interpolated_z = (
                                 (current_point_barycentric_coordinates.X * second_vertex.Position.Z) +
                                 (current_point_barycentric_coordinates.Y * third_vertex.Position.Z) +
                                 (current_point_barycentric_coordinates.Z * first_vertex.Position.Z));
-#endif
-
-                            if ((SHADING::ShadingType::TEXTURED == triangle.Material->Shading) && rendering_settings.Shading.TextureMappingEnabled)
-                            {
-                                Color texture_color = TextureMappingAlgorithm::LookupTexel(
-                                    triangle,
-                                    current_point,
-                                    *triangle.Material->DiffuseProperties.Texture);
-                                interpolated_color = Color::ComponentMultiplyRedGreenBlue(interpolated_color, texture_color);
-                                interpolated_color.Clamp();
-                            }
-
-                            // Apply depth buffering filtering if applicable.
+                            // The coordinates need to be rounded to integer in order to plot a pixel on a fixed grid.
                             unsigned int current_pixel_x = static_cast<unsigned int>(std::round(x));
                             unsigned int current_pixel_y = static_cast<unsigned int>(std::round(y));
                             if (depth_buffer)
@@ -585,12 +429,8 @@ namespace GRAPHICS::CPU_RENDERING
                                 }
                             }
 
-                            // The coordinates need to be rounded to integer in order
-                            // to plot a pixel on a fixed grid.
-                            render_target.WritePixel(
-                                current_pixel_x,
-                                current_pixel_y,
-                                interpolated_color);
+                            // WRITE THE FINAL COLOR AND DEPTH VALUES.
+                            render_target.WritePixel(current_pixel_x, current_pixel_y, pixel_color);
                             if (depth_buffer)
                             {
                                 depth_buffer->WriteDepth(current_pixel_x, current_pixel_y, interpolated_z);

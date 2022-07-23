@@ -297,7 +297,6 @@ namespace GRAPHICS::MODELING
 
                 /// @todo   Error-handling...different file types and texture formats!
                 std::shared_ptr<GRAPHICS::IMAGES::Bitmap> texture = GRAPHICS::IMAGES::Bitmap::LoadPng(texture_filepath, ColorFormat::RGBA);
-                current_material->Shading = SHADING::ShadingType::TEXTURED;
 
                 // SET THE APPROPRIATE TYPE OF TEXTURE ON THE MATERIAL.
                 /// @todo   Handle more kinds of texture maps besides ambient, diffuse, and specular!

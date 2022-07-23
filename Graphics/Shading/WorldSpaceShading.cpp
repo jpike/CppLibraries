@@ -1,97 +1,24 @@
-#include "Graphics/Shading/Lighting/Lighting.h"
-#include "Graphics/Shading/Shading.h"
-#include "Graphics/TextureMappingAlgorithm.h"
+#include "Graphics/Shading/WorldSpaceShading.h"
 
 namespace GRAPHICS::SHADING
 {
-    /// Computes shading for a vertex.
-    /// @param[in]  world_vertex - The world space vertex for which to compute lighting.
-    /// @param[in]  unit_vertex_normal - The unit surface normal for the vertex.
-    /// @param[in]  material - The material for the vertex.
-    /// @param[in]  viewing_world_position - The world position from where the vertex is being viewed.
-    /// @param[in]  lights - The lights potentially shining on the vertex.
-    /// @param[in]  rendering_settings - Settings for rendering.
-    /// @return The computed shading for the vertex.
-    Color Shading::Compute(
-        const VertexWithAttributes& world_vertex,
-        const MATH::Vector3f& unit_vertex_normal,
-        const Material& material,
-        const MATH::Vector3f& viewing_world_position,
-        const std::vector<LIGHTING::Light>& lights,
-        const RenderingSettings& rendering_settings)
-    {
-        // COMPUTE COLOR FROM LIGHTS IF APPLICABLE.
-        Color light_color = Color::WHITE;
-        if (rendering_settings.Shading.Lighting.Enabled)
-        {
-            light_color = LIGHTING::Lighting::Compute(
-                world_vertex.Position,
-                unit_vertex_normal,
-                material,
-                viewing_world_position,
-                lights,
-                rendering_settings);
-        }
-
-        // COMBINE LIGHTING WITH THE BASE VERTEX COLOR.
-        Color final_vertex_color = Color::ComponentMultiplyRedGreenBlue(world_vertex.Color, light_color);
-        final_vertex_color.Clamp();
-        return final_vertex_color;
-    }
-
-    /// @todo
-    Color Shading::Compute(
-        const GRAPHICS::RAY_TRACING::RayObjectIntersection& intersection,
-        const std::vector<LIGHTING::Light>& lights,
-        const ShadingSettings& shading_settings,
-        const std::vector<float> shadow_factors_by_light_index)
-    {
-        Color final_color = Color::BLACK;
-
-        switch (shading_settings.ShadingType)
-        {
-            case ShadingType::WIREFRAME:
-            case ShadingType::FLAT:
-            case ShadingType::FACE_VERTEX_COLOR_INTERPOLATION:
-            case ShadingType::GOURAUD:
-            case ShadingType::TEXTURED:
-            case ShadingType::MATERIAL:
-            default:
-            {
-                MATH::Vector3f intersection_point = intersection.IntersectionPoint();
-                final_color = ComputeMaterialShading(
-                    intersection.Ray->Origin,
-                    lights,
-                    intersection.Object,
-                    intersection_point,
-                    shading_settings,
-                    shadow_factors_by_light_index);
-
-                /// @todo   Handle different cases!
-                break;
-            }
-        }
-
-        return final_color;
-    }
-
     /// Computes material-based shading for a point.
+    /// @param[in]  surface_point - The point on the surface for which to compute shading.
+    /// @param[in]  surface - The surface for which shading is being computed.
     /// @param[in]  viewing_point - The point from which the surface is being viewed.
     /// @param[in]  lights - The lights for which to compute shading at the surface point.
-    /// @param[in]  surface - The surface for which shading is being computed.
-    /// @param[in]  surface_point - The point on the surface for which to compute shading.
-    /// @param[in]  shading_settings - Settings controlling the shading.
     /// @param[in]  shadow_factors_by_light_index - Shadowing factors to add in additional shadowing
     ///     (0 == full shadowing, 1 == no shadowing).  Must be computed externally since additional
     ///     scene information is needed.
+    /// @param[in]  shading_settings - Settings controlling the shading.
     /// @return The computed light color.
-    Color Shading::ComputeMaterialShading(
+    Color WorldSpaceShading::ComputeMaterialShading(
+        const MATH::Vector3f& surface_point,
+        const Surface& surface,
         const MATH::Vector3f& viewing_point,
         const std::vector<LIGHTING::Light>& lights,
-        const Surface& surface,
-        const MATH::Vector3f& surface_point,
-        const ShadingSettings& shading_settings,
-        const std::vector<float> shadow_factors_by_light_index)
+        const std::vector<float> shadow_factors_by_light_index,
+        const ShadingSettings& shading_settings)
     {
         // CHECK IF LIGHTING IS ENABLED.
         if (!shading_settings.Lighting.Enabled)
@@ -131,12 +58,12 @@ namespace GRAPHICS::SHADING
 
             // ADD LIGHTING FROM THE CURRENT LIGHT.
             Color current_light_color = ComputeMaterialShading(
+                surface_point,
+                surface,
                 viewing_point,
                 light,
-                surface,
-                surface_point,
-                shading_settings,
-                shadow_factor);
+                shadow_factor,
+                shading_settings);
             light_total_color += current_light_color;
         }
 
@@ -145,21 +72,21 @@ namespace GRAPHICS::SHADING
     }
 
     /// Computes material-based shading for a single light for a particular surface point.
+    /// @param[in]  surface_point - The point on the surface for which to compute shading.
+    /// @param[in]  surface - The surface for which lighting is being computed.
     /// @param[in]  viewing_point - The point from which the surface is being viewed.
     /// @param[in]  light - The light for which to compute shading at the surface point.
-    /// @param[in]  surface - The surface for which lighting is being computed.
-    /// @param[in]  surface_point - The point on the surface for which to compute shading.
-    /// @param[in]  shading_settings - Settings controlling the shading.
     /// @param[in]  shadow_factor - A shadowing factor to add in additional shadowing
     ///     (0 == full shadowing, 1 == no shadowing).
+    /// @param[in]  shading_settings - Settings controlling the shading.
     /// @return The computed light color.
-    Color Shading::ComputeMaterialShading(
+    Color WorldSpaceShading::ComputeMaterialShading(
+        const MATH::Vector3f& surface_point,
+        const Surface& surface,
         const MATH::Vector3f& viewing_point,
         const LIGHTING::Light& light,
-        const Surface& surface,
-        const MATH::Vector3f& surface_point,
-        const ShadingSettings& shading_settings,
-        float shadow_factor)
+        float shadow_factor,
+        const ShadingSettings& shading_settings)
     {
         // ENSURE A MATERIAL EXISTS.
         std::shared_ptr<Material> material = surface.GetMaterial();

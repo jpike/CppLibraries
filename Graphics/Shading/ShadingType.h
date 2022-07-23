@@ -12,15 +12,7 @@ namespace GRAPHICS::SHADING
         WIREFRAME = 0,
         /// Objects are rendered with a solid, flat color.
         FLAT,
-        /// Objects are rendered with colors interpolated across vertices across the entire face.
-        FACE_VERTEX_COLOR_INTERPOLATION,
-        /// Typical Gouraud shading, with diffuse and specular components computer per vertex.
-        GOURAUD,
-        /// Shading that incorporates a texture.
-        /// @todo   Should this be incorporated into something else?
-        TEXTURED,
-        /// Using material colors rather than vertex colors.
-        /// @todo   How to handle differences here?
+        /// Base shading the the material, with interpolation across the face and texture mapping if applicable.
         MATERIAL,
         /// An extra enum to indicate the number of different shading types.
         COUNT

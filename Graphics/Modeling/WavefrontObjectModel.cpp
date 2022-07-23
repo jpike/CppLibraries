@@ -5,6 +5,7 @@
 #include <tuple>
 #include <vector>
 #include "ErrorHandling/Asserts.h"
+#include "Graphics/Modeling/WavefrontFaceVertexAttributeIndices.h"
 #include "Graphics/Modeling/WavefrontObjectModel.h"
 #include "Graphics/Modeling/WavefrontMaterial.h"
 #include "String/String.hpp"
@@ -212,7 +213,7 @@ namespace GRAPHICS::MODELING
             if (is_face_line)
             {
                 // PARSE VERTEX ATTRIBUTE INDICES FOR THE FACE.
-                std::vector<FaceVertexAttributeIndices> face_vertex_attribute_indices;
+                std::vector<WavefrontFaceVertexAttributeIndices> face_vertex_attribute_indices;
                 constexpr std::size_t FIRST_VERTEX_INDEX = 1;
                 std::size_t line_actual_component_count = current_line_components.size();
                 for (std::size_t vertex_index = FIRST_VERTEX_INDEX; vertex_index < line_actual_component_count; ++vertex_index)
@@ -230,7 +231,7 @@ namespace GRAPHICS::MODELING
                     }
 
                     // PARSE THE APPROPRIATE VERTEX ATTRIBUTES INDICES FROM THE LINE.
-                    FaceVertexAttributeIndices current_face_vertex_attribute_indices;
+                    WavefrontFaceVertexAttributeIndices current_face_vertex_attribute_indices;
                     constexpr std::size_t ONLY_VERTEX_POSITION_INDICES_COMPONENT_COUNT = 1;
                     /// @todo   Does this properly handle missing texture coordinates and only positions + normals?
                     constexpr std::size_t VERTEX_POSITION_AND_TEXTURE_COORDINATE_INDICES_COMPONENT_COUNT = 2;
@@ -283,23 +284,23 @@ namespace GRAPHICS::MODELING
 
                 // CREATE A TRIANGLE FOR THE FACE.
                 constexpr std::size_t FACE_FIRST_VERTEX_INDEX = 0;
-                const FaceVertexAttributeIndices& first_vertex_attribute_indices = face_vertex_attribute_indices.at(FACE_FIRST_VERTEX_INDEX);
-                std::size_t first_vertex_position_index = first_vertex_attribute_indices.VertexPositionIndex - FaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
+                const WavefrontFaceVertexAttributeIndices& first_vertex_attribute_indices = face_vertex_attribute_indices.at(FACE_FIRST_VERTEX_INDEX);
+                std::size_t first_vertex_position_index = first_vertex_attribute_indices.VertexPositionIndex - WavefrontFaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
                 const MATH::Vector3f& first_vertex_position = vertex_positions.at(first_vertex_position_index);
 
                 /// @todo   Assume that the color is at the same as the position index?
                 GRAPHICS::Color first_vertex_color = GRAPHICS::Color::WHITE;
-                bool first_vertex_color_exists = (FaceVertexAttributeIndices::UNSET_INDEX != first_vertex_attribute_indices.VertexColorIndex);
+                bool first_vertex_color_exists = (WavefrontFaceVertexAttributeIndices::UNSET_INDEX != first_vertex_attribute_indices.VertexColorIndex);
                 if (first_vertex_color_exists)
                 {
                     first_vertex_color = vertex_colors.at(first_vertex_position_index);
                 }
 
                 MATH::Vector2f first_vertex_texture_coordinates;
-                bool first_vertex_texture_coordinates_exist = (FaceVertexAttributeIndices::UNSET_INDEX != first_vertex_attribute_indices.VertexTextureCoordinateIndex);
+                bool first_vertex_texture_coordinates_exist = (WavefrontFaceVertexAttributeIndices::UNSET_INDEX != first_vertex_attribute_indices.VertexTextureCoordinateIndex);
                 if (first_vertex_texture_coordinates_exist)
                 {
-                    std::size_t first_vertex_texture_coordinate_index = first_vertex_attribute_indices.VertexTextureCoordinateIndex - FaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
+                    std::size_t first_vertex_texture_coordinate_index = first_vertex_attribute_indices.VertexTextureCoordinateIndex - WavefrontFaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
                     first_vertex_texture_coordinates = vertex_texture_coordinates.at(first_vertex_texture_coordinate_index);
                 }
 
@@ -312,23 +313,23 @@ namespace GRAPHICS::MODELING
                 };
 
                 constexpr std::size_t FACE_SECOND_VERTEX_INDEX = FACE_FIRST_VERTEX_INDEX + 1;
-                const FaceVertexAttributeIndices& second_vertex_attribute_indices = face_vertex_attribute_indices.at(FACE_SECOND_VERTEX_INDEX);
-                std::size_t second_vertex_position_index = second_vertex_attribute_indices.VertexPositionIndex - FaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
+                const WavefrontFaceVertexAttributeIndices& second_vertex_attribute_indices = face_vertex_attribute_indices.at(FACE_SECOND_VERTEX_INDEX);
+                std::size_t second_vertex_position_index = second_vertex_attribute_indices.VertexPositionIndex - WavefrontFaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
                 const MATH::Vector3f& second_vertex_position = vertex_positions.at(second_vertex_position_index);
 
                 /// @todo   Assume that the color is at the same as the position index?
                 GRAPHICS::Color second_vertex_color = GRAPHICS::Color::WHITE;
-                bool second_vertex_color_exists = (FaceVertexAttributeIndices::UNSET_INDEX != second_vertex_attribute_indices.VertexColorIndex);
+                bool second_vertex_color_exists = (WavefrontFaceVertexAttributeIndices::UNSET_INDEX != second_vertex_attribute_indices.VertexColorIndex);
                 if (second_vertex_color_exists)
                 {
                     second_vertex_color = vertex_colors.at(second_vertex_position_index);
                 }
 
                 MATH::Vector2f second_vertex_texture_coordinates;
-                bool second_vertex_texture_coordinates_exist = (FaceVertexAttributeIndices::UNSET_INDEX != second_vertex_attribute_indices.VertexTextureCoordinateIndex);
+                bool second_vertex_texture_coordinates_exist = (WavefrontFaceVertexAttributeIndices::UNSET_INDEX != second_vertex_attribute_indices.VertexTextureCoordinateIndex);
                 if (second_vertex_texture_coordinates_exist)
                 {
-                    std::size_t second_vertex_texture_coordinate_index = second_vertex_attribute_indices.VertexTextureCoordinateIndex - FaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
+                    std::size_t second_vertex_texture_coordinate_index = second_vertex_attribute_indices.VertexTextureCoordinateIndex - WavefrontFaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
                     second_vertex_texture_coordinates = vertex_texture_coordinates.at(second_vertex_texture_coordinate_index);
                 }
 
@@ -341,23 +342,23 @@ namespace GRAPHICS::MODELING
                 };
 
                 constexpr std::size_t FACE_THIRD_VERTEX_INDEX = FACE_SECOND_VERTEX_INDEX + 1;
-                const FaceVertexAttributeIndices& third_vertex_attribute_indices = face_vertex_attribute_indices.at(FACE_THIRD_VERTEX_INDEX);
-                std::size_t third_vertex_position_index = third_vertex_attribute_indices.VertexPositionIndex - FaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
+                const WavefrontFaceVertexAttributeIndices& third_vertex_attribute_indices = face_vertex_attribute_indices.at(FACE_THIRD_VERTEX_INDEX);
+                std::size_t third_vertex_position_index = third_vertex_attribute_indices.VertexPositionIndex - WavefrontFaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
                 const MATH::Vector3f& third_vertex_position = vertex_positions.at(third_vertex_position_index);
 
                 /// @todo   Assume that the color is at the same as the position index?
                 GRAPHICS::Color third_vertex_color = GRAPHICS::Color::WHITE;
-                bool third_vertex_color_exists = (FaceVertexAttributeIndices::UNSET_INDEX != third_vertex_attribute_indices.VertexColorIndex);
+                bool third_vertex_color_exists = (WavefrontFaceVertexAttributeIndices::UNSET_INDEX != third_vertex_attribute_indices.VertexColorIndex);
                 if (third_vertex_color_exists)
                 {
                     third_vertex_color = vertex_colors.at(third_vertex_position_index);
                 }
 
                 MATH::Vector2f third_vertex_texture_coordinates;
-                bool third_vertex_texture_coordinates_exist = (FaceVertexAttributeIndices::UNSET_INDEX != third_vertex_attribute_indices.VertexTextureCoordinateIndex);
+                bool third_vertex_texture_coordinates_exist = (WavefrontFaceVertexAttributeIndices::UNSET_INDEX != third_vertex_attribute_indices.VertexTextureCoordinateIndex);
                 if (third_vertex_texture_coordinates_exist)
                 {
-                    std::size_t third_vertex_texture_coordinate_index = third_vertex_attribute_indices.VertexTextureCoordinateIndex - FaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
+                    std::size_t third_vertex_texture_coordinate_index = third_vertex_attribute_indices.VertexTextureCoordinateIndex - WavefrontFaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
                     third_vertex_texture_coordinates = vertex_texture_coordinates.at(third_vertex_texture_coordinate_index);
                 }
 
@@ -398,23 +399,23 @@ namespace GRAPHICS::MODELING
                 {
                     // EXTRACT THE FOURTH VERTEX.
                     constexpr std::size_t FACE_FOURTH_VERTEX_INDEX = FACE_THIRD_VERTEX_INDEX + 1;
-                    const FaceVertexAttributeIndices& fourth_vertex_attribute_indices = face_vertex_attribute_indices.at(FACE_FOURTH_VERTEX_INDEX);
-                    std::size_t fourth_vertex_position_index = fourth_vertex_attribute_indices.VertexPositionIndex - FaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
+                    const WavefrontFaceVertexAttributeIndices& fourth_vertex_attribute_indices = face_vertex_attribute_indices.at(FACE_FOURTH_VERTEX_INDEX);
+                    std::size_t fourth_vertex_position_index = fourth_vertex_attribute_indices.VertexPositionIndex - WavefrontFaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
                     const MATH::Vector3f& fourth_vertex_position = vertex_positions.at(fourth_vertex_position_index);
 
                     /// @todo   Assume that the color is at the same as the position index?
                     GRAPHICS::Color fourth_vertex_color = GRAPHICS::Color::WHITE;
-                    bool fourth_vertex_color_exists = (FaceVertexAttributeIndices::UNSET_INDEX != fourth_vertex_attribute_indices.VertexColorIndex);
+                    bool fourth_vertex_color_exists = (WavefrontFaceVertexAttributeIndices::UNSET_INDEX != fourth_vertex_attribute_indices.VertexColorIndex);
                     if (fourth_vertex_color_exists)
                     {
                         fourth_vertex_color = vertex_colors.at(fourth_vertex_position_index);
                     }
 
                     MATH::Vector2f fourth_vertex_texture_coordinates;
-                    bool fourth_vertex_texture_coordinates_exist = (FaceVertexAttributeIndices::UNSET_INDEX != fourth_vertex_attribute_indices.VertexTextureCoordinateIndex);
+                    bool fourth_vertex_texture_coordinates_exist = (WavefrontFaceVertexAttributeIndices::UNSET_INDEX != fourth_vertex_attribute_indices.VertexTextureCoordinateIndex);
                     if (fourth_vertex_texture_coordinates_exist)
                     {
-                        std::size_t fourth_vertex_texture_coordinate_index = fourth_vertex_attribute_indices.VertexTextureCoordinateIndex - FaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
+                        std::size_t fourth_vertex_texture_coordinate_index = fourth_vertex_attribute_indices.VertexTextureCoordinateIndex - WavefrontFaceVertexAttributeIndices::OFFSET_FROM_ZERO_BASED_INDEX;
                         fourth_vertex_texture_coordinates = vertex_texture_coordinates.at(fourth_vertex_texture_coordinate_index);
                     }
 

@@ -5,7 +5,7 @@
 #include <vector>
 #include "Graphics/Mesh.h"
 #include "Graphics/RayTracing/RayTracingAlgorithm.h"
-#include "Graphics/Shading/Lighting/Lighting.h"
+#include "Graphics/Shading/WorldSpaceShading.h"
 #include "Graphics/TextureMappingAlgorithm.h"
 #include "Math/Angle.h"
 
@@ -352,11 +352,14 @@ namespace GRAPHICS::RAY_TRACING
             }
 
             // ADD IN SHADING BASED ON LIGHTS.
-            Color shaded_color = GRAPHICS::SHADING::Shading::Compute(
-                intersection,
+            MATH::Vector3f intersection_point = intersection.IntersectionPoint();
+            Color shaded_color = GRAPHICS::SHADING::WorldSpaceShading::ComputeMaterialShading(
+                intersection_point,
+                intersection.Object,
+                intersection.Ray->Origin,
                 scene.Lights,
-                rendering_settings.Shading,
-                shadow_factors_by_light_index);
+                shadow_factors_by_light_index,
+                rendering_settings.Shading);
             final_color += shaded_color;
         }
 

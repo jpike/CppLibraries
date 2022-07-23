@@ -46,10 +46,12 @@ namespace GRAPHICS
 
         // LOOK UP THE TEXTURE COLOR AT THE COORDINATES.
         unsigned int texture_width_in_pixels = texture.GetWidthInPixels();
-        unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(texture_width_in_pixels * interpolated_texture_coordinate.X);
+        unsigned int max_texture_pixel_x_coordinate = texture_width_in_pixels - 1;
+        unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(max_texture_pixel_x_coordinate * interpolated_texture_coordinate.X);
 
         unsigned int texture_height_in_pixels = texture.GetHeightInPixels();
-        unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(texture_height_in_pixels * interpolated_texture_coordinate.Y);
+        unsigned int max_texture_pixel_y_coordinate = texture_height_in_pixels - 1;
+        unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(max_texture_pixel_y_coordinate * interpolated_texture_coordinate.Y);
 
         Color texel_color = texture.GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
         return texel_color;

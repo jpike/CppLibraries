@@ -718,6 +718,8 @@ namespace GRAPHICS::DIRECT_X
         const GRAPHICS::Scene& scene,
         const GRAPHICS::RenderingSettings& rendering_settings)
     {
+        ClearBackground(scene.BackgroundColor);
+
         unsigned int width_in_pixels = Window->GetWidthInPixels();
         unsigned int height_in_pixels = Window->GetHeightInPixels();
         float aspect_ratio = static_cast<float>(width_in_pixels) / static_cast<float>(height_in_pixels);

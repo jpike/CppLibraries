@@ -88,8 +88,7 @@ namespace GRAPHICS::CPU_RENDERING
             }
             case GRAPHICS::HARDWARE::GraphicsDeviceType::CPU_RAY_TRACER:
             {
-                GRAPHICS::RAY_TRACING::RayTracingAlgorithm ray_tracing_algorithm;
-                ray_tracing_algorithm.Render(
+                GRAPHICS::RAY_TRACING::RayTracingAlgorithm::Render(
                     scene,
                     rendering_settings,
                     ColorBuffer);

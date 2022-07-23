@@ -170,6 +170,16 @@ namespace GRAPHICS
         return true;
     }
 
+    /// Determines if two colors are unequal.
+    /// @param[in]  rhs - The color to compare with.
+    /// @return True if the provided color does not equal this color; false otherwise.
+    bool Color::operator!=(const Color& rhs) const
+    {
+        // CHECK IF THE COLORS ARE EQUAL.
+        bool colors_equal = (*this) == rhs;
+        return !colors_equal;
+    }
+
     /// Adds a color's components to this color.
     /// Clamping is performed.
     /// @param[in]  rhs - The color to add to this color.

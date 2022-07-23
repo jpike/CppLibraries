@@ -213,6 +213,8 @@ namespace GRAPHICS::OPEN_GL
             glDisable(GL_DEPTH_TEST);
         }
 
+        ClearBackground(scene.BackgroundColor);
+
         VIEWING::ViewingTransformations viewing_transformations(rendering_settings.Camera);
 
         std::optional< std::vector<GRAPHICS::SHADING::LIGHTING::Light>> lights = std::vector<GRAPHICS::SHADING::LIGHTING::Light>();
@@ -284,7 +286,7 @@ namespace GRAPHICS::OPEN_GL
                     // ALLOCATE A TEXTURE IF APPLICABLE.
                     // Must be done outside of glBegin()/glEnd() (http://docs.gl/gl2/glGenTextures).
                     GLuint texture = 0;
-                    bool is_textured = (SHADING::ShadingType::TEXTURED == triangle.Material->Shading);
+                    bool is_textured = (nullptr != triangle.Material->DiffuseProperties.Texture);
                     if (is_textured)
                     {
                         glGenTextures(1, &texture);

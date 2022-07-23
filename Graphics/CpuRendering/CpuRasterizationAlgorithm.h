@@ -18,7 +18,6 @@ namespace GRAPHICS::CPU_RENDERING
 {
     /// A software (non-graphics hardware) rasterization algorithm
     /// (http://en.wikipedia.org/wiki/Rasterisation) for rendering.
-    /// @todo   Alpha blending
     class CpuRasterizationAlgorithm
     {
     public:

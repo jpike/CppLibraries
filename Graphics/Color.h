@@ -48,6 +48,7 @@ namespace GRAPHICS
 
         // OPERATORS.
         bool operator==(const Color& rhs) const;
+        bool operator!=(const Color& rhs) const;
         Color& operator+=(const Color& rhs);
 
         // FLOATING-POINT ACCESS.
