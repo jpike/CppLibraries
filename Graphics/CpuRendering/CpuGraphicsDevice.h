@@ -28,6 +28,7 @@ namespace GRAPHICS::CPU_RENDERING
         void ClearBackground(const GRAPHICS::Color& color) override;
         void Render(
             const GRAPHICS::Scene& scene,
+            const VIEWING::Camera& camera,
             const GRAPHICS::RenderingSettings& rendering_settings) override;
         void DisplayRenderedImage(WINDOWING::IWindow& window) override;
 

@@ -34,7 +34,7 @@ namespace GRAPHICS::GEOMETRY
         MATH::Vector3f SurfaceNormal() const;
         std::optional<RAY_TRACING::RayObjectIntersection> Intersect(const RAY_TRACING::Ray& ray) const;
         MATH::Vector3f BarycentricCoordinates2DOf(const MATH::Vector2f& point) const;
-        float SignedDistanceOfPointFromEdge2D(const MATH::Vector2f& edge_start_position, const MATH::Vector2f& edge_end_position, const MATH::Vector2f& point) const;
+        static float SignedDistanceOfPointFromEdge2D(const MATH::Vector2f& edge_start_position, const MATH::Vector2f& edge_end_position, const MATH::Vector2f& point);
         MATH::Vector3f BarycentricCoordinates3DOf(const MATH::Vector3f& point) const;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.

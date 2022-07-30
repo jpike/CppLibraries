@@ -25,12 +25,14 @@ namespace GRAPHICS::CPU_RENDERING
 
         static void Render(
             const Scene& scene, 
+            const VIEWING::Camera& camera,
             const RenderingSettings& rendering_settings,
             IMAGES::Bitmap& output_bitmap,
             DepthBuffer* depth_buffer);
         static void Render(
             const Object3D& object_3D, 
             const std::vector<SHADING::LIGHTING::Light>& lights, 
+            const VIEWING::Camera& camera,
             const RenderingSettings& rendering_settings,
             IMAGES::Bitmap& output_bitmap,
             DepthBuffer* depth_buffer);

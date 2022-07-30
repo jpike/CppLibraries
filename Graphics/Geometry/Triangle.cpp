@@ -162,7 +162,7 @@ namespace GRAPHICS::GEOMETRY
     /// @param[in]  edge_end_position - The end position of the edge.
     /// @param[in]  point - The point for which to compute the signed distance.
     /// @return The signed distance of the point from an edge.
-    float Triangle::SignedDistanceOfPointFromEdge2D(const MATH::Vector2f& edge_start_position, const MATH::Vector2f& edge_end_position, const MATH::Vector2f& point) const
+    float Triangle::SignedDistanceOfPointFromEdge2D(const MATH::Vector2f& edge_start_position, const MATH::Vector2f& edge_end_position, const MATH::Vector2f& point)
     {
         // The equations below is simplified to final form for easier computation.
         // See books like "Fundamental of Computer Graphics" by Peter Shirley and Steve Marschner (3rd edition - section 2.7.1)

@@ -18,11 +18,16 @@ namespace GRAPHICS::RAY_TRACING
     {
     public:
         // MAIN RENDERING METHOD.
-        static void Render(const Scene& scene, const RenderingSettings& rendering_settings, GRAPHICS::IMAGES::Bitmap& render_target);
+        static void Render(
+            const Scene& scene, 
+            const VIEWING::Camera& camera, 
+            const RenderingSettings& rendering_settings, 
+            GRAPHICS::IMAGES::Bitmap& render_target);
 
         // RENDERING PARALLELIZATION HELPER METHOD.
         static void RenderRows(
             const Scene& scene_with_world_space_objects,
+            const VIEWING::Camera& camera,
             const RenderingSettings& rendering_settings,
             const unsigned int pixel_start_y,
             const unsigned int pixel_end_y,

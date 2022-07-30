@@ -72,10 +72,10 @@ namespace GRAPHICS
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The red component of the color.
         float Red = 0.0f;
-        /// The blue component of the color.
-        float Blue = 0.0f;
         /// The green component of the color.
         float Green = 0.0f;
+        /// The blue component of the color.
+        float Blue = 0.0f;
         /// The alpha component of the color.
         float Alpha = 1.0f;
 

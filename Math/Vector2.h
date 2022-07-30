@@ -182,7 +182,7 @@ namespace MATH
         // The dot product computes x*x + y*y.
         // The length is the square root of this (the distance formula).
         ComponentType length_squared = Vector2<ComponentType>::DotProduct(*this, *this);
-        ComponentType length = sqrt(length_squared);
+        ComponentType length = static_cast<ComponentType>(sqrt(length_squared));
         return length;
     }
 }

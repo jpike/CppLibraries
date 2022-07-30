@@ -9,6 +9,7 @@
 #include "Graphics/Geometry/Cube.cpp"
 #include "Graphics/Geometry/Sphere.cpp"
 #include "Graphics/Geometry/Triangle.cpp"
+#include "Graphics/Geometry/TriangleSimd8x.cpp"
 
 #include "Graphics/Gui/Font.cpp"
 #include "Graphics/Gui/Glyph.cpp"

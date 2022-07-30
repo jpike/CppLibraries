@@ -2,9 +2,22 @@
 
 #include <cmath>
 #include <string>
+#include <intrin.h>
 
 namespace MATH
 {
+    /// 3D mathematical vectors using 8-wide SIMD components.
+    class Vector3Simd8x
+    {
+    public:
+        /// The x components of the vectors.
+        __m256 X;
+        /// The y components of the vectors.
+        __m256 Y;
+        /// The z components of the vectors.
+        __m256 Z;
+    };
+
     /// A 3D mathematical vector with both magnitude and direction.
     /// It currently only has the minimal functionality needed,
     /// so it cannot directly perform all common vector operations.

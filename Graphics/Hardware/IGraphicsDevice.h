@@ -39,9 +39,11 @@ namespace GRAPHICS::HARDWARE
         virtual void ClearBackground(const GRAPHICS::Color& color) = 0;
         /// Renders the specified scene using the graphics device.
         /// @param[in]  scene - The scene to render.
+        /// @param[in]  camera - The camera through which the scene is being viewed.
         /// @param[in]  rendering_settings - The settings to use for rendering.
         virtual void Render(
             const GRAPHICS::Scene& scene,
+            const VIEWING::Camera& camera,
             const GRAPHICS::RenderingSettings& rendering_settings) = 0;
         /// Displays the rendered image from the graphics device.
         /// @param[in,out]  window - The window in which to display the image.

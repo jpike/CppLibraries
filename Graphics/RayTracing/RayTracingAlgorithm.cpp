@@ -13,9 +13,14 @@ namespace GRAPHICS::RAY_TRACING
 {
     /// Renders a scene to the specified render target.
     /// @param[in]  scene - The scene to render.
+    /// @param[in]  camera - The camera through which the scene is being viewed.
     /// @param[in]  rendering_settings - The settings to use for rendering.
     /// @param[in,out]  render_target - The target to render to.
-    void RayTracingAlgorithm::Render(const Scene& scene, const RenderingSettings& rendering_settings, GRAPHICS::IMAGES::Bitmap& render_target)
+    void RayTracingAlgorithm::Render(
+        const Scene& scene, 
+        const VIEWING::Camera& camera,
+        const RenderingSettings& rendering_settings, 
+        GRAPHICS::IMAGES::Bitmap& render_target)
     {
         // TRANSFORM OBJECTS IN THE SCENE INTO WORLD SPACE.
         Scene scene_with_world_space_objects;
@@ -90,10 +95,11 @@ namespace GRAPHICS::RAY_TRACING
             // START RENDERING THE CURRENT BLOCK OF ROWS IN A NEW THREAD.
             std::future<void> ray_tracing_thread = std::async(
                 std::launch::async,
-                [&scene_with_world_space_objects, &rendering_settings, pixel_start_y, pixel_end_y, &render_target]()
+                [&scene_with_world_space_objects, &camera, &rendering_settings, pixel_start_y, pixel_end_y, &render_target]()
                 {
                     RayTracingAlgorithm::RenderRows(
                         scene_with_world_space_objects,
+                        camera,
                         rendering_settings,
                         pixel_start_y,
                         pixel_end_y,
@@ -111,12 +117,14 @@ namespace GRAPHICS::RAY_TRACING
 
     /// Renders rows of pixels for a scene using ray tracing.
     /// @param[in]  scene_with_world_space_objects - The scene with world space objects to render.
+    /// @param[in]  camera - The camera through which the scene is being viewed.
     /// @param[in]  rendering_settings - General rendering settings to use.
     /// @param[in]  pixel_start_y - The starting y coordinate of the rows to render.
     /// @param[in]  pixel_end_y - The ending y coordinate of the rows to render.
     /// @param[in,out]  render_target - The target to render to.
     void RayTracingAlgorithm::RenderRows(
         const Scene& scene_with_world_space_objects,
+        const VIEWING::Camera& camera,
         const RenderingSettings& rendering_settings,
         const unsigned int pixel_start_y,
         const unsigned int pixel_end_y,
@@ -131,7 +139,7 @@ namespace GRAPHICS::RAY_TRACING
             {
                 // COMPUTE THE VIEWING RAY.
                 MATH::Vector2ui pixel_coordinates(x, y);
-                Ray ray = rendering_settings.Camera.ViewingRay(pixel_coordinates, render_target);
+                Ray ray = camera.ViewingRay(pixel_coordinates, render_target);
 
                 // FIND THE CLOSEST OBJECT IN THE SCENE THAT THE RAY INTERSECTS.
                 std::optional<RayObjectIntersection> closest_intersection = ComputeClosestIntersection(scene_with_world_space_objects, ray);

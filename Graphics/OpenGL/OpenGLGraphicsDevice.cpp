@@ -198,10 +198,12 @@ namespace GRAPHICS::OPEN_GL
 
     /// Renders the specified scene using the graphics device.
     /// @param[in]  scene - The scene to render.
+    /// @param[in]  camera - The camera through which the scene is being viewed.
     /// @param[in]  rendering_settings - The settings to use for rendering.
     /// @todo   Use all of rendering settings.
     void OpenGLGraphicsDevice::Render(
         const GRAPHICS::Scene& scene,
+        const VIEWING::Camera& camera,
         const GRAPHICS::RenderingSettings& rendering_settings)
     {
         if (rendering_settings.DepthBuffering)
@@ -215,7 +217,7 @@ namespace GRAPHICS::OPEN_GL
 
         ClearBackground(scene.BackgroundColor);
 
-        VIEWING::ViewingTransformations viewing_transformations(rendering_settings.Camera);
+        VIEWING::ViewingTransformations viewing_transformations(camera);
 
         std::optional< std::vector<GRAPHICS::SHADING::LIGHTING::Light>> lights = std::vector<GRAPHICS::SHADING::LIGHTING::Light>();
         lights->emplace_back(
