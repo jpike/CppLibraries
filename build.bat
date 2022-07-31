@@ -276,7 +276,7 @@ int main()
     {
         .Type = ProjectType::LIBRARY,
         .Name = "String",
-        .CodeFolderPath = workspace_folder_path, /// @todo  This is hacked to avoid confusion with String.h for official string headers.
+        .CodeFolderPath = workspace_folder_path / "String",
         .UnityBuildFilepath = workspace_folder_path / "String/String.project",
         .LinkerLibraryNames = { "String.lib" },
     };

@@ -14,7 +14,6 @@ namespace GRAPHICS::GUI
         Color GetPixelColor(const unsigned int local_x, const unsigned int local_y) const;
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
-        /// @todo   Make some member variables private?
         /// The width of the glyph, in pixels.
         unsigned int WidthInPixels = 0;
         /// The height of the glyph, in pixels.

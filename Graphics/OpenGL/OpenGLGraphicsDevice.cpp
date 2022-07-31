@@ -84,12 +84,16 @@ void main()
     {
         vec4 texture_color = texture(texture_sampler, fragment_shader_input.texture_coordinates);
         vec4 lit_texture_color = texture_color * fragment_shader_input.light_color;
-        fragment_color = vec4(lit_texture_color.xyz, 1.0);
+        /// @todo   Color components swapped for some reason.
+        //fragment_color = vec4(lit_texture_color.xyz, 1.0);
+        fragment_color = vec4(lit_texture_color.wzy, 1.0);
     }
     else
     {
         vec4 lit_color = fragment_shader_input.color * fragment_shader_input.light_color;
-        fragment_color = vec4(lit_color.xyz, 1.0);
+        /// @todo   Color components swapped for some reason.
+        //fragment_color = vec4(lit_color.xyz, 1.0);
+        fragment_color = vec4(lit_color.wzy, 1.0);
     }
 }
 )GLSL";

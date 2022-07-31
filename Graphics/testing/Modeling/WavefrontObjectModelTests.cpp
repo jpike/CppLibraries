@@ -109,7 +109,7 @@ f 1 2 3 4
     REQUIRE(expected_triangles == mesh.Triangles);
 
     // DELETE THE MODEL FILE.
-    /// @todo std::filesystem::remove(MODEL_FILEPATH);
+    std::filesystem::remove(MODEL_FILEPATH);
 }
 
 TEST_CASE("A basic cube can be loaded.", "[WavefrontObjectModel][Load]")
@@ -243,7 +243,7 @@ f 2 6 7 3
     REQUIRE(expected_triangles == mesh.Triangles);
 
     // DELETE THE MODEL FILE.
-    /// @todo std::filesystem::remove(MODEL_FILEPATH);
+    std::filesystem::remove(MODEL_FILEPATH);
 }
 
 TEST_CASE("A texture-mapped square can be loaded.", "[WavefrontObjectModel][Load]")
@@ -351,7 +351,7 @@ f 1/1 2/2 3/3 4/4
     };
     REQUIRE(expected_triangles == mesh.Triangles);
 
-    // DELETE THE MODEL FILE.
-    /// @todo std::filesystem::remove(MODEL_FILEPATH);
-    /// @todo std::filesystem::remove(MATERIAL_LIBRARY_FILEPATH);
+    // DELETE THE MODEL FILES.
+    std::filesystem::remove(MODEL_FILEPATH);
+    std::filesystem::remove(MATERIAL_LIBRARY_FILEPATH);
 }

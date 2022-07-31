@@ -68,7 +68,7 @@ PixelInput VertexShaderEntryPoint(VertexInput vertex_input)
         float3 unit_direction_from_point_to_light = normalize(direction_from_vertex_to_light);
         float illumination_proportion = dot(vertex_input.Normal.xyz, unit_direction_from_point_to_light);
         float clamped_illumination = max(0, illumination_proportion);
-        float3 scaled_light_color = clamped_illumination * InputLightColor.rgb;
+        float4 scaled_light_color = clamped_illumination * InputLightColor.rgba;
         pixel_input.LightColor = float4(scaled_light_color.rgb, 1.0);
     }
     else
@@ -100,12 +100,16 @@ float4 PixelShaderEntryPoint(PixelInput pixel_input): SV_TARGET
     {
         float4 texture_color = texture_image.Sample(texture_sampler_state, pixel_input.TextureCoordinates);
         float4 lit_texture_color = texture_color * pixel_input.LightColor;
-        return float4(lit_texture_color.rgb, 1.0);
+        /// @todo   Color components swapped for some reason.
+        //return float4(lit_texture_color.rgb, 1.0);
+        return float4(lit_texture_color.wzy, 1.0);
     }
     else
     {
         float4 lit_color = pixel_input.Color * pixel_input.LightColor;
-        return float4(lit_color.rgb, 1.0);
+        /// @todo   Color components swapped for some reason.
+        //return float4(lit_color.rgb, 1.0);
+        return float4(lit_color.wzy, 1.0);
     }
 }
 )HLSL";

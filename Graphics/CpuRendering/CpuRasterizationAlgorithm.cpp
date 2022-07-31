@@ -36,7 +36,6 @@ namespace GRAPHICS::CPU_RENDERING
                 for (unsigned int glyph_local_pixel_x_position = 0; glyph_local_pixel_x_position < glyph.WidthInPixels; ++glyph_local_pixel_x_position)
                 {
                     // ONLY WRITE THE PIXEL IF IT IS VISIBLE.
-                    /// @todo   Fancier alpha blending?
                     GRAPHICS::Color pixel_color = glyph.GetPixelColor(glyph_local_pixel_x_position, glyph_local_pixel_y_position);
                     bool pixel_visible = (pixel_color.Alpha > 0);
                     if (pixel_visible)
@@ -66,20 +65,16 @@ namespace GRAPHICS::CPU_RENDERING
         IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
     {
-        /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(scene)");
-
         // CLEAR THE BACKGROUND.
         output_bitmap.FillPixels(scene.BackgroundColor);
         if (depth_buffer)
         {
-            /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(scene) - ClearToDepth");
             depth_buffer->ClearToDepth(DepthBuffer::MAX_DEPTH);
         }
 
         // RENDER EACH OBJECT IN THE SCENE.
         for (const auto& object_3D : scene.Objects)
         {
-            /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(scene) - Render object");
             Render(object_3D, scene.Lights, camera, rendering_settings, output_bitmap, depth_buffer);
         }
     }
@@ -99,8 +94,6 @@ namespace GRAPHICS::CPU_RENDERING
         IMAGES::Bitmap& output_bitmap,
         DepthBuffer* depth_buffer)
     {
-        /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(object_3D)");
-
         // GET RE-USED TRANSFORMATIONS.
         // This is done before the loop to avoid performance hits for repeatedly calculating these matrices.
         MATH::Matrix4x4f object_world_transform = object_3D.WorldTransform();
@@ -109,8 +102,6 @@ namespace GRAPHICS::CPU_RENDERING
         // RENDER EACH MESH OF THE OBJECT.
         for (const auto& [mesh_name, mesh] : object_3D.Model.MeshesByName)
         {
-            /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(object_3D) - Mesh loop");
-
             // SKIP OVER INVISIBLE MESHES.
             if (!mesh.Visible)
             {
@@ -120,8 +111,6 @@ namespace GRAPHICS::CPU_RENDERING
             // RENDER EACH TRIANGLE OF THE MESH.
             for (const auto& local_triangle : mesh.Triangles)
             {
-                /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(object_3D) - Triangle loop");
-
                 // TRANSFORM THE TRIANGLE INTO WORLD SPACE.
                 GEOMETRY::Triangle world_space_triangle = TransformLocalToWorld(local_triangle, object_world_transform);
 
@@ -150,8 +139,6 @@ namespace GRAPHICS::CPU_RENDERING
                 // COMPUTE VERTEX COLORS.
                 for (std::size_t vertex_index = 0; vertex_index < GEOMETRY::Triangle::VERTEX_COUNT; ++vertex_index)
                 {
-                    /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(object_3D) - Vertex loop");
-
                     // SHADE THE CURRENT VERTEX.
                     const VertexWithAttributes& current_world_vertex = world_space_triangle.Vertices[vertex_index];
 
@@ -212,8 +199,6 @@ namespace GRAPHICS::CPU_RENDERING
         IMAGES::Bitmap& render_target,
         DepthBuffer* depth_buffer)
     {
-        /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(triangle)");
-
         // GET THE VERTICES.
         // They're needed for all kinds of shading.
         const VertexWithAttributes& first_vertex = triangle.Vertices[0];
@@ -281,8 +266,6 @@ namespace GRAPHICS::CPU_RENDERING
             case SHADING::ShadingType::FLAT:
             case SHADING::ShadingType::MATERIAL:
             {
-                /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(triangle) - Material shading");
-
                 // GET THE BOUNDING RECTANGLE OF THE TRIANGLE.
                 float min_x = std::min({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
                 float max_x = std::max({ first_vertex.Position.X, second_vertex.Position.X, third_vertex.Position.X });
@@ -523,9 +506,6 @@ namespace GRAPHICS::CPU_RENDERING
                 {
                     for (float x = clamped_min_x; x <= clamped_max_x; x += ONE_PIXEL)
                     {
-                        /// @todo   If we do this in SIMD, this is probably the biggest potential for speedups.
-                        /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(triangle) - Material pixel single loop");
-
                         // CHECK IF THE CURRENT PIXEL IS WITHIN THE TRIANGLE.
                         MATH::Vector2f current_point(x, y);
                         MATH::Vector3f current_point_barycentric_coordinates = triangle.BarycentricCoordinates2DOf(current_point);
@@ -570,9 +550,6 @@ namespace GRAPHICS::CPU_RENDERING
                             }
                             else
                             {
-                                /// @todo   Note - this is mainly the bottleneck in this method.  About 5000 ticks per pixel.
-                                /// @todo DEBUGGING::HighResolutionTimer timer("CpuRasterizationAlgorithm::Render(triangle) - Material pixel shading");
-
                                 // INTERPOLATE THE VERTEX COLORS.
                                 // The color needs to be interpolated for other kinds of shading.
                                 const Color& first_vertex_color = triangle.Vertices[0].Color;
