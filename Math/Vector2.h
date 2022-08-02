@@ -1,10 +1,21 @@
 #pragma once
 
 #include <cmath>
+#include <intrin.h>
 
 /// Holds code related to math.
 namespace MATH
 {
+    /// 2D mathematical vectors using 8-wide SIMD components.
+    class Vector2Simd8x
+    {
+    public:
+        /// The x components of the vectors.
+        __m256 X;
+        /// The y components of the vectors.
+        __m256 Y;
+    };
+
     /// A 2D mathematical vector with both magnitude and direction.
     /// It currently only has the minimal functionality needed,
     /// so it cannot directly perform all common vector operations.

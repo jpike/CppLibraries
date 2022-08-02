@@ -10,6 +10,8 @@ namespace GRAPHICS
     {
         /// The type of renderer to use.
         GRAPHICS::HARDWARE::GraphicsDeviceType GraphicsDeviceType = GRAPHICS::HARDWARE::GraphicsDeviceType::CPU_RASTERIZER;
+        /// True if SIMD instructions should be used for CPU rendering (currently only rasterization supported).
+        bool UseCpuSimd = false;
         /// True if backface culling should occur; false if not.
         bool CullBackfaces = false;
         /// True if depth buffering should be used; false if not.

@@ -283,132 +283,384 @@ namespace GRAPHICS::CPU_RENDERING
                 float clamped_min_y = MATH::Number::Clamp<float>(min_y, MIN_BITMAP_COORDINATE, max_y_position);
                 float clamped_max_y = MATH::Number::Clamp<float>(max_y, MIN_BITMAP_COORDINATE, max_y_position);
 
-#if SIMD
-                // LOAD THE TRIANGLE INTO SIMD FORMAT.
-                GEOMETRY::TriangleSimd8x simd_triangle = GEOMETRY::TriangleSimd8x::Load(triangle);
-
-                // COLOR PIXELS WITHIN THE TRIANGLE.
-                constexpr float ONE_PIXEL = 1.0f;
-                for (float y = clamped_min_y; y <= clamped_max_y; y += ONE_PIXEL)
+                /// @todo   Clean-up all of this SIMD code if we think it might provide significant enough speed benefits.
+                ///     Right now, it provides about a 20 FPS increase over the non-SIMD path in release mode,
+                ///     which is a nice enough speed benefit but may not be enough yet to warrant further effort in the SIMD path.
+                if (rendering_settings.UseCpuSimd)
                 {
-                    constexpr float SIMD_AVX_REGISTER_ELEMENT_COUNT = 8.0f;
-                    for (float x = clamped_min_x; x <= clamped_max_x; x += SIMD_AVX_REGISTER_ELEMENT_COUNT)
+                    // LOAD THE TRIANGLE INTO SIMD FORMAT.
+                    GEOMETRY::TriangleSimd8x simd_triangle = GEOMETRY::TriangleSimd8x::Load(triangle);
+
+                    // COLOR PIXELS WITHIN THE TRIANGLE.
+                    constexpr float ONE_PIXEL = 1.0f;
+                    for (float y = clamped_min_y; y <= clamped_max_y; y += ONE_PIXEL)
                     {
-                        // LOAD THE CURRENT POINT INTO SIMD FORMAT.
-                        // r version maps to more intuitive memory order.
-                        __m256 current_point_x_coordinates = _mm256_setr_ps(
-                            x,
-                            x + 1.0f,
-                            x + 2.0f,
-                            x + 3.0f,
-                            x + 4.0f,
-                            x + 5.0f,
-                            x + 6.0f,
-                            x + 7.0f);
-                        __m256 current_point_y_coordinates = _mm256_set1_ps(y);
-                        MATH::Vector2<__m256> current_points(current_point_x_coordinates, current_point_y_coordinates);
-
-                        // COMPUTE THE BARYCENTRIC COORDINATES OF THE CURRENT POINTS.
-                        MATH::Vector3Simd8x current_point_barycentric_coordinates = simd_triangle.BarycentricCoordinates2DOf(current_points);
-
-                        // CHECK IF THE POINTS ARE WITHIN THE TRIANGLE.
-                        const __m256 MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE = _mm256_set1_ps(0.0f);
-                        const __m256 MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX = _mm256_set1_ps(1.0f);
-                        __m256 pixels_x_on_inner_side_of_edge = _mm256_cmp_ps(MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE, current_point_barycentric_coordinates.X, _CMP_LE_OS);
-                        __m256 pixels_x_on_inner_side_of_vertex = _mm256_cmp_ps(current_point_barycentric_coordinates.X, MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX, _CMP_LE_OS);
-                        __m256 pixels_x_in_triangle = _mm256_and_ps(pixels_x_on_inner_side_of_edge, pixels_x_on_inner_side_of_vertex);
-
-                        __m256 pixels_y_on_inner_side_of_edge = _mm256_cmp_ps(MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE, current_point_barycentric_coordinates.Y, _CMP_LE_OS);
-                        __m256 pixels_y_on_inner_side_of_vertex = _mm256_cmp_ps(current_point_barycentric_coordinates.Y, MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX, _CMP_LE_OS);
-                        __m256 pixels_y_in_triangle = _mm256_and_ps(pixels_y_on_inner_side_of_edge, pixels_y_on_inner_side_of_vertex);
-
-                        __m256 pixels_z_on_inner_side_of_edge = _mm256_cmp_ps(MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE, current_point_barycentric_coordinates.Z, _CMP_LE_OS);
-                        __m256 pixels_z_on_inner_side_of_vertex = _mm256_cmp_ps(current_point_barycentric_coordinates.Z, MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX, _CMP_LE_OS);
-                        __m256 pixels_z_in_triangle = _mm256_and_ps(pixels_z_on_inner_side_of_edge, pixels_z_on_inner_side_of_vertex);
-
-                        __m256 pixels_x_y_in_triangle = _mm256_and_ps(pixels_x_in_triangle, pixels_y_in_triangle);
-                        __m256 pixels_in_triangle = _mm256_and_ps(pixels_x_y_in_triangle, pixels_z_in_triangle);;
-
-#if SIMD_DEBUG
-                        float pixel_indices_in_triangle[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
-                        _mm256_store_ps(pixel_indices_in_triangle, pixels_in_triangle);
-
-                        for (std::size_t pixel_x_offset = 0; pixel_x_offset < static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT); ++pixel_x_offset)
+                        constexpr float SIMD_AVX_REGISTER_ELEMENT_COUNT = 8.0f;
+                        for (float x = clamped_min_x; x <= clamped_max_x; x += SIMD_AVX_REGISTER_ELEMENT_COUNT)
                         {
-                            unsigned int current_pixel_x = static_cast<unsigned int>(std::round(x + static_cast<float>(pixel_x_offset)));
-                            unsigned int current_pixel_y = static_cast<unsigned int>(std::round(y));
+                            // LOAD THE CURRENT POINT INTO SIMD FORMAT.
+                            // r version maps to more intuitive memory order.
+                            __m256 current_point_x_coordinates = _mm256_setr_ps(
+                                x,
+                                x + 1.0f,
+                                x + 2.0f,
+                                x + 3.0f,
+                                x + 4.0f,
+                                x + 5.0f,
+                                x + 6.0f,
+                                x + 7.0f);
+                            __m256 current_point_y_coordinates = _mm256_set1_ps(y);
+                            MATH::Vector2<__m256> current_points(current_point_x_coordinates, current_point_y_coordinates);
 
-                            float current_pixel_in_triangle = pixel_indices_in_triangle[pixel_x_offset];
-                            if (std::isnan(current_pixel_in_triangle))
+                            // COMPUTE THE BARYCENTRIC COORDINATES OF THE CURRENT POINTS.
+                            MATH::Vector3Simd8x current_point_barycentric_coordinates = simd_triangle.BarycentricCoordinates2DOf(current_points);
+
+                            // CHECK IF THE POINTS ARE WITHIN THE TRIANGLE.
+                            const __m256 MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE = _mm256_set1_ps(0.0f);
+                            const __m256 MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX = _mm256_set1_ps(1.0f);
+                            __m256 pixels_x_on_inner_side_of_edge = _mm256_cmp_ps(MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE, current_point_barycentric_coordinates.X, _CMP_LE_OS);
+                            __m256 pixels_x_on_inner_side_of_vertex = _mm256_cmp_ps(current_point_barycentric_coordinates.X, MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX, _CMP_LE_OS);
+                            __m256 pixels_x_in_triangle = _mm256_and_ps(pixels_x_on_inner_side_of_edge, pixels_x_on_inner_side_of_vertex);
+
+                            __m256 pixels_y_on_inner_side_of_edge = _mm256_cmp_ps(MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE, current_point_barycentric_coordinates.Y, _CMP_LE_OS);
+                            __m256 pixels_y_on_inner_side_of_vertex = _mm256_cmp_ps(current_point_barycentric_coordinates.Y, MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX, _CMP_LE_OS);
+                            __m256 pixels_y_in_triangle = _mm256_and_ps(pixels_y_on_inner_side_of_edge, pixels_y_on_inner_side_of_vertex);
+
+                            __m256 pixels_z_on_inner_side_of_edge = _mm256_cmp_ps(MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE, current_point_barycentric_coordinates.Z, _CMP_LE_OS);
+                            __m256 pixels_z_on_inner_side_of_vertex = _mm256_cmp_ps(current_point_barycentric_coordinates.Z, MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX, _CMP_LE_OS);
+                            __m256 pixels_z_in_triangle = _mm256_and_ps(pixels_z_on_inner_side_of_edge, pixels_z_on_inner_side_of_vertex);
+
+                            __m256 pixels_x_y_in_triangle = _mm256_and_ps(pixels_x_in_triangle, pixels_y_in_triangle);
+                            __m256 pixels_in_triangle = _mm256_and_ps(pixels_x_y_in_triangle, pixels_z_in_triangle);;
+
+                            // INTERPOLATE Z COORDINATES FOR DEPTH BUFFERING.
+                            __m256 interpolated_z_barycentric_x_times_second_z = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.CenterVertexPosition.Z);
+                            __m256 interpolated_z_barycentric_y_times_third_z = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.RightVertexPosition.Z);
+                            __m256 interpolated_z_barycentric_z_times_first_z = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.LeftVertexPosition.Z);
+                            __m256 interpolated_z_coordinates = _mm256_add_ps(interpolated_z_barycentric_x_times_second_z, interpolated_z_barycentric_y_times_third_z);
+                            interpolated_z_coordinates = _mm256_add_ps(interpolated_z_coordinates, interpolated_z_barycentric_z_times_first_z);
+
+                            // INTERPOLATE PIXEL COLORS.
+                            __m256 pixel_reds_barycentric_x_times_second_red = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.SecondVertexColorRed);
+                            __m256 pixel_reds_barycentric_y_times_third_red = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.ThirdVertexColorRed);
+                            __m256 pixel_reds_barycentric_z_times_first_red = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.FirstVertexColorRed);
+                            __m256 pixel_reds = _mm256_add_ps(pixel_reds_barycentric_x_times_second_red, pixel_reds_barycentric_y_times_third_red);
+                            pixel_reds = _mm256_add_ps(pixel_reds, pixel_reds_barycentric_z_times_first_red);
+
+                            __m256 pixel_greens_barycentric_x_times_second_green = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.SecondVertexColorGreen);
+                            __m256 pixel_greens_barycentric_y_times_third_green = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.ThirdVertexColorGreen);
+                            __m256 pixel_greens_barycentric_z_times_first_green = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.FirstVertexColorGreen);
+                            __m256 pixel_greens = _mm256_add_ps(pixel_greens_barycentric_x_times_second_green, pixel_greens_barycentric_y_times_third_green);
+                            pixel_greens = _mm256_add_ps(pixel_greens, pixel_greens_barycentric_z_times_first_green);
+
+                            __m256 pixel_blues_barycentric_x_times_second_blue = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.SecondVertexColorBlue);
+                            __m256 pixel_blues_barycentric_y_times_third_blue = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.ThirdVertexColorBlue);
+                            __m256 pixel_blues_barycentric_z_times_first_blue = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.FirstVertexColorBlue);
+                            __m256 pixel_blues = _mm256_add_ps(pixel_blues_barycentric_x_times_second_blue, pixel_blues_barycentric_y_times_third_blue);
+                            pixel_blues = _mm256_add_ps(pixel_blues, pixel_blues_barycentric_z_times_first_blue);
+
+                            // INTERPOLATE TEXTURE COORDINATES FOR TEXTURE MAPPING.
+                            __m256 point_texture_coordinates_x_times_second_x = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.SecondVertexTextureCoordinates.X);
+                            __m256 point_texture_coordinates_y_times_third_x = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.ThirdVertexTextureCoordinates.X);
+                            __m256 point_texture_coordinates_z_times_first_x = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.FirstVertexTextureCoordinates.X);
+                            __m256 point_texture_x_coordinates = _mm256_add_ps(point_texture_coordinates_x_times_second_x, point_texture_coordinates_y_times_third_x);
+                            point_texture_x_coordinates = _mm256_add_ps(point_texture_x_coordinates, point_texture_coordinates_z_times_first_x);
+
+                            __m256 point_texture_coordinates_x_times_second_y = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.SecondVertexTextureCoordinates.Y);
+                            __m256 point_texture_coordinates_y_times_third_y = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.ThirdVertexTextureCoordinates.Y);
+                            __m256 point_texture_coordinates_z_times_first_y = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.FirstVertexTextureCoordinates.Y);
+                            __m256 point_texture_y_coordinates = _mm256_add_ps(point_texture_coordinates_x_times_second_y, point_texture_coordinates_y_times_third_y);
+                            point_texture_y_coordinates = _mm256_add_ps(point_texture_y_coordinates, point_texture_coordinates_z_times_first_y);
+
+                            // READ OUT ALL PIXEL DATA.
+                            float pixel_red_indices[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
+                            _mm256_store_ps(pixel_red_indices, pixel_reds);
+
+                            float pixel_blue_indices[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
+                            _mm256_store_ps(pixel_blue_indices, pixel_blues);
+
+                            float pixel_green_indices[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
+                            _mm256_store_ps(pixel_green_indices, pixel_greens);
+
+                            float interpolated_z_by_index[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
+                            _mm256_store_ps(interpolated_z_by_index, interpolated_z_coordinates);
+
+                            float pixel_indices_in_triangle[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
+                            _mm256_store_ps(pixel_indices_in_triangle, pixels_in_triangle);
+
+                            float texture_x_coordinates[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
+                            _mm256_store_ps(texture_x_coordinates, point_texture_x_coordinates);
+
+                            float texture_y_coordinates[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
+                            _mm256_store_ps(texture_y_coordinates, point_texture_y_coordinates);
+
+                            // RENDER OUT EACH PIXEL IN THE CURRENT SIMD BLOCK.
+                            for (std::size_t pixel_x_offset = 0; pixel_x_offset < static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT); ++pixel_x_offset)
                             {
-                                render_target.WritePixel(current_pixel_x, current_pixel_y, Color::RED);
-                            }
-                            else if (0.0f == current_pixel_in_triangle)
-                            {
-                                //render_target.WritePixel(current_pixel_x, current_pixel_y, Color::GREEN);
-                            }
-                            else if (1.0f == current_pixel_in_triangle)
-                            {
-                                //render_target.WritePixel(current_pixel_x, current_pixel_y, Color::BLUE);
-                            }
-                            else
-                            {
-                                //render_target.WritePixel(current_pixel_x, current_pixel_y, Color::WHITE);
+                                float current_pixel_in_triangle = pixel_indices_in_triangle[pixel_x_offset];
+                                if (std::isnan(current_pixel_in_triangle))
+                                {
+                                    // GET THE CURRENT PIXEL COORDINATES.
+                                    unsigned int current_pixel_x = static_cast<unsigned int>(std::round(x + static_cast<float>(pixel_x_offset)));
+                                    unsigned int current_pixel_y = static_cast<unsigned int>(std::round(y));
+
+                                    // SKIP WRITING PIXELS IF NEW PIXEL IS BEHIND ALREADY WRITTEN ONE.
+                                    float interpolated_z = interpolated_z_by_index[pixel_x_offset];
+                                    if (depth_buffer)
+                                    {
+                                        float current_pixel_depth = depth_buffer->GetDepth(current_pixel_x, current_pixel_y);
+                                        bool current_pixel_in_front_of_old_pixels = (interpolated_z >= current_pixel_depth);
+                                        if (!current_pixel_in_front_of_old_pixels)
+                                        {
+                                            // Continue to the next iteration of the loop in
+                                            // case there is another pixel to draw.
+                                            continue;
+                                        }
+                                    }
+
+                                    // GET THE FINAL PIXEL COLOR.
+                                    float current_pixel_red = pixel_red_indices[pixel_x_offset];
+                                    float current_pixel_green = pixel_red_indices[pixel_x_offset];
+                                    float current_pixel_blue = pixel_red_indices[pixel_x_offset];
+                                    Color pixel_color(current_pixel_red, current_pixel_green, current_pixel_blue, Color::MAX_FLOAT_COLOR_COMPONENT);
+
+                                    // ADD TEXTURING IF APPLICABLE.
+                                    if (rendering_settings.Shading.TextureMappingEnabled)
+                                    {
+                                        // GET TEXTURE COORDINATES REGARDLESS OF TYPE OF TEXTURE.
+                                        constexpr float MIN_TEXTURE_COORDINATE = 0.0f;
+                                        constexpr float MAX_TEXTURE_COORDINATE = 1.0f;
+                                        float current_pixel_texture_x_coordinate = MATH::Number::Clamp<float>(texture_x_coordinates[pixel_x_offset], MIN_TEXTURE_COORDINATE, MAX_TEXTURE_COORDINATE);
+                                        float current_pixel_texture_y_coordinate = MATH::Number::Clamp<float>(texture_y_coordinates[pixel_x_offset], MIN_TEXTURE_COORDINATE, MAX_TEXTURE_COORDINATE);
+
+                                        // HAVE THE INITIAL COLOR FROM TEXTURING BE BLACK.
+                                        Color texture_color = Color::BLACK;
+
+                                        // ADD AMBIENT TEXTURING IF APPLICABLE.
+                                        if (rendering_settings.Shading.Lighting.AmbientLightingEnabled)
+                                        {
+                                            bool ambient_texture_exists = (nullptr != triangle.Material->AmbientProperties.Texture);
+                                            if (ambient_texture_exists)
+                                            {
+                                                // LOOKUP THE APPROPRIATE TEXEL.
+                                                unsigned int texture_width_in_pixels = triangle.Material->AmbientProperties.Texture->GetWidthInPixels();
+                                                unsigned int max_texture_pixel_x_coordinate = texture_width_in_pixels - 1;
+                                                unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(max_texture_pixel_x_coordinate * current_pixel_texture_x_coordinate);
+
+                                                unsigned int texture_height_in_pixels = triangle.Material->AmbientProperties.Texture->GetHeightInPixels();
+                                                unsigned int max_texture_pixel_y_coordinate = texture_height_in_pixels - 1;
+                                                unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(max_texture_pixel_y_coordinate * current_pixel_texture_y_coordinate);
+
+                                                Color ambient_texture_color = triangle.Material->AmbientProperties.Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
+                                                texture_color += ambient_texture_color;
+                                            }
+                                        }
+
+                                        // ADD DIFFUSE TEXTURING IF APPLICABLE.
+                                        if (rendering_settings.Shading.Lighting.DiffuseLightingEnabled)
+                                        {
+                                            bool diffuse_texture_exists = (nullptr != triangle.Material->DiffuseProperties.Texture);
+                                            if (diffuse_texture_exists)
+                                            {
+                                                // LOOKUP THE APPROPRIATE TEXEL.
+                                                unsigned int texture_width_in_pixels = triangle.Material->DiffuseProperties.Texture->GetWidthInPixels();
+                                                unsigned int max_texture_pixel_x_coordinate = texture_width_in_pixels - 1;
+                                                unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(max_texture_pixel_x_coordinate * current_pixel_texture_x_coordinate);
+
+                                                unsigned int texture_height_in_pixels = triangle.Material->DiffuseProperties.Texture->GetHeightInPixels();
+                                                unsigned int max_texture_pixel_y_coordinate = texture_height_in_pixels - 1;
+                                                unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(max_texture_pixel_y_coordinate * current_pixel_texture_y_coordinate);
+
+                                                Color diffuse_texture_color = triangle.Material->DiffuseProperties.Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
+                                                texture_color += diffuse_texture_color;
+                                            }
+                                        }
+
+                                        // ADD SPECULAR TEXTURING IF APPLICABLE.
+                                        if (rendering_settings.Shading.Lighting.SpecularLightingEnabled)
+                                        {
+                                            bool specular_texture_exists = (nullptr != triangle.Material->SpecularProperties.Texture);
+                                            if (specular_texture_exists)
+                                            {
+                                                // LOOKUP THE APPROPRIATE TEXEL.
+                                                unsigned int texture_width_in_pixels = triangle.Material->SpecularProperties.Texture->GetWidthInPixels();
+                                                unsigned int max_texture_pixel_x_coordinate = texture_width_in_pixels - 1;
+                                                unsigned int texture_pixel_x_coordinate = static_cast<unsigned int>(max_texture_pixel_x_coordinate * current_pixel_texture_x_coordinate);
+
+                                                unsigned int texture_height_in_pixels = triangle.Material->SpecularProperties.Texture->GetHeightInPixels();
+                                                unsigned int max_texture_pixel_y_coordinate = texture_height_in_pixels - 1;
+                                                unsigned int texture_pixel_y_coordinate = static_cast<unsigned int>(max_texture_pixel_y_coordinate * current_pixel_texture_y_coordinate);
+
+                                                Color specular_texture_color = triangle.Material->SpecularProperties.Texture->GetPixel(texture_pixel_x_coordinate, texture_pixel_y_coordinate);
+                                                texture_color += specular_texture_color;
+                                            }
+                                        }
+
+                                        // ADD THE FINAL COMPUTED TEXTURE COLOR IF IT EXISTS.
+                                        // If no textures exist, the texture color would be left black, which would cancel out normal coloring
+                                        // (which is not desirable).
+                                        bool texture_coloring_exists = (Color::BLACK != texture_color);
+                                        if (texture_coloring_exists)
+                                        {
+                                            pixel_color = Color::ComponentMultiplyRedGreenBlue(pixel_color, texture_color);
+                                        }
+                                    }
+
+                                    // ENSURE THE COLOR IS WITHIN THE PROPER RANGE
+                                    pixel_color.Clamp();
+
+                                    // WRITE THE FINAL COLOR AND DEPTH VALUES.
+                                    render_target.WritePixel(current_pixel_x, current_pixel_y, pixel_color);
+                                    if (depth_buffer)
+                                    {
+                                        depth_buffer->WriteDepth(current_pixel_x, current_pixel_y, interpolated_z);
+                                    }
+                                }
                             }
                         }
-#endif
-                        // Interpolating z for depth-buffering.
-                        __m256 interpolated_z_barycentric_x_times_second_z = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.CenterVertexPosition.Z);
-                        __m256 interpolated_z_barycentric_y_times_third_z = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.RightVertexPosition.Z);
-                        __m256 interpolated_z_barycentric_z_times_first_z = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.LeftVertexPosition.Z);
-                        __m256 interpolated_z_coordinates = _mm256_add_ps(interpolated_z_barycentric_x_times_second_z, interpolated_z_barycentric_y_times_third_z);
-                        interpolated_z_coordinates = _mm256_add_ps(interpolated_z_coordinates, interpolated_z_barycentric_z_times_first_z);
-
-                        __m256 pixel_reds_barycentric_x_times_second_red = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.SecondVertexColorRed);
-                        __m256 pixel_reds_barycentric_y_times_third_red = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.ThirdVertexColorRed);
-                        __m256 pixel_reds_barycentric_z_times_first_red = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.FirstVertexColorRed);
-                        __m256 pixel_reds = _mm256_add_ps(pixel_reds_barycentric_x_times_second_red, pixel_reds_barycentric_y_times_third_red);
-                        pixel_reds = _mm256_add_ps(pixel_reds, pixel_reds_barycentric_z_times_first_red);
-
-                        __m256 pixel_greens_barycentric_x_times_second_green = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.SecondVertexColorGreen);
-                        __m256 pixel_greens_barycentric_y_times_third_green = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.ThirdVertexColorGreen);
-                        __m256 pixel_greens_barycentric_z_times_first_green = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.FirstVertexColorGreen);
-                        __m256 pixel_greens = _mm256_add_ps(pixel_greens_barycentric_x_times_second_green, pixel_greens_barycentric_y_times_third_green);
-                        pixel_greens = _mm256_add_ps(pixel_greens, pixel_greens_barycentric_z_times_first_green);
-
-                        __m256 pixel_blues_barycentric_x_times_second_blue = _mm256_mul_ps(current_point_barycentric_coordinates.X, simd_triangle.SecondVertexColorBlue);
-                        __m256 pixel_blues_barycentric_y_times_third_blue = _mm256_mul_ps(current_point_barycentric_coordinates.Y, simd_triangle.ThirdVertexColorBlue);
-                        __m256 pixel_blues_barycentric_z_times_first_blue = _mm256_mul_ps(current_point_barycentric_coordinates.Z, simd_triangle.FirstVertexColorBlue);
-                        __m256 pixel_blues = _mm256_add_ps(pixel_blues_barycentric_x_times_second_blue, pixel_blues_barycentric_y_times_third_blue);
-                        pixel_blues = _mm256_add_ps(pixel_blues, pixel_blues_barycentric_z_times_first_blue);
-
-                        float pixel_red_indices[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
-                        _mm256_store_ps(pixel_red_indices, pixel_reds);
-
-                        float pixel_blue_indices[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
-                        _mm256_store_ps(pixel_blue_indices, pixel_blues);
-
-                        float pixel_green_indices[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
-                        _mm256_store_ps(pixel_green_indices, pixel_greens);
-
-                        float interpolated_z_by_index[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
-                        _mm256_store_ps(interpolated_z_by_index, interpolated_z_coordinates);
-
-                        float pixel_indices_in_triangle[static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT)] = {};
-                        _mm256_store_ps(pixel_indices_in_triangle, pixels_in_triangle);
-
-                        // There may be a slight speedup from SIMD here, but we probably need to SIMD-ize more of the below to realize significant benefits.
-                        for (std::size_t pixel_x_offset = 0; pixel_x_offset < static_cast<int>(SIMD_AVX_REGISTER_ELEMENT_COUNT); ++pixel_x_offset)
+                    }
+                }
+                else
+                {
+                    // COLOR PIXELS WITHIN THE TRIANGLE.
+                    constexpr float ONE_PIXEL = 1.0f;
+                    for (float y = clamped_min_y; y <= clamped_max_y; y += ONE_PIXEL)
+                    {
+                        for (float x = clamped_min_x; x <= clamped_max_x; x += ONE_PIXEL)
                         {
-                            float current_pixel_in_triangle = pixel_indices_in_triangle[pixel_x_offset];
-                            if (std::isnan(current_pixel_in_triangle))
-                            {
-                                // GET THE CURRENT PIXEL COORDINATES.
-                                unsigned int current_pixel_x = static_cast<unsigned int>(std::round(x + static_cast<float>(pixel_x_offset)));
-                                unsigned int current_pixel_y = static_cast<unsigned int>(std::round(y));
+                            // CHECK IF THE CURRENT PIXEL IS WITHIN THE TRIANGLE.
+                            MATH::Vector2f current_point(x, y);
+                            MATH::Vector3f current_point_barycentric_coordinates = triangle.BarycentricCoordinates2DOf(current_point);
 
-                                // SKIP WRITING PIXELS IF NEW PIXEL IS BEHIND ALREADY WRITTEN ONE.
-                                float interpolated_z = interpolated_z_by_index[pixel_x_offset];
+                            constexpr float MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE = 0.0f;
+                            constexpr float MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX = 1.0f;
+                            bool pixel_between_opposite_edge_and_center_vertex = (
+                                (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.X) &&
+                                (current_point_barycentric_coordinates.X <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
+                            bool pixel_between_left_edge_and_right_vertex = (
+                                (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Y) &&
+                                (current_point_barycentric_coordinates.Y <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
+                            bool pixel_between_right_edge_and_left_vertex = (
+                                (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Z) &&
+                                (current_point_barycentric_coordinates.Z <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
+                            bool pixel_in_triangle = (
+                                pixel_between_opposite_edge_and_center_vertex &&
+                                pixel_between_left_edge_and_right_vertex &&
+                                pixel_between_right_edge_and_left_vertex);
+                            if (pixel_in_triangle)
+                            {
+                                // COMPUTE THE PIXEL COLOR BASED ON THE TYPE OF SHADING.
+                                // If flat shading is not specified, then regular interpolation is assumed.
+                                Color pixel_color = Color::BLACK;
+                                bool is_flat_shading = (SHADING::ShadingType::FLAT == shading_type);
+                                if (is_flat_shading)
+                                {
+                                    // AVERAGE THE VERTEX COLORS.
+                                    const Color& first_vertex_color = triangle.Vertices[0].Color;
+                                    const Color& second_vertex_color = triangle.Vertices[1].Color;
+                                    const Color& third_vertex_color = triangle.Vertices[2].Color;
+
+                                    constexpr float VERTEX_COUNT = static_cast<float>(GEOMETRY::Triangle::VERTEX_COUNT);
+                                    float average_red = (first_vertex_color.Red + second_vertex_color.Red + third_vertex_color.Red) / VERTEX_COUNT;
+                                    float average_green = (first_vertex_color.Green + second_vertex_color.Green + third_vertex_color.Green) / VERTEX_COUNT;
+                                    float average_blue = (first_vertex_color.Blue + second_vertex_color.Blue + third_vertex_color.Blue) / VERTEX_COUNT;
+                                    float average_alpha = (first_vertex_color.Alpha + second_vertex_color.Alpha + third_vertex_color.Alpha) / VERTEX_COUNT;
+
+                                    /// @todo   Should we try some kind of texture mapping here?
+
+                                    pixel_color = Color(average_red, average_green, average_blue, average_alpha);
+                                }
+                                else
+                                {
+                                    // INTERPOLATE THE VERTEX COLORS.
+                                    // The color needs to be interpolated for other kinds of shading.
+                                    const Color& first_vertex_color = triangle.Vertices[0].Color;
+                                    const Color& second_vertex_color = triangle.Vertices[1].Color;
+                                    const Color& third_vertex_color = triangle.Vertices[2].Color;
+
+                                    pixel_color.Red = (
+                                        (current_point_barycentric_coordinates.X * second_vertex_color.Red) +
+                                        (current_point_barycentric_coordinates.Y * third_vertex_color.Red) +
+                                        (current_point_barycentric_coordinates.Z * first_vertex_color.Red));
+                                    pixel_color.Green = (
+                                        (current_point_barycentric_coordinates.X * second_vertex_color.Green) +
+                                        (current_point_barycentric_coordinates.Y * third_vertex_color.Green) +
+                                        (current_point_barycentric_coordinates.Z * first_vertex_color.Green));
+                                    pixel_color.Blue = (
+                                        (current_point_barycentric_coordinates.X * second_vertex_color.Blue) +
+                                        (current_point_barycentric_coordinates.Y * third_vertex_color.Blue) +
+                                        (current_point_barycentric_coordinates.Z * first_vertex_color.Blue));
+
+                                    // ADD TEXTURING IF APPLICABLE.
+                                    if (rendering_settings.Shading.TextureMappingEnabled)
+                                    {
+                                        Color texture_color = Color::BLACK;
+
+                                        // ADD AMBIENT TEXTURING IF APPLICABLE.
+                                        if (rendering_settings.Shading.Lighting.AmbientLightingEnabled)
+                                        {
+                                            bool ambient_texture_exists = (nullptr != triangle.Material->AmbientProperties.Texture);
+                                            if (ambient_texture_exists)
+                                            {
+                                                Color ambient_texture_color = TextureMappingAlgorithm::LookupTexel(
+                                                    triangle,
+                                                    current_point,
+                                                    *triangle.Material->AmbientProperties.Texture);
+                                                texture_color += ambient_texture_color;
+                                            }
+                                        }
+
+                                        // ADD DIFFUSE TEXTURING IF APPLICABLE.
+                                        if (rendering_settings.Shading.Lighting.DiffuseLightingEnabled)
+                                        {
+                                            bool diffuse_texture_exists = (nullptr != triangle.Material->DiffuseProperties.Texture);
+                                            if (diffuse_texture_exists)
+                                            {
+                                                Color diffuse_texture_color = TextureMappingAlgorithm::LookupTexel(
+                                                    triangle,
+                                                    current_point,
+                                                    *triangle.Material->DiffuseProperties.Texture);
+                                                texture_color += diffuse_texture_color;
+                                            }
+                                        }
+
+                                        // ADD SPECULAR TEXTURING IF APPLICABLE.
+                                        if (rendering_settings.Shading.Lighting.SpecularLightingEnabled)
+                                        {
+                                            bool specular_texture_exists = (nullptr != triangle.Material->SpecularProperties.Texture);
+                                            if (specular_texture_exists)
+                                            {
+                                                Color specular_texture_color = TextureMappingAlgorithm::LookupTexel(
+                                                    triangle,
+                                                    current_point,
+                                                    *triangle.Material->SpecularProperties.Texture);
+                                                texture_color += specular_texture_color;
+                                            }
+                                        }
+
+                                        // ADD THE FINAL COMPUTED TEXTURE COLOR IF IT EXISTS.
+                                        // If no textures exist, the texture color would be left black, which would cancel out normal coloring
+                                        // (which is not desirable).
+                                        bool texture_coloring_exists = (Color::BLACK != texture_color);
+                                        if (texture_coloring_exists)
+                                        {
+                                            pixel_color = Color::ComponentMultiplyRedGreenBlue(pixel_color, texture_color);
+                                        }
+                                    }
+
+                                    // ENSURE THE COLOR IS WITHIN THE PROPER RANGE
+                                    pixel_color.Clamp();
+                                }
+
+                                // AVOID WRITING THE PIXEL IF ANOTHER PIXEL IS ALREADY IN FRONT OF IT.
+                                // The z-coordinate needs to be properly interpolated first.
+                                float interpolated_z = (
+                                    (current_point_barycentric_coordinates.X * second_vertex.Position.Z) +
+                                    (current_point_barycentric_coordinates.Y * third_vertex.Position.Z) +
+                                    (current_point_barycentric_coordinates.Z * first_vertex.Position.Z));
+                                // The coordinates need to be rounded to integer in order to plot a pixel on a fixed grid.
+                                unsigned int current_pixel_x = static_cast<unsigned int>(std::round(x));
+                                unsigned int current_pixel_y = static_cast<unsigned int>(std::round(y));
                                 if (depth_buffer)
                                 {
                                     float current_pixel_depth = depth_buffer->GetDepth(current_pixel_x, current_pixel_y);
@@ -421,74 +673,6 @@ namespace GRAPHICS::CPU_RENDERING
                                     }
                                 }
 
-                                // GET THE FINAL PIXEL COLOR.
-                                float current_pixel_red = pixel_red_indices[pixel_x_offset];
-                                float current_pixel_green = pixel_red_indices[pixel_x_offset];
-                                float current_pixel_blue = pixel_red_indices[pixel_x_offset];
-                                Color pixel_color(current_pixel_red, current_pixel_green, current_pixel_blue, Color::MAX_FLOAT_COLOR_COMPONENT);
-
-                                // ADD TEXTURING IF APPLICABLE.
-                                if (rendering_settings.Shading.TextureMappingEnabled)
-                                {
-                                    MATH::Vector2f current_point(x + static_cast<float>(pixel_x_offset), y);
-
-                                    Color texture_color = Color::BLACK;
-
-                                    // ADD AMBIENT TEXTURING IF APPLICABLE.
-                                    if (rendering_settings.Shading.Lighting.AmbientLightingEnabled)
-                                    {
-                                        bool ambient_texture_exists = (nullptr != triangle.Material->AmbientProperties.Texture);
-                                        if (ambient_texture_exists)
-                                        {
-                                            Color ambient_texture_color = TextureMappingAlgorithm::LookupTexel(
-                                                triangle,
-                                                current_point,
-                                                *triangle.Material->AmbientProperties.Texture);
-                                            texture_color += ambient_texture_color;
-                                        }
-                                    }
-
-                                    // ADD DIFFUSE TEXTURING IF APPLICABLE.
-                                    if (rendering_settings.Shading.Lighting.DiffuseLightingEnabled)
-                                    {
-                                        bool diffuse_texture_exists = (nullptr != triangle.Material->DiffuseProperties.Texture);
-                                        if (diffuse_texture_exists)
-                                        {
-                                            Color diffuse_texture_color = TextureMappingAlgorithm::LookupTexel(
-                                                triangle,
-                                                current_point,
-                                                *triangle.Material->DiffuseProperties.Texture);
-                                            texture_color += diffuse_texture_color;
-                                        }
-                                    }
-
-                                    // ADD SPECULAR TEXTURING IF APPLICABLE.
-                                    if (rendering_settings.Shading.Lighting.SpecularLightingEnabled)
-                                    {
-                                        bool specular_texture_exists = (nullptr != triangle.Material->SpecularProperties.Texture);
-                                        if (specular_texture_exists)
-                                        {
-                                            Color specular_texture_color = TextureMappingAlgorithm::LookupTexel(
-                                                triangle,
-                                                current_point,
-                                                *triangle.Material->SpecularProperties.Texture);
-                                            texture_color += specular_texture_color;
-                                        }
-                                    }
-
-                                    // ADD THE FINAL COMPUTED TEXTURE COLOR IF IT EXISTS.
-                                    // If no textures exist, the texture color would be left black, which would cancel out normal coloring
-                                    // (which is not desirable).
-                                    bool texture_coloring_exists = (Color::BLACK != texture_color);
-                                    if (texture_coloring_exists)
-                                    {
-                                        pixel_color = Color::ComponentMultiplyRedGreenBlue(pixel_color, texture_color);
-                                    }
-                                }
-
-                                // ENSURE THE COLOR IS WITHIN THE PROPER RANGE
-                                pixel_color.Clamp();
-
                                 // WRITE THE FINAL COLOR AND DEPTH VALUES.
                                 render_target.WritePixel(current_pixel_x, current_pixel_y, pixel_color);
                                 if (depth_buffer)
@@ -499,168 +683,6 @@ namespace GRAPHICS::CPU_RENDERING
                         }
                     }
                 }
-#else
-                // COLOR PIXELS WITHIN THE TRIANGLE.
-                constexpr float ONE_PIXEL = 1.0f;
-                for (float y = clamped_min_y; y <= clamped_max_y; y += ONE_PIXEL)
-                {
-                    for (float x = clamped_min_x; x <= clamped_max_x; x += ONE_PIXEL)
-                    {
-                        // CHECK IF THE CURRENT PIXEL IS WITHIN THE TRIANGLE.
-                        MATH::Vector2f current_point(x, y);
-                        MATH::Vector3f current_point_barycentric_coordinates = triangle.BarycentricCoordinates2DOf(current_point);
-
-                        constexpr float MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE = 0.0f;
-                        constexpr float MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX = 1.0f;
-                        bool pixel_between_opposite_edge_and_center_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.X) &&
-                            (current_point_barycentric_coordinates.X <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_between_left_edge_and_right_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Y) &&
-                            (current_point_barycentric_coordinates.Y <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_between_right_edge_and_left_vertex = (
-                            (MIN_SIGNED_DISTANCE_TO_BE_ON_EDGE <= current_point_barycentric_coordinates.Z) &&
-                            (current_point_barycentric_coordinates.Z <= MAX_SIGNED_DISTANCE_TO_BE_ON_VERTEX));
-                        bool pixel_in_triangle = (
-                            pixel_between_opposite_edge_and_center_vertex &&
-                            pixel_between_left_edge_and_right_vertex &&
-                            pixel_between_right_edge_and_left_vertex);
-                        if (pixel_in_triangle)
-                        {
-                            // COMPUTE THE PIXEL COLOR BASED ON THE TYPE OF SHADING.
-                            // If flat shading is not specified, then regular interpolation is assumed.
-                            Color pixel_color = Color::BLACK;
-                            bool is_flat_shading = (SHADING::ShadingType::FLAT == shading_type);
-                            if (is_flat_shading)
-                            {
-                                // AVERAGE THE VERTEX COLORS.
-                                const Color& first_vertex_color = triangle.Vertices[0].Color;
-                                const Color& second_vertex_color = triangle.Vertices[1].Color;
-                                const Color& third_vertex_color = triangle.Vertices[2].Color;
-
-                                constexpr float VERTEX_COUNT = static_cast<float>(GEOMETRY::Triangle::VERTEX_COUNT);
-                                float average_red = (first_vertex_color.Red + second_vertex_color.Red + third_vertex_color.Red) / VERTEX_COUNT;
-                                float average_green = (first_vertex_color.Green + second_vertex_color.Green + third_vertex_color.Green) / VERTEX_COUNT;
-                                float average_blue = (first_vertex_color.Blue + second_vertex_color.Blue + third_vertex_color.Blue) / VERTEX_COUNT;
-                                float average_alpha = (first_vertex_color.Alpha + second_vertex_color.Alpha + third_vertex_color.Alpha) / VERTEX_COUNT;
-
-                                /// @todo   Should we try some kind of texture mapping here?
-
-                                pixel_color = Color(average_red, average_green, average_blue, average_alpha);
-                            }
-                            else
-                            {
-                                // INTERPOLATE THE VERTEX COLORS.
-                                // The color needs to be interpolated for other kinds of shading.
-                                const Color& first_vertex_color = triangle.Vertices[0].Color;
-                                const Color& second_vertex_color = triangle.Vertices[1].Color;
-                                const Color& third_vertex_color = triangle.Vertices[2].Color;
-
-                                pixel_color.Red = (
-                                    (current_point_barycentric_coordinates.X * second_vertex_color.Red) +
-                                    (current_point_barycentric_coordinates.Y * third_vertex_color.Red) +
-                                    (current_point_barycentric_coordinates.Z * first_vertex_color.Red));
-                                pixel_color.Green = (
-                                    (current_point_barycentric_coordinates.X * second_vertex_color.Green) +
-                                    (current_point_barycentric_coordinates.Y * third_vertex_color.Green) +
-                                    (current_point_barycentric_coordinates.Z * first_vertex_color.Green));
-                                pixel_color.Blue = (
-                                    (current_point_barycentric_coordinates.X * second_vertex_color.Blue) +
-                                    (current_point_barycentric_coordinates.Y * third_vertex_color.Blue) +
-                                    (current_point_barycentric_coordinates.Z * first_vertex_color.Blue));
-                                
-                                // ADD TEXTURING IF APPLICABLE.
-                                if (rendering_settings.Shading.TextureMappingEnabled)
-                                {
-                                    Color texture_color = Color::BLACK;
-
-                                    // ADD AMBIENT TEXTURING IF APPLICABLE.
-                                    if (rendering_settings.Shading.Lighting.AmbientLightingEnabled)
-                                    {
-                                        bool ambient_texture_exists = (nullptr != triangle.Material->AmbientProperties.Texture);
-                                        if (ambient_texture_exists)
-                                        {
-                                            Color ambient_texture_color = TextureMappingAlgorithm::LookupTexel(
-                                                triangle,
-                                                current_point,
-                                                *triangle.Material->AmbientProperties.Texture);
-                                            texture_color += ambient_texture_color;
-                                        }
-                                    }
-
-                                    // ADD DIFFUSE TEXTURING IF APPLICABLE.
-                                    if (rendering_settings.Shading.Lighting.DiffuseLightingEnabled)
-                                    {
-                                        bool diffuse_texture_exists = (nullptr != triangle.Material->DiffuseProperties.Texture);
-                                        if (diffuse_texture_exists)
-                                        {
-                                            Color diffuse_texture_color = TextureMappingAlgorithm::LookupTexel(
-                                                triangle,
-                                                current_point,
-                                                *triangle.Material->DiffuseProperties.Texture);
-                                            texture_color += diffuse_texture_color;
-                                        }
-                                    }
-
-                                    // ADD SPECULAR TEXTURING IF APPLICABLE.
-                                    if (rendering_settings.Shading.Lighting.SpecularLightingEnabled)
-                                    {
-                                        bool specular_texture_exists = (nullptr != triangle.Material->SpecularProperties.Texture);
-                                        if (specular_texture_exists)
-                                        {
-                                            Color specular_texture_color = TextureMappingAlgorithm::LookupTexel(
-                                                triangle,
-                                                current_point,
-                                                *triangle.Material->SpecularProperties.Texture);
-                                            texture_color += specular_texture_color;
-                                        }
-                                    }
-
-                                    // ADD THE FINAL COMPUTED TEXTURE COLOR IF IT EXISTS.
-                                    // If no textures exist, the texture color would be left black, which would cancel out normal coloring
-                                    // (which is not desirable).
-                                    bool texture_coloring_exists = (Color::BLACK != texture_color);
-                                    if (texture_coloring_exists)
-                                    {
-                                        pixel_color = Color::ComponentMultiplyRedGreenBlue(pixel_color, texture_color);
-                                    }
-                                }
-
-                                // ENSURE THE COLOR IS WITHIN THE PROPER RANGE
-                                pixel_color.Clamp();
-                            }
-
-                            // AVOID WRITING THE PIXEL IF ANOTHER PIXEL IS ALREADY IN FRONT OF IT.
-                            // The z-coordinate needs to be properly interpolated first.
-                            float interpolated_z = (
-                                (current_point_barycentric_coordinates.X * second_vertex.Position.Z) +
-                                (current_point_barycentric_coordinates.Y * third_vertex.Position.Z) +
-                                (current_point_barycentric_coordinates.Z * first_vertex.Position.Z));
-                            // The coordinates need to be rounded to integer in order to plot a pixel on a fixed grid.
-                            unsigned int current_pixel_x = static_cast<unsigned int>(std::round(x));
-                            unsigned int current_pixel_y = static_cast<unsigned int>(std::round(y));
-                            if (depth_buffer)
-                            {
-                                float current_pixel_depth = depth_buffer->GetDepth(current_pixel_x, current_pixel_y);
-                                bool current_pixel_in_front_of_old_pixels = (interpolated_z >= current_pixel_depth);
-                                if (!current_pixel_in_front_of_old_pixels)
-                                {
-                                    // Continue to the next iteration of the loop in
-                                    // case there is another pixel to draw.
-                                    continue;
-                                }
-                            }
-
-                            // WRITE THE FINAL COLOR AND DEPTH VALUES.
-                            render_target.WritePixel(current_pixel_x, current_pixel_y, pixel_color);
-                            if (depth_buffer)
-                            {
-                                depth_buffer->WriteDepth(current_pixel_x, current_pixel_y, interpolated_z);
-                            }
-                        }
-                    }
-                }
-#endif
                 break;
             }
         }

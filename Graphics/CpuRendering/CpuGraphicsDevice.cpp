@@ -32,7 +32,7 @@ namespace GRAPHICS::CPU_RENDERING
     /// Shutdowns the graphics device, freeing up allocated resources.
     void CpuGraphicsDevice::Shutdown()
     {
-        // @todo
+        // Currently nothing to do.
     }
 
     /// Shuts down the graphics device to ensure all resources are freed.

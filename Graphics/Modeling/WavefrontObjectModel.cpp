@@ -36,9 +36,9 @@ namespace GRAPHICS::MODELING
         // A default material is used for rendering for cases where a file may not yet have specified a material.
         // The exact defaults need to be determined, but for now, a basic white material is chosen.
         std::shared_ptr<GRAPHICS::Material> current_material = std::make_shared<GRAPHICS::Material>();
-        current_material->Shading = GRAPHICS::ShadingType::FLAT;
-        current_material->AmbientColor = GRAPHICS::Color::WHITE;
-        current_material->DiffuseColor = GRAPHICS::Color::WHITE;
+        current_material->Shading = GRAPHICS::SHADING::ShadingType::FLAT;
+        current_material->AmbientProperties.Color = GRAPHICS::Color::WHITE;
+        current_material->DiffuseProperties.Color = GRAPHICS::Color::WHITE;
 #else
         std::shared_ptr<GRAPHICS::Material> current_material = nullptr;
 #endif
@@ -73,7 +73,6 @@ namespace GRAPHICS::MODELING
             bool line_has_components = !current_line_components.empty();
             if (!line_has_components)
             {
-                assert("Line without components detected for WavefrontObjectModel.");
                 continue;
             }
 
@@ -109,9 +108,8 @@ namespace GRAPHICS::MODELING
 
                     constexpr std::size_t V_INDEX = 2;
                     const std::string& v_string = current_line_components.at(V_INDEX);
-                    // Texture coordinates are stored upside down in the file...or maybe switched (u <-> v)?
+                    // Texture coordinates are stored upside down in the file from what we expect.
                     float v = 1.0f - std::stof(v_string);
-                    /// @todo float v = std::stof(v_string);
 
                     vertex_texture_coordinates.emplace_back(u, v);
                 }
@@ -175,8 +173,6 @@ namespace GRAPHICS::MODELING
                     // W coordinates are optional and not supported by this parser due to not being needed yet.
                     vertex_positions.emplace_back(x, y, z);
 
-                    /// @todo   These are in a right-handed coordinate system, so do we need to flip z coordinates?
-
                     // PARSE ANY OPTIONAL COLOR COMPONENTS.
                     // [0, 1] color values may optionally be added after xyz coordinates and precludes having w coordinates.
                     // As of now, it is assumed that no alpha values exist in these files and that the alpha is always 1.
@@ -233,7 +229,6 @@ namespace GRAPHICS::MODELING
                     // PARSE THE APPROPRIATE VERTEX ATTRIBUTES INDICES FROM THE LINE.
                     WavefrontFaceVertexAttributeIndices current_face_vertex_attribute_indices;
                     constexpr std::size_t ONLY_VERTEX_POSITION_INDICES_COMPONENT_COUNT = 1;
-                    /// @todo   Does this properly handle missing texture coordinates and only positions + normals?
                     constexpr std::size_t VERTEX_POSITION_AND_TEXTURE_COORDINATE_INDICES_COMPONENT_COUNT = 2;
                     constexpr std::size_t VERTEX_POSITION_TEXTURE_COORDINATE_AND_NORMAL_INDICES_COMPONENT_COUNT = 3;
                     std::size_t vertex_attribute_index_count = vertex_attribute_indices.size();
@@ -265,6 +260,7 @@ namespace GRAPHICS::MODELING
                     }
                     else
                     {
+                        /// @todo   What to do about this?
                         assert("WavefrontObjectModel - Unexpected vertex attribute index count.");
                     }
 
@@ -450,7 +446,7 @@ namespace GRAPHICS::MODELING
             bool is_polyline_line = (LINE_INDICATOR == line_first_component);
             if (is_polyline_line)
             {
-                assert("Polylines not yet supported for WavefrontObjectModel.");
+                assert(!"Polylines not yet supported for WavefrontObjectModel.");
                 continue;
             }
 
@@ -510,7 +506,8 @@ namespace GRAPHICS::MODELING
             bool is_group_line = (GROUP_INDICATOR == line_first_component);
             if (is_group_line)
             {
-                assert("Groups not yet supported for WavefrontObjectModel.");
+                // CONTINUE PARSING ADDITIONAL FIELDS.
+                // This field is not yet supported.
                 continue;
             }
 
@@ -519,9 +516,8 @@ namespace GRAPHICS::MODELING
             bool is_shading_line = (SHADING_INDICATOR == line_first_component);
             if (is_shading_line)
             {
-                /// @todo   Not sure how to handle this.
-
                 // CONTINUE PARSING ADDITIONAL FIELDS.
+                // This field is not yet supported.
                 continue;
             }
         }

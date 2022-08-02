@@ -55,6 +55,15 @@ namespace GRAPHICS::GEOMETRY
         simd_triangle.ThirdVertexColorGreen = _mm256_set1_ps(triangle.Vertices[2].Color.Green);
         simd_triangle.ThirdVertexColorBlue = _mm256_set1_ps(triangle.Vertices[2].Color.Blue);
 
+        simd_triangle.FirstVertexTextureCoordinates.X = _mm256_set1_ps(triangle.Vertices[0].TextureCoordinates.X);
+        simd_triangle.FirstVertexTextureCoordinates.Y = _mm256_set1_ps(triangle.Vertices[0].TextureCoordinates.Y);
+
+        simd_triangle.SecondVertexTextureCoordinates.X = _mm256_set1_ps(triangle.Vertices[1].TextureCoordinates.X);
+        simd_triangle.SecondVertexTextureCoordinates.Y = _mm256_set1_ps(triangle.Vertices[1].TextureCoordinates.Y);
+
+        simd_triangle.ThirdVertexTextureCoordinates.X = _mm256_set1_ps(triangle.Vertices[2].TextureCoordinates.X);
+        simd_triangle.ThirdVertexTextureCoordinates.Y = _mm256_set1_ps(triangle.Vertices[2].TextureCoordinates.Y);
+
         return simd_triangle;
     }
 

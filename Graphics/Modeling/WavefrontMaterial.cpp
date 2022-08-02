@@ -56,7 +56,6 @@ namespace GRAPHICS::MODELING
             bool line_has_enough_components = (current_line_component_count >= MIN_REQUIRED_COMPONENT_COUNT);
             if (!line_has_enough_components)
             {
-                assert("Line without enough components detected for WavefrontMaterial.");
                 continue;
             }
 
@@ -254,10 +253,8 @@ namespace GRAPHICS::MODELING
             bool is_transmission_filter_color = (TRANSMISSION_FILTER_COLOR_INDICATOR == first_line_component);
             if (is_transmission_filter_color)
             {
-                /// @todo   Not sure how to handle this.
-                assert("WavefrontMaterial - Tf not yet supported.");
-
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
+                // This property is not yet supported.
                 continue;
             }
 
@@ -266,10 +263,8 @@ namespace GRAPHICS::MODELING
             bool is_refraction_index = (REFRACTION_INDEX_INDICATOR == first_line_component);
             if (is_refraction_index)
             {
-                /// @todo   Not sure how to handle this.
-                assert("WavefrontMaterial - Ni not yet supported.");
-
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
+                // This property is not yet supported.
                 continue;
             }
 
@@ -278,10 +273,8 @@ namespace GRAPHICS::MODELING
             bool is_illumination_model_line = (ILLUMINATION_MODEL_INDICATOR == first_line_component);
             if (is_illumination_model_line)
             {
-                /// @todo   How important is this to support?
-                assert("WavefrontMaterial - illum not yet supported.");
-
                 // CONTINUE PROCESSING OTHER LINES IN THE FILE.
+                // This property is not yet supported.
                 continue;
             }
 

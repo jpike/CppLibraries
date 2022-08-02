@@ -7,14 +7,23 @@
 
 namespace GRAPHICS::GEOMETRY
 {
-    /// @todo
+    /// Components of a formula for computing barycentric coordinates of a triangle.
+    /// Structure is designed to support computation of these components once for SIMD operations.
+    /// See @ref    Triangle::SignedDistanceOfPointFromEdge2D for more details on this formula.
     struct TriangleSimd8xBarycentricCoordinateFormulaComponents
     {
+        /// (edge_start_position.Y - edge_end_position.Y)
         __m256 EdgeStartEndYDistance8x;
+        /// (edge_end_position.X - edge_start_position.X)
         __m256 EdgeEndStartXDistance8x;
+        /// (edge_start_position.X * edge_end_position.Y)
         __m256 EdgeStartXEndYProduct8x;
+        /// (edge_end_position.X * edge_start_position.Y)
         __m256 EdgeEndXStartYProduct8x;
 
+        /// Computes the formula components in SIMD format based on the non-SIMD input edge positions.
+        /// @param[in]  edge_start_position - The start position of the edge.
+        /// @param[in]  edge_end_position - The end position of the edge.
         static TriangleSimd8xBarycentricCoordinateFormulaComponents Compute(const MATH::Vector2f& edge_start_position, const MATH::Vector2f& edge_end_position)
         {
             TriangleSimd8xBarycentricCoordinateFormulaComponents formula_components;
@@ -66,5 +75,10 @@ namespace GRAPHICS::GEOMETRY
         __m256 ThirdVertexColorRed;
         __m256 ThirdVertexColorGreen;
         __m256 ThirdVertexColorBlue;
+
+        // TEXTURE COORDINATES.
+        MATH::Vector2Simd8x FirstVertexTextureCoordinates;
+        MATH::Vector2Simd8x SecondVertexTextureCoordinates;
+        MATH::Vector2Simd8x ThirdVertexTextureCoordinates;
     };
 }
