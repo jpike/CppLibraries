@@ -21,7 +21,6 @@
 #include "Graphics/Modeling/WavefrontMaterial.cpp"
 #include "Graphics/Modeling/WavefrontObjectModel.cpp"
 
-#include "Graphics/OpenGL/OpenGL.cpp"
 #include "Graphics/OpenGL/OpenGLGraphicsDevice.cpp"
 #include "Graphics/OpenGL/ShaderProgram.cpp"
 
