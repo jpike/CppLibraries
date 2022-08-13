@@ -9,8 +9,6 @@
 /// Holds graphics code related to rendering with DirectX.
 namespace GRAPHICS::DIRECT_X
 {
-    #define DEPTH_BUFFER 1
-
     struct TransformationMatrixBuffer
     {
         DirectX::XMMATRIX WorldMatrix;
@@ -62,11 +60,9 @@ namespace GRAPHICS::DIRECT_X
         ID3D11DeviceContext* DeviceContext = nullptr;
         IDXGISwapChain* SwapChain = nullptr;
         ID3D11RenderTargetView* RenderTargetView = nullptr;
-#if DEPTH_BUFFER
         ID3D11Texture2D* DepthStencilBuffer = nullptr;
         ID3D11DepthStencilState* DepthStencilState = nullptr;
         ID3D11DepthStencilView* DepthStencilView = nullptr;
-#endif
         ID3D11RasterizerState* RasterizerState = nullptr;
         ID3D11VertexShader* VertexShader = nullptr;
         ID3D11PixelShader* PixelShader = nullptr;
