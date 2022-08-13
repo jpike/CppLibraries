@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <gl3w/GL/glcorearb.h>
 #include "Graphics/Color.h"
 #include "Graphics/Images/Bitmap.h"
 
@@ -17,5 +18,7 @@ namespace GRAPHICS::SHADING
         float SpecularPower = 0.0f;
         /// Any texture defining the specular look of the surface.
         std::shared_ptr<IMAGES::Bitmap> Texture = nullptr;
+        /// Any OpenGL resource for the texture.
+        GLuint OpenGLTextureId = 0;
     };
 }

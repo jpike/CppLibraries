@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <gl3w/GL/glcorearb.h>
 #include "Graphics/Color.h"
 #include "Graphics/Images/Bitmap.h"
 
@@ -16,5 +17,7 @@ namespace GRAPHICS::SHADING
         Color Color = Color::BLACK;
         /// Any texture defining the look of the surface.
         std::shared_ptr<IMAGES::Bitmap> Texture = nullptr;
+        /// Any OpenGL resource for the texture.
+        GLuint OpenGLTextureId = 0;
     };
 }

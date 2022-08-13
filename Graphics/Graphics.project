@@ -23,6 +23,7 @@
 
 #include "Graphics/OpenGL/OpenGLGraphicsDevice.cpp"
 #include "Graphics/OpenGL/ShaderProgram.cpp"
+#include "Graphics/OpenGL/VertexBuffer.cpp"
 
 #include "Graphics/RayTracing/Ray.cpp"
 #include "Graphics/RayTracing/RayObjectIntersection.cpp"

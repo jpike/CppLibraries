@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <gl/GL.h>
 #include <GL/wglext.h>
 // Older OpenGL functions must be undefined to avoid missing symbols.
@@ -10,6 +11,7 @@
 #include <Windows.h>
 #include "Graphics/Hardware/IGraphicsDevice.h"
 #include "Graphics/OpenGL/ShaderProgram.h"
+#include "Graphics/OpenGL/VertexBuffer.h"
 #include "Windowing/IWindow.h"
 
 /// Holds code related to the OpenGL graphics library.
@@ -71,5 +73,11 @@ namespace GRAPHICS::OPEN_GL
         inline static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = nullptr;
         /// The function for creating an OpenGL context with attributes.
         inline static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
+
+        // INTERNALLY MANAGED RESOURCES.
+        /// Vertex buffers allocated on the device.
+        std::vector<std::shared_ptr<VertexBuffer>> VertexBuffers = {};
+        /// IDs of textures allocated on the device.
+        std::vector<GLuint> TextureIds = {};
     };
 }
