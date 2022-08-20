@@ -4,126 +4,17 @@
 #include <Windows.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
+#include <DirectXMath.h>
 #include <wrl/client.h>
 #include "ErrorHandling/Asserts.h"
 #include "Graphics/DirectX/Direct3DGraphicsDevice.h"
 #include "Graphics/DirectX/DisplayMode.h"
+#include "Graphics/DirectX/LightBuffer.h"
 #include "Graphics/DirectX/Shader.h"
+#include "Graphics/DirectX/TransformationMatrixBuffer.h"
+#include "Graphics/DirectX/VertexInputBuffer.h"
 #include "Graphics/Shading/Lighting/Light.h"
 #include "Windowing/Win32Window.h"
-
-static std::string VERTEX_SHADER = R"HLSL( 
-cbuffer TransformationMatrices
-{
-    matrix WorldMatrix;
-    matrix ViewMatrix;
-    matrix ProjectionMatrix;
-    float4 LightPosition;
-    float4 InputLightColor;
-    int2 IsTexturedAndLit;
-};
-
-struct VertexInput
-{
-    float4 Position: POSITION;
-    float4 Color: COLOR;
-    float4 Normal: NORMAL;
-    float2 TextureCoordinates: TEXCOORD0;
-};
-
-struct PixelInput
-{
-    float4 Position: SV_POSITION;
-    float4 Color: COLOR;
-    float2 TextureCoordinates: TEXCOORD0;
-    bool IsTextured: BOOL;
-    float4 LightColor: COLOR1;
-};
-
-PixelInput VertexShaderEntryPoint(VertexInput vertex_input)
-{
-    PixelInput pixel_input;
-
-    float4 world_position = mul(WorldMatrix, vertex_input.Position);
-    float4 view_position = mul(ViewMatrix, world_position);
-    float4 projected_position = mul(ProjectionMatrix, view_position);
-    
-    //pixel_input.Position = world_position;
-    //pixel_input.Position = view_position;
-    //pixel_input.Position = projected_position;
-
-    //pixel_input.Position = vertex_input.Position;
-    pixel_input.Position = float4(
-        projected_position.x / projected_position.w,
-        projected_position.y / projected_position.w, 
-        -projected_position.z / projected_position.w, 
-        1.0);
-
-    pixel_input.TextureCoordinates = vertex_input.TextureCoordinates;
-    pixel_input.IsTextured = (IsTexturedAndLit.x == 1);
-
-    pixel_input.Color = vertex_input.Color;
-
-    if (IsTexturedAndLit.y == 1)
-    {
-        float3 direction_from_vertex_to_light = LightPosition.xyz - world_position.xyz;
-        float3 unit_direction_from_point_to_light = normalize(direction_from_vertex_to_light);
-        float illumination_proportion = dot(vertex_input.Normal.xyz, unit_direction_from_point_to_light);
-        float clamped_illumination = max(0, illumination_proportion);
-        float4 scaled_light_color = clamped_illumination * InputLightColor.rgba;
-        pixel_input.LightColor = float4(scaled_light_color.rgb, 1.0);
-    }
-    else
-    {
-        pixel_input.LightColor = float4(1.0, 1.0, 1.0, 1.0);
-    }
-    
-
-    return pixel_input;
-}
-)HLSL";
-
-static std::string PIXEL_SHADER = R"HLSL( 
-Texture2D texture_image;
-SamplerState texture_sampler_state;
-
-struct PixelInput
-{
-    float4 Position: SV_POSITION;
-    float4 Color: COLOR;
-    float2 TextureCoordinates: TEXCOORD0;
-    bool IsTextured: BOOL;
-    float4 LightColor: COLOR1;
-};
-
-float4 PixelShaderEntryPoint(PixelInput pixel_input): SV_TARGET
-{
-    if (pixel_input.IsTextured)
-    {
-        float4 texture_color = texture_image.Sample(texture_sampler_state, pixel_input.TextureCoordinates);
-        float4 lit_texture_color = texture_color * pixel_input.LightColor;
-        /// @todo   Color components swapped for some reason.
-        //return float4(lit_texture_color.rgb, 1.0);
-        return float4(lit_texture_color.wzy, 1.0);
-    }
-    else
-    {
-        float4 lit_color = pixel_input.Color * pixel_input.LightColor;
-        /// @todo   Color components swapped for some reason.
-        //return float4(lit_color.rgb, 1.0);
-        return float4(lit_color.wzy, 1.0);
-    }
-}
-)HLSL";
-
-void PrintResultIfFailed(const HRESULT result)
-{
-    if (FAILED(result))
-    {
-        std::string error_message = "\nHRESULT = " + std::to_string(result);
-        OutputDebugString(error_message.c_str());
-    }
-};
 
 namespace GRAPHICS::DIRECT_X
 {
@@ -341,136 +232,20 @@ namespace GRAPHICS::DIRECT_X
         }
         device_context->RSSetState(rasterizer_state);
 
-        // COMPILE THE DEFAULT VERTEX SHADER.
-        std::optional<std::pair<ID3DBlob*, ID3D11VertexShader*>> vertex_shader_compiled_code_and_shader = Shader::CompileVertexShader(
-            VERTEX_SHADER, 
-            "VertexShaderEntryPoint", 
-            *device);
-        ASSERT_THEN_IF_NOT(vertex_shader_compiled_code_and_shader)
-        {
-            // INDICATE THAT NO DEVICE COULD BE CONNECTED TO THE WINDOW.
-            return nullptr;
-        }
-        ID3DBlob* vertex_shader_compiled_code = vertex_shader_compiled_code_and_shader->first;
-        ID3D11VertexShader* vertex_shader = vertex_shader_compiled_code_and_shader->second;
-
-        // COMPILE THE DEFAULT PIXEL SHADER.
-        std::optional<std::pair<ID3DBlob*, ID3D11PixelShader*>> pixel_shader_compiled_code_and_shader = Shader::CompilePixelShader(
-            PIXEL_SHADER,
-            "PixelShaderEntryPoint",
-            *device);
-        ASSERT_THEN_IF_NOT(pixel_shader_compiled_code_and_shader)
-        {
-            // INDICATE THAT NO DEVICE COULD BE CONNECTED TO THE WINDOW.
-            return nullptr;
-        }
-        ID3DBlob* pixel_shader_compiled_code = pixel_shader_compiled_code_and_shader->first;
-        ID3D11PixelShader* pixel_shader = pixel_shader_compiled_code_and_shader->second;
-
-        // DIRECT 3D - REMAINING INPUT/BUFFER SETUP.
-        std::vector<D3D11_INPUT_ELEMENT_DESC> vertex_shader_input_description =
-        {
-            D3D11_INPUT_ELEMENT_DESC
-            {
-                .SemanticName = "POSITION",
-                .SemanticIndex = 0,
-                .Format = DXGI_FORMAT_R32G32B32A32_FLOAT,
-                .InputSlot = 0,
-                .AlignedByteOffset = 0,
-                .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
-                .InstanceDataStepRate = 0,
-            },
-            D3D11_INPUT_ELEMENT_DESC
-            {
-                .SemanticName = "COLOR",
-                .SemanticIndex = 0,
-                .Format = DXGI_FORMAT_R32G32B32A32_FLOAT,
-                .InputSlot = 0,
-                .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
-                .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
-                .InstanceDataStepRate = 0,
-            },
-            D3D11_INPUT_ELEMENT_DESC
-            {
-                .SemanticName = "NORMAL",
-                .SemanticIndex = 0,
-                .Format = DXGI_FORMAT_R32G32B32A32_FLOAT,
-                .InputSlot = 0,
-                .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
-                .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
-                .InstanceDataStepRate = 0,
-            },
-            D3D11_INPUT_ELEMENT_DESC
-            {
-                .SemanticName = "TEXCOORD",
-                .SemanticIndex = 0,
-                .Format = DXGI_FORMAT_R32G32_FLOAT,
-                .InputSlot = 0,
-                .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
-                .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
-                .InstanceDataStepRate = 0,
-            },
-        };
-        ID3D11InputLayout* vertex_input_layout = nullptr;
-        HRESULT vertex_input_layout_creation_result = device->CreateInputLayout(
-            vertex_shader_input_description.data(),
-            (UINT)vertex_shader_input_description.size(),
-            vertex_shader_compiled_code->GetBufferPointer(),
-            vertex_shader_compiled_code->GetBufferSize(),
-            &vertex_input_layout);
-        ASSERT_WINDOWS_RESULT_SUCCESS_THEN_IF_FAILED(vertex_input_layout_creation_result)
-        {
-            // INDICATE THAT NO DEVICE COULD BE CONNECTED TO THE WINDOW.
-            return nullptr;
-        }
-        // Compiled shader code blobs are no longer needed.
-        pixel_shader_compiled_code->Release();
-        vertex_shader_compiled_code->Release();
-
-        // CREATE APPROPRIATE TEXTURE SAMPLING.
-        D3D11_SAMPLER_DESC sampler_description =
-        {
-            .Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-            .AddressU = D3D11_TEXTURE_ADDRESS_WRAP,
-            .AddressV = D3D11_TEXTURE_ADDRESS_WRAP,
-            .AddressW = D3D11_TEXTURE_ADDRESS_WRAP,
-            .MipLODBias = 0.0f,
-            .MaxAnisotropy = 1,
-            .ComparisonFunc = D3D11_COMPARISON_ALWAYS,
-            .BorderColor = {},
-            .MinLOD = 0,
-            .MaxLOD = D3D11_FLOAT32_MAX
-        };
-        ID3D11SamplerState* sampler_state = nullptr;
-        HRESULT create_texture_sampler_result = device->CreateSamplerState(&sampler_description, &sampler_state);
-        ASSERT_WINDOWS_RESULT_SUCCESS_THEN_IF_FAILED(create_texture_sampler_result)
+        // CREATE THE DEFAULT SHADER.
+        std::unique_ptr<ShaderProgram> default_shader_program = ShaderProgram::CreateDefault(*device);
+        ASSERT_THEN_IF_NOT(default_shader_program)
         {
             // INDICATE THAT NO DEVICE COULD BE CONNECTED TO THE WINDOW.
             return nullptr;
         }
 
-        // CREATE A BUFFER FOR TRANSFORMATION MATRICES.
-        D3D11_BUFFER_DESC transformation_matrix_buffer_description =
-        {
-            .ByteWidth = sizeof(TransformationMatrixBuffer),
-            // Transformation matrices will be updated by the CPU each frame but only read by the GPU.
-            .Usage = D3D11_USAGE_DYNAMIC,
-            // Transformation matrices will be constant across entire invocation of the shader.
-            .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
-            // The CPU only needs to write to this buffer.
-            .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-            // No special resource flags are needed.
-            .MiscFlags = 0,
-            // No additional striding between elements in needed.
-            .StructureByteStride = 0,
-        };
-        ID3D11Buffer* transformation_matrix_buffer = nullptr;
-        HRESULT transformaton_matrix_buffer_creation_result = device->CreateBuffer(&transformation_matrix_buffer_description, NULL, &transformation_matrix_buffer);
-        ASSERT_WINDOWS_RESULT_SUCCESS_THEN_IF_FAILED(transformaton_matrix_buffer_creation_result)
-        {
-            // INDICATE THAT NO DEVICE COULD BE CONNECTED TO THE WINDOW.
-            return nullptr;
-        }
+        // SET THE SHADER FOR RENDERING.
+        device_context->IASetInputLayout(*default_shader_program->VertexInputLayout);
+        ID3D11ClassInstance* const* NO_CLASS_INSTANCE = nullptr;
+        constexpr UINT NO_CLASS_INSTANCE_COUNT = 0;
+        device_context->VSSetShader(*default_shader_program->VertexShader, NO_CLASS_INSTANCE, NO_CLASS_INSTANCE_COUNT);
+        device_context->PSSetShader(*default_shader_program->PixelShader, NO_CLASS_INSTANCE, NO_CLASS_INSTANCE_COUNT);
 
         // FINAL GRAPHICS DEVICE SETUP.
         auto graphics_device = std::make_unique<Direct3DGraphicsDevice>();
@@ -485,11 +260,7 @@ namespace GRAPHICS::DIRECT_X
         graphics_device->DepthStencilState = depth_stencil_state;
         graphics_device->DepthStencilView = depth_stencil_view;
         graphics_device->RasterizerState = rasterizer_state;
-        graphics_device->VertexShader = vertex_shader;
-        graphics_device->PixelShader = pixel_shader;
-        graphics_device->SamplerState = sampler_state;
-        graphics_device->VertexInputLayout = vertex_input_layout;
-        graphics_device->TransformMatrixBuffer = transformation_matrix_buffer;
+        graphics_device->DefaultShaderProgram = std::move(default_shader_program);
 
         return graphics_device;
     }
@@ -497,71 +268,15 @@ namespace GRAPHICS::DIRECT_X
     /// Shutdowns the graphics device, freeing up allocated resources.
     void Direct3DGraphicsDevice::Shutdown()
     {
-        if (SamplerState)
-        {
-            SamplerState->Release();
-            SamplerState = nullptr;
-        }
-        if (TransformMatrixBuffer)
-        {
-            TransformMatrixBuffer->Release();
-            TransformMatrixBuffer = nullptr;
-        }
-        if (VertexInputLayout)
-        {
-            VertexInputLayout->Release();
-            VertexInputLayout = nullptr;
-        }
-        if (PixelShader)
-        {
-            PixelShader->Release();
-            PixelShader = nullptr;
-        }
-        if (VertexShader)
-        {
-            VertexShader->Release();
-            VertexShader = nullptr;
-        }
-        if (RasterizerState)
-        {
-            RasterizerState->Release();
-            RasterizerState = nullptr;
-        }
-        if (DepthStencilView)
-        {
-            DepthStencilView->Release();
-            DepthStencilView = nullptr;
-        }
-        if (DepthStencilState)
-        {
-            DepthStencilState->Release();
-            DepthStencilState = nullptr;
-        }
-        if (DepthStencilBuffer)
-        {
-            DepthStencilBuffer->Release();
-            DepthStencilBuffer = nullptr;
-        }
-        if (RenderTargetView)
-        {
-            RenderTargetView->Release();
-            RenderTargetView = nullptr;
-        }
-        if (SwapChain)
-        {
-            SwapChain->Release();
-            SwapChain = nullptr;
-        }
-        if (DeviceContext)
-        {
-            DeviceContext->Release();
-            DeviceContext = nullptr;
-        }
-        if (Device)
-        {
-            Device->Release();
-            Device = nullptr;
-        }
+        DefaultShaderProgram.reset();
+        RasterizerState.Release();
+        DepthStencilView.Release();
+        DepthStencilState.Release();
+        DepthStencilBuffer.Release();
+        RenderTargetView.Release();
+        SwapChain.Release();
+        DeviceContext.Release();
+        Device.Release();
     }
 
     /// Shuts down the graphics device to ensure all resources are freed.
@@ -597,13 +312,13 @@ namespace GRAPHICS::DIRECT_X
             color.Blue,
             color.Alpha,
         };
-        DeviceContext->ClearRenderTargetView(RenderTargetView, background_color);
+        DeviceContext->ClearRenderTargetView(*RenderTargetView, background_color);
 
         // CLEAR THE DEPTH-STENCIL BUFFER.
         constexpr float MAX_DEPTH = 1.0f;
         constexpr UINT8 STENCIL_CLEAR_VALUE = 0;
         DeviceContext->ClearDepthStencilView(
-            DepthStencilView,
+            *DepthStencilView,
             D3D11_CLEAR_DEPTH,
             MAX_DEPTH,
             STENCIL_CLEAR_VALUE);
@@ -656,7 +371,12 @@ namespace GRAPHICS::DIRECT_X
         D3D11_MAPPED_SUBRESOURCE mapped_matrix_buffer;
         constexpr UINT FIRST_SUBRESOURCE_INDEX = 0;
         constexpr UINT NO_WAIT_FLAGS = 0;
-        HRESULT transformation_matrix_buffer_map_result = DeviceContext->Map(TransformMatrixBuffer, FIRST_SUBRESOURCE_INDEX, D3D11_MAP_WRITE_DISCARD, NO_WAIT_FLAGS, &mapped_matrix_buffer);
+        HRESULT transformation_matrix_buffer_map_result = DeviceContext->Map(
+            *DefaultShaderProgram->TransformMatrixBuffer,
+            FIRST_SUBRESOURCE_INDEX, 
+            D3D11_MAP_WRITE_DISCARD, 
+            NO_WAIT_FLAGS, 
+            &mapped_matrix_buffer);
         ASSERT_WINDOWS_RESULT_SUCCESS_THEN_IF_FAILED(transformation_matrix_buffer_map_result)
         {
             // RETURN SINCE RENDERING CANNOT CONTINUE.
@@ -673,31 +393,39 @@ namespace GRAPHICS::DIRECT_X
         matrix_buffer->ProjectionMatrix = projection_matrix;
 #endif
 
-        // POPULATE ANY LIGHTING IN THE MATRIX BUFFER.
+        // MAP THE LIGHTING BUFFER INTO MEMORY.
+        D3D11_MAPPED_SUBRESOURCE mapped_light_buffer;
+        HRESULT light_buffer_map_result = DeviceContext->Map(
+            *DefaultShaderProgram->LightingBuffer,
+            FIRST_SUBRESOURCE_INDEX,
+            D3D11_MAP_WRITE_DISCARD,
+            NO_WAIT_FLAGS,
+            &mapped_light_buffer);
+        ASSERT_WINDOWS_RESULT_SUCCESS_THEN_IF_FAILED(light_buffer_map_result)
+        {
+            // RETURN SINCE RENDERING CANNOT CONTINUE.
+            return;
+        }
+        LightBuffer* light_buffer = (LightBuffer*)mapped_light_buffer.pData;
+
+        // POPULATE ANY LIGHTING IN THE LIGHTING BUFFER.
         constexpr float HOMOGENOUS_POSITION_W_COORDINATE = 1.0f;
         bool is_lit = !scene.Lights.empty();
-        matrix_buffer->IsTexturedAndIsLit.y = is_lit;
+        light_buffer->IsTexturedAndLit.y = is_lit;
         if (is_lit)
         {
             const GRAPHICS::SHADING::LIGHTING::Light& first_light = scene.Lights.at(0);
-            matrix_buffer->LightPosition = DirectX::XMFLOAT4(
+            light_buffer->LightPosition = DirectX::XMFLOAT4(
                 first_light.PointLightWorldPosition.X,
                 first_light.PointLightWorldPosition.Y,
                 first_light.PointLightWorldPosition.Z,
                 HOMOGENOUS_POSITION_W_COORDINATE);
-            matrix_buffer->InputLightColor = DirectX::XMFLOAT4(
+            light_buffer->InputLightColor = DirectX::XMFLOAT4(
                 first_light.Color.Red,
                 first_light.Color.Green,
                 first_light.Color.Blue,
                 first_light.Color.Alpha);
         }
-
-        // SET THE SHADER FOR RENDERING.
-        DeviceContext->IASetInputLayout(VertexInputLayout);
-        ID3D11ClassInstance* const * NO_CLASS_INSTANCE = nullptr;
-        constexpr UINT NO_CLASS_INSTANCE_COUNT = 0;
-        DeviceContext->VSSetShader(VertexShader, NO_CLASS_INSTANCE, NO_CLASS_INSTANCE_COUNT);
-        DeviceContext->PSSetShader(PixelShader, NO_CLASS_INSTANCE, NO_CLASS_INSTANCE_COUNT);
 
         // RENDER EACH OBJECT.
         for (const Object3D& object_3D : scene.Objects)
@@ -712,6 +440,11 @@ namespace GRAPHICS::DIRECT_X
             DirectX::XMMATRIX world_matrix = DirectX::XMMATRIX(world_transform.Elements.ValuesInColumnMajorOrder().data());
             matrix_buffer->WorldMatrix = world_matrix;
 #endif
+            // UPDATE THE TRANSFORMATION MATRIX BUFFER ON THE GPU.
+            DeviceContext->Unmap(*DefaultShaderProgram->TransformMatrixBuffer, FIRST_SUBRESOURCE_INDEX);
+            constexpr UINT FIRST_CONSTANT_BUFFER_SLOT = 0;
+            constexpr UINT SINGLE_BUFFER = 1;
+            DeviceContext->VSSetConstantBuffers(FIRST_CONSTANT_BUFFER_SLOT, SINGLE_BUFFER, &DefaultShaderProgram->TransformMatrixBuffer.Resource);
 
             // RENDER EACH MESH.
             for (const auto& [mesh_name, mesh] : object_3D.Model.MeshesByName)
@@ -721,13 +454,12 @@ namespace GRAPHICS::DIRECT_X
                 {
                     // CHECK IF THE TRIANGLE IS TEXTURED.
                     bool is_textured = static_cast<bool>(triangle.Material->DiffuseProperties.Texture);
-                    matrix_buffer->IsTexturedAndIsLit.x = is_textured;
+                    light_buffer->IsTexturedAndLit.x = is_textured;
 
-                    // UPDATE THE TRANSFORMATION MATRIX BUFFER ON THE GPU.
-                    DeviceContext->Unmap(TransformMatrixBuffer, FIRST_SUBRESOURCE_INDEX);
-                    constexpr UINT FIRST_CONSTANT_BUFFER_SLOT = 0;
-                    constexpr UINT SINGLE_BUFFER = 1;
-                    DeviceContext->VSSetConstantBuffers(FIRST_CONSTANT_BUFFER_SLOT, SINGLE_BUFFER, &TransformMatrixBuffer);
+                    // UPDATE THE LIGHT BUFFER ON THE GPU.
+                    DeviceContext->Unmap(*DefaultShaderProgram->LightingBuffer, FIRST_SUBRESOURCE_INDEX);
+                    constexpr UINT SECOND_CONSTANT_BUFFER_SLOT = 1;
+                    DeviceContext->VSSetConstantBuffers(SECOND_CONSTANT_BUFFER_SLOT, SINGLE_BUFFER, &DefaultShaderProgram->LightingBuffer.Resource);
 
                     // DESCRIBE THE VERTEX BUFFER.
                     D3D11_BUFFER_DESC vertex_buffer_description
@@ -885,7 +617,7 @@ namespace GRAPHICS::DIRECT_X
                     {
                         constexpr UINT FIRST_TEXTURE_SAMPLER_SLOT = 0;
                         constexpr UINT SINGLE_TEXTURE_SAMPLER = 1;
-                        DeviceContext->PSSetSamplers(FIRST_TEXTURE_SAMPLER_SLOT, SINGLE_TEXTURE_SAMPLER, &SamplerState);
+                        DeviceContext->PSSetSamplers(FIRST_TEXTURE_SAMPLER_SLOT, SINGLE_TEXTURE_SAMPLER, &DefaultShaderProgram->SamplerState.Resource);
                         DeviceContext->PSSetShaderResources(FIRST_TEXTURE_SAMPLER_SLOT, SINGLE_TEXTURE_SAMPLER, &texture_view);
                     }
 
@@ -914,7 +646,8 @@ namespace GRAPHICS::DIRECT_X
         // Referenced to avoid compiler warnings for an unused parameter.
         window;
 
-        constexpr UINT PRESENT_AFTER_VERTICAL_BLANK = 1;
+        /// @todo   Switch to 1 for vsync.
+        constexpr UINT PRESENT_AFTER_VERTICAL_BLANK = 0;
         constexpr UINT PRESENT_FRAME_FROM_EACH_BUFFER = 0;
         SwapChain->Present(PRESENT_AFTER_VERTICAL_BLANK, PRESENT_FRAME_FROM_EACH_BUFFER);
     }

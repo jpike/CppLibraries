@@ -2,32 +2,14 @@
 
 #include <memory>
 #include <d3d11.h>
-#include <DirectXMath.h>
+#include "Graphics/DirectX/DirectXGpuResource.h"
+#include "Graphics/DirectX/ShaderProgram.h"
 #include "Graphics/Hardware/IGraphicsDevice.h"
 #include "Windowing/IWindow.h"
 
 /// Holds graphics code related to rendering with DirectX.
 namespace GRAPHICS::DIRECT_X
 {
-    struct TransformationMatrixBuffer
-    {
-        DirectX::XMMATRIX WorldMatrix;
-        DirectX::XMMATRIX ViewMatrix;
-        DirectX::XMMATRIX ProjectionMatrix;
-        /// @todo   Remove hack for texturing/light here.
-        DirectX::XMFLOAT4 LightPosition;
-        DirectX::XMFLOAT4 InputLightColor;
-        DirectX::XMINT2 IsTexturedAndIsLit;
-    };
-
-    struct VertexInputBuffer
-    {
-        DirectX::XMFLOAT4 Position;
-        DirectX::XMFLOAT4 Color;
-        DirectX::XMFLOAT4 Normal;
-        DirectX::XMFLOAT2 TextureCoordinates;
-    };
-
     /// A graphics device that performs rendering using Direct3D.
     class Direct3DGraphicsDevice : public GRAPHICS::HARDWARE::IGraphicsDevice
     {
@@ -54,20 +36,23 @@ namespace GRAPHICS::DIRECT_X
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The window the graphics device is connected to.
         WINDOWING::IWindow* Window = nullptr;
-
-        /// @todo   Document members.
-        ID3D11Device* Device = nullptr;
-        ID3D11DeviceContext* DeviceContext = nullptr;
-        IDXGISwapChain* SwapChain = nullptr;
-        ID3D11RenderTargetView* RenderTargetView = nullptr;
-        ID3D11Texture2D* DepthStencilBuffer = nullptr;
-        ID3D11DepthStencilState* DepthStencilState = nullptr;
-        ID3D11DepthStencilView* DepthStencilView = nullptr;
-        ID3D11RasterizerState* RasterizerState = nullptr;
-        ID3D11VertexShader* VertexShader = nullptr;
-        ID3D11PixelShader* PixelShader = nullptr;
-        ID3D11SamplerState* SamplerState = nullptr;
-        ID3D11InputLayout* VertexInputLayout = nullptr;
-        ID3D11Buffer* TransformMatrixBuffer = nullptr;
+        /// The graphics device.
+        DirectXGpuResource<ID3D11Device> Device = nullptr;
+        /// The device context.
+        DirectXGpuResource<ID3D11DeviceContext> DeviceContext = nullptr;
+        /// The swap chain.
+        DirectXGpuResource<IDXGISwapChain> SwapChain = nullptr;
+        /// The render target view.
+        DirectXGpuResource<ID3D11RenderTargetView> RenderTargetView = nullptr;
+        /// The depth-stencil buffer.
+        DirectXGpuResource<ID3D11Texture2D> DepthStencilBuffer = nullptr;
+        /// The depth-stencil state.
+        DirectXGpuResource<ID3D11DepthStencilState> DepthStencilState = nullptr;
+        /// The depth-stencil view.
+        DirectXGpuResource<ID3D11DepthStencilView> DepthStencilView = nullptr;
+        /// The rasterizer state.
+        DirectXGpuResource<ID3D11RasterizerState> RasterizerState = nullptr;
+        /// The shader program.
+        std::unique_ptr<ShaderProgram> DefaultShaderProgram = nullptr;
     };
 }
