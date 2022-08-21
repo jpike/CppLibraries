@@ -8,6 +8,7 @@
 #include "Graphics/DirectX/DisplayMode.cpp"
 #include "Graphics/DirectX/Shader.cpp"
 #include "Graphics/DirectX/ShaderProgram.cpp"
+#include "Graphics/DirectX/VertexInputBuffer.cpp"
 
 #include "Graphics/Geometry/Cube.cpp"
 #include "Graphics/Geometry/Sphere.cpp"

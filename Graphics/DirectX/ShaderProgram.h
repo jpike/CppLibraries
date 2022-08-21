@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include <d3d11.h>
-#include "Graphics/DirectX/DirectXGpuResource.h"
+#include "Graphics/DirectX/Direct3DGpuResource.h"
 
 namespace GRAPHICS::DIRECT_X
 {
@@ -22,16 +22,16 @@ namespace GRAPHICS::DIRECT_X
 
         // PUBLIC MEMBER VARIABLES FOR EASY ACCESS.
         /// The vertex shader.
-        DirectXGpuResource<ID3D11VertexShader> VertexShader = nullptr;
+        Direct3DGpuResource<ID3D11VertexShader> VertexShader = nullptr;
         /// The pixel shader.
-        DirectXGpuResource<ID3D11PixelShader> PixelShader = nullptr;
+        Direct3DGpuResource<ID3D11PixelShader> PixelShader = nullptr;
         /// The texture sampler state.
-        DirectXGpuResource<ID3D11SamplerState> SamplerState = nullptr;
+        Direct3DGpuResource<ID3D11SamplerState> SamplerState = nullptr;
         /// The vertex input layout.
-        DirectXGpuResource<ID3D11InputLayout> VertexInputLayout = nullptr;
+        Direct3DGpuResource<ID3D11InputLayout> VertexInputLayout = nullptr;
         /// The transformation matrix buffer.
-        DirectXGpuResource<ID3D11Buffer> TransformMatrixBuffer = nullptr;
+        Direct3DGpuResource<ID3D11Buffer> TransformMatrixBuffer = nullptr;
         /// The lighting buffer.
-        DirectXGpuResource<ID3D11Buffer> LightingBuffer = nullptr;
+        Direct3DGpuResource<ID3D11Buffer> LightingBuffer = nullptr;
     };
 }

@@ -3,6 +3,7 @@
 #include <memory>
 #include <gl3w/GL/glcorearb.h>
 #include "Graphics/Color.h"
+#include "Graphics/DirectX/Direct3DTexture.h"
 #include "Graphics/Images/Bitmap.h"
 
 namespace GRAPHICS::SHADING
@@ -20,5 +21,7 @@ namespace GRAPHICS::SHADING
         std::shared_ptr<IMAGES::Bitmap> Texture = nullptr;
         /// Any OpenGL resource for the texture.
         GLuint OpenGLTextureId = 0;
+        /// Any Direct3D resource for the texture.
+        std::weak_ptr<GRAPHICS::DIRECT_X::Direct3DTexture> Direct3DTextureResource = {};
     };
 }

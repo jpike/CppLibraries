@@ -1,8 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <d3d11.h>
-#include "Graphics/DirectX/DirectXGpuResource.h"
+#include "Graphics/DirectX/Direct3DGpuResource.h"
+#include "Graphics/DirectX/Direct3DTexture.h"
 #include "Graphics/DirectX/ShaderProgram.h"
 #include "Graphics/Hardware/IGraphicsDevice.h"
 #include "Windowing/IWindow.h"
@@ -37,22 +39,26 @@ namespace GRAPHICS::DIRECT_X
         /// The window the graphics device is connected to.
         WINDOWING::IWindow* Window = nullptr;
         /// The graphics device.
-        DirectXGpuResource<ID3D11Device> Device = nullptr;
+        Direct3DGpuResource<ID3D11Device> Device = nullptr;
         /// The device context.
-        DirectXGpuResource<ID3D11DeviceContext> DeviceContext = nullptr;
+        Direct3DGpuResource<ID3D11DeviceContext> DeviceContext = nullptr;
         /// The swap chain.
-        DirectXGpuResource<IDXGISwapChain> SwapChain = nullptr;
+        Direct3DGpuResource<IDXGISwapChain> SwapChain = nullptr;
         /// The render target view.
-        DirectXGpuResource<ID3D11RenderTargetView> RenderTargetView = nullptr;
+        Direct3DGpuResource<ID3D11RenderTargetView> RenderTargetView = nullptr;
         /// The depth-stencil buffer.
-        DirectXGpuResource<ID3D11Texture2D> DepthStencilBuffer = nullptr;
+        Direct3DGpuResource<ID3D11Texture2D> DepthStencilBuffer = nullptr;
         /// The depth-stencil state.
-        DirectXGpuResource<ID3D11DepthStencilState> DepthStencilState = nullptr;
+        Direct3DGpuResource<ID3D11DepthStencilState> DepthStencilState = nullptr;
         /// The depth-stencil view.
-        DirectXGpuResource<ID3D11DepthStencilView> DepthStencilView = nullptr;
+        Direct3DGpuResource<ID3D11DepthStencilView> DepthStencilView = nullptr;
         /// The rasterizer state.
-        DirectXGpuResource<ID3D11RasterizerState> RasterizerState = nullptr;
+        Direct3DGpuResource<ID3D11RasterizerState> RasterizerState = nullptr;
         /// The shader program.
         std::unique_ptr<ShaderProgram> DefaultShaderProgram = nullptr;
+        /// Vertex buffers allocated on the device.
+        std::vector<ID3D11Buffer*> VertexBuffers = {};
+        /// Textures allocated on the device.
+        std::vector<std::shared_ptr<Direct3DTexture>> Textures = {};
     };
 }

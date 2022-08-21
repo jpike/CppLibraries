@@ -2,17 +2,17 @@
 
 namespace GRAPHICS::DIRECT_X
 {
-    /// A GPU resource allocated with Direct X.
+    /// A GPU resource allocated with Direct 3D.
     /// This class helps automate releasing of resources.
     template <typename ResourceType>
-    class DirectXGpuResource
+    class Direct3DGpuResource
     {
     public:
         // CONSTRUCTION/DESTRUCTION.
-        ~DirectXGpuResource();
+        ~Direct3DGpuResource();
 
         // OPERATORS.
-        DirectXGpuResource& operator=(ResourceType* resource);
+        Direct3DGpuResource& operator=(ResourceType* resource);
         ResourceType* operator*() const;
         ResourceType* operator->();
 
@@ -26,7 +26,7 @@ namespace GRAPHICS::DIRECT_X
 
     /// Destructor to release the resource if it still exists.
     template <typename ResourceType>
-    DirectXGpuResource<ResourceType>::~DirectXGpuResource()
+    Direct3DGpuResource<ResourceType>::~Direct3DGpuResource()
     {
         Release();
     }
@@ -36,7 +36,7 @@ namespace GRAPHICS::DIRECT_X
     /// @param[in]  resource - The resource to wrap in this class.
     /// @return This wrapped resource, after assignment.
     template <typename ResourceType>
-    DirectXGpuResource<ResourceType>& DirectXGpuResource<ResourceType>::operator=(ResourceType* resource)
+    Direct3DGpuResource<ResourceType>& Direct3DGpuResource<ResourceType>::operator=(ResourceType* resource)
     {
         Resource = resource;
 
@@ -46,7 +46,7 @@ namespace GRAPHICS::DIRECT_X
     /// Dereference operator to access the underlying resource.
     /// @return The underlying wrapped resource; a pointer is returned to meet common DirectX interfaces.
     template <typename ResourceType>
-    ResourceType* DirectXGpuResource<ResourceType>::operator*() const
+    ResourceType* Direct3DGpuResource<ResourceType>::operator*() const
     {
         return Resource;
     }
@@ -54,7 +54,7 @@ namespace GRAPHICS::DIRECT_X
     /// Indirection operator to access the underlying resource.
     /// @return The underlying wrapped resource; a pointer is returned to meet common DirectX interfaces.
     template <typename ResourceType>
-    ResourceType* DirectXGpuResource<ResourceType>::operator->()
+    ResourceType* Direct3DGpuResource<ResourceType>::operator->()
     {
         return Resource;
     }
@@ -62,7 +62,7 @@ namespace GRAPHICS::DIRECT_X
     /// Releases the resource if it still exists.
     /// Allows for earlier releasing.
     template <typename ResourceType>
-    void DirectXGpuResource<ResourceType>::Release()
+    void Direct3DGpuResource<ResourceType>::Release()
     {
         if (Resource)
         {

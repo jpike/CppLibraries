@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <d3d11.h>
 #include "Graphics/Mesh.h"
 
 // Forward declarations.
@@ -22,5 +23,7 @@ namespace GRAPHICS::MODELING
 
         /// OpenGL vertex buffer, if populated with all mesh data.
         std::weak_ptr<GRAPHICS::OPEN_GL::VertexBuffer> OpenGLVertexBuffer = {};
+        /// Direct3D vertex buffer, if populated with all mesh data.
+        ID3D11Buffer* Direct3DVertexBuffer = nullptr;
     };
 }
