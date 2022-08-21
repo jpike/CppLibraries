@@ -1,101 +1,11 @@
 #include <vector>
 #include "Debugging/Timer.h"
 #include "ErrorHandling/Asserts.h"
+#include "Graphics/OpenGL/OpenGL.h"
 #include "Graphics/OpenGL/OpenGLGraphicsDevice.h"
 #include "Graphics/Shading/Lighting/Light.h"
 #include "Graphics/Viewing/ViewingTransformations.h"
 #include "Windowing/Win32Window.h"
-
-static const char* DEFAULT_VERTEX_SHADER = R"GLSL( 
-#version 420 core
-
-uniform mat4 world_transform;
-uniform mat4 view_transform;
-uniform mat4 projection_transform;
-
-uniform bool is_lit;
-uniform vec4 light_position;
-uniform vec4 input_light_color;
-
-in vec4 local_vertex;
-in vec4 input_vertex_color;
-in vec2 input_texture_coordinates;
-in vec3 vertex_normal;
-
-out VERTEX_SHADER_OUTPUT
-{
-    vec4 color;
-    vec2 texture_coordinates;
-    vec4 light_color;
-} vertex_shader_output;
-
-void main()
-{
-    vec4 world_vertex = world_transform * local_vertex;
-    vec4 view_position = view_transform * world_vertex;
-    vec4 projected_vertex = projection_transform * view_position;
-    // See https://stackoverflow.com/questions/47233771/negative-values-for-gl-position-w
-    // Not entirely sure why I had to do this manually.
-    // Might have something to do with my particular projection matrices.
-    gl_Position = vec4(
-        projected_vertex.x / projected_vertex.w,
-        projected_vertex.y / projected_vertex.w, 
-        // My particular projection matrices differ a bit from OpenGL conventions.
-        -projected_vertex.z / projected_vertex.w, 
-        1.0);
-    vertex_shader_output.color = input_vertex_color;
-    vertex_shader_output.texture_coordinates = input_texture_coordinates;
-
-    if (is_lit)
-    {
-        vec3 direction_from_vertex_to_light = light_position.xyz - world_vertex.xyz;
-        vec3 unit_direction_from_point_to_light = normalize(direction_from_vertex_to_light);
-        float illumination_proportion = dot(vertex_normal.xyz, unit_direction_from_point_to_light);
-        float clamped_illumination = max(0, illumination_proportion);
-        vec3 scaled_light_color = clamped_illumination * input_light_color.xyz;
-        vertex_shader_output.light_color = vec4(scaled_light_color.rgb, 1.0);
-    }
-    else
-    {
-        vertex_shader_output.light_color = vec4(1.0, 1.0, 1.0, 1.0);
-    }
-}
-)GLSL";
-
-static const char* DEFAULT_FRAGMENT_SHADER = R"GLSL(
-#version 420 core
-
-uniform bool is_textured;
-uniform sampler2D texture_sampler;
-
-in VERTEX_SHADER_OUTPUT
-{
-    vec4 color;
-    vec2 texture_coordinates;
-    vec4 light_color;
-} fragment_shader_input;
-
-out vec4 fragment_color;
-
-void main()
-{
-    if (is_textured)
-    {
-        vec4 texture_color = texture(texture_sampler, fragment_shader_input.texture_coordinates);
-        vec4 lit_texture_color = texture_color * fragment_shader_input.light_color;
-        /// @todo   Color components swapped for some reason.
-        //fragment_color = vec4(lit_texture_color.xyz, 1.0);
-        fragment_color = vec4(lit_texture_color.wzy, 1.0);
-    }
-    else
-    {
-        vec4 lit_color = fragment_shader_input.color * fragment_shader_input.light_color;
-        /// @todo   Color components swapped for some reason.
-        //fragment_color = vec4(lit_color.xyz, 1.0);
-        fragment_color = vec4(lit_color.wzy, 1.0);
-    }
-}
-)GLSL";
 
 namespace GRAPHICS::OPEN_GL
 {
@@ -122,7 +32,7 @@ namespace GRAPHICS::OPEN_GL
         }
 
         // INITIALIZE OPEN GL.
-        bool open_gl_initialized = InitializeOpenGL(window_device_context);
+        bool open_gl_initialized = GRAPHICS::OPEN_GL::Initialize(window_device_context);
         ASSERT_THEN_IF_NOT(open_gl_initialized)
         {
             // INDICATE THAT NO OPEN GL GRAPHICS DEVICE COULD BE CONNECTED TO THE WINDOW.
@@ -162,8 +72,8 @@ namespace GRAPHICS::OPEN_GL
 
         // CONFIGURE THE SHADER PROGRAM TO USE.
         graphics_device->ShaderProgram = GRAPHICS::OPEN_GL::ShaderProgram::Build(
-            DEFAULT_VERTEX_SHADER,
-            DEFAULT_FRAGMENT_SHADER);
+            GRAPHICS::OPEN_GL::ShaderProgram::DEFAULT_VERTEX_SHADER_CODE,
+            GRAPHICS::OPEN_GL::ShaderProgram::DEFAULT_FRAGMENT_SHADER_CODE);
         glUseProgram(graphics_device->ShaderProgram->Id);
 
         // A single texture sampler is currently all that is used for all rendering.
@@ -489,154 +399,5 @@ namespace GRAPHICS::OPEN_GL
 
         // DISPLAY THE RENDERED IMAGE IN THE WINDOW.
         SwapBuffers(WindowDeviceContext);
-    }
-
-    /// The callback function for OpenGL to call for debug messages.
-    /// Prints the debug message for visibility.
-    /// @param[in]  source - The source of the message.
-    /// @param[in]  type - The type of the message.
-    /// @param[in]  id - The ID of the message.
-    /// @param[in]  severity - The severity of the message.
-    /// @param[in]  length_in_characters - The length of the message in characters.
-    /// @param[in]  message - The actual message.
-    /// @param[in]  user_parameter - Any user parameter.
-    void OpenGLGraphicsDevice::OpenGLDebugMessageCallback(
-        GLenum source,
-        GLenum type,
-        GLuint id,
-        GLenum severity,
-        GLsizei length_in_characters,
-        const GLchar* message,
-        void* user_parameter)
-    {
-        // PROVIDE MAXIMUM DEBUG VISIBILITY.
-        std::stringstream debug_message;
-        debug_message
-            << "\nOpenGL debug:"
-            << "\tsource = " << source
-            << "\ttype = " << type
-            << "\tid = " << id
-            << "\tseverity = " << severity
-            << "\tlength = " << length_in_characters
-            << "\tmessage = " << message
-            << "\tuser_parameter = " << user_parameter
-            << "\n";
-        OutputDebugString(debug_message.str().c_str());
-    }
-
-    /// Initializes OpenGL by loading the necessary functions.
-    /// @param[in] device_context - The device context for which OpenGL should be initialized.
-    /// @return True if initialization succeeds; false otherwise.
-    bool OpenGLGraphicsDevice::InitializeOpenGL(const HDC device_context)
-    {
-        // SET THE PIXEL FORMAT.
-        PIXELFORMATDESCRIPTOR pixel_format = {};
-        pixel_format.nSize = sizeof(pixel_format);
-        const WORD REQUIRED_VERSION = 1;
-        pixel_format.nVersion = REQUIRED_VERSION;
-        pixel_format.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-        pixel_format.iPixelType = PFD_TYPE_RGBA;
-        pixel_format.cColorBits = 32;
-        pixel_format.cDepthBits = 24;
-        pixel_format.cStencilBits = 8;
-
-        const int FAILED_TO_FIND_PIXEL_FORMAT = 0;
-        int temp_pixel_format_index = ChoosePixelFormat(device_context, &pixel_format);
-        bool pixel_format_chosen = (FAILED_TO_FIND_PIXEL_FORMAT != temp_pixel_format_index);
-        if (!pixel_format_chosen)
-        {
-            return false;
-        }
-
-        BOOL pixel_format_set = SetPixelFormat(device_context, temp_pixel_format_index, &pixel_format);
-        if (!pixel_format_set)
-        {
-            return false;
-        }
-
-        // CREATE A TEMPORARY OPEN GL RENDERING CONTEXT.
-        // This is necessary in order to load the OpenGL functions.
-        HGLRC temp_open_gl_render_context = wglCreateContext(device_context);
-        bool temp_open_gl_render_context_created = (NULL != temp_open_gl_render_context);
-        if (!temp_open_gl_render_context_created)
-        {
-            return false;
-        }
-
-        BOOL open_gl_context_made_current = wglMakeCurrent(device_context, temp_open_gl_render_context);
-        if (!open_gl_context_made_current)
-        {
-            return false;
-        }
-
-        // LOAD THE OPEN GL FUNCTIONS.
-        wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
-        wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-        int regular_open_gl_loading_return_code = gl3wInit();
-
-        // CHECK IF LOADING SUCCEEDED.
-        constexpr int GL3W_SUCCESS_RETURN_CODE = 0;
-        bool regular_open_gl_functions_loaded = (GL3W_SUCCESS_RETURN_CODE == regular_open_gl_loading_return_code);
-        bool open_gl_functions_loaded = (wglChoosePixelFormatARB && wglCreateContextAttribsARB && regular_open_gl_functions_loaded);
-        if (!open_gl_functions_loaded)
-        {
-            return false;
-        }
-
-        // CONFIGURE DEBUG LOGGING.
-        // Only done in debug builds to avoid potential performance penalties during release builds.
-#if _DEBUG
-        constexpr void* NO_DEBUG_USER_DATA = nullptr;
-        glDebugMessageCallback(OpenGLDebugMessageCallback, NO_DEBUG_USER_DATA);
-        constexpr GLenum NO_SOURCE_DEBUG_MESSAGE_FILTERIING = GL_DONT_CARE;
-        constexpr GLenum NO_TYPE_DEBUG_MESSAGE_FILTERIING = GL_DONT_CARE;
-        constexpr GLenum NO_SEVERITY_DEBUG_MESSAGE_FILTERIING = GL_DONT_CARE;
-        constexpr GLsizei NO_ID_DEBUG_MESSAGES_TO_FILTER_COUNT = 0;
-        constexpr GLuint* NO_ID_DEBUG_MESSAGE_FILTERING = nullptr;
-        constexpr GLboolean ENABLE_DEBUG_MESSAGE = GL_TRUE;
-        glDebugMessageControl(
-            NO_SOURCE_DEBUG_MESSAGE_FILTERIING,
-            NO_TYPE_DEBUG_MESSAGE_FILTERIING,
-            NO_SEVERITY_DEBUG_MESSAGE_FILTERIING,
-            NO_ID_DEBUG_MESSAGES_TO_FILTER_COUNT,
-            NO_ID_DEBUG_MESSAGE_FILTERING,
-            ENABLE_DEBUG_MESSAGE);
-#endif
-
-        // SET THE PIXEL FORMAT.
-        const int pixel_format_attribute_list[] =
-        {
-            WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-            WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-            WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
-            WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-            WGL_COLOR_BITS_ARB, pixel_format.cColorBits,
-            WGL_DEPTH_BITS_ARB, pixel_format.cDepthBits,
-            WGL_STENCIL_BITS_ARB, pixel_format.cStencilBits,
-            ATTRIBUTE_LIST_TERMINATOR
-        };
-        const float* const NO_FLOATING_POINT_PIXEL_FORMAT_ATTRIBUTES = nullptr;
-        const unsigned int MAX_PIXEL_FORMATS_TO_CHOOSE = 1;
-        int pixel_format_index = 0;
-        UINT pixel_format_count = 0;
-
-        BOOL gl_pixel_format_chosen = wglChoosePixelFormatARB(
-            device_context,
-            pixel_format_attribute_list,
-            NO_FLOATING_POINT_PIXEL_FORMAT_ATTRIBUTES,
-            MAX_PIXEL_FORMATS_TO_CHOOSE,
-            &pixel_format_index,
-            &pixel_format_count);
-        if (!gl_pixel_format_chosen)
-        {
-            return false;
-        }
-        SetPixelFormat(device_context, pixel_format_index, &pixel_format);
-
-        // DELETE THE TEMPORARY OPEN GL RENDERING CONTEXT.
-        wglDeleteContext(temp_open_gl_render_context);
-
-        // INDICATE OPEN GL INITIALIZATION SUCCEEDED.
-        return true;
     }
 }

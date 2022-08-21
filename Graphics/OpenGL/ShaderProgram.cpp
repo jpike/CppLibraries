@@ -3,7 +3,100 @@
 
 namespace GRAPHICS::OPEN_GL
 {
-    void CheckShaderCompilation(const GLuint shader_id)
+    const char* ShaderProgram::DEFAULT_VERTEX_SHADER_CODE = R"GLSL( 
+#version 420 core
+
+uniform mat4 world_transform;
+uniform mat4 view_transform;
+uniform mat4 projection_transform;
+
+uniform bool is_lit;
+uniform vec4 light_position;
+uniform vec4 input_light_color;
+
+in vec4 local_vertex;
+in vec4 input_vertex_color;
+in vec2 input_texture_coordinates;
+in vec3 vertex_normal;
+
+out VERTEX_SHADER_OUTPUT
+{
+    vec4 color;
+    vec2 texture_coordinates;
+    vec4 light_color;
+} vertex_shader_output;
+
+void main()
+{
+    vec4 world_vertex = world_transform * local_vertex;
+    vec4 view_position = view_transform * world_vertex;
+    vec4 projected_vertex = projection_transform * view_position;
+    // See https://stackoverflow.com/questions/47233771/negative-values-for-gl-position-w
+    // Not entirely sure why I had to do this manually.
+    // Might have something to do with my particular projection matrices.
+    gl_Position = vec4(
+        projected_vertex.x / projected_vertex.w,
+        projected_vertex.y / projected_vertex.w, 
+        // My particular projection matrices differ a bit from OpenGL conventions.
+        -projected_vertex.z / projected_vertex.w, 
+        1.0);
+    vertex_shader_output.color = input_vertex_color;
+    vertex_shader_output.texture_coordinates = input_texture_coordinates;
+
+    if (is_lit)
+    {
+        vec3 direction_from_vertex_to_light = light_position.xyz - world_vertex.xyz;
+        vec3 unit_direction_from_point_to_light = normalize(direction_from_vertex_to_light);
+        float illumination_proportion = dot(vertex_normal.xyz, unit_direction_from_point_to_light);
+        float clamped_illumination = max(0, illumination_proportion);
+        vec3 scaled_light_color = clamped_illumination * input_light_color.xyz;
+        vertex_shader_output.light_color = vec4(scaled_light_color.rgb, 1.0);
+    }
+    else
+    {
+        vertex_shader_output.light_color = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+}
+)GLSL";
+
+    const char* ShaderProgram::DEFAULT_FRAGMENT_SHADER_CODE = R"GLSL(
+#version 420 core
+
+uniform bool is_textured;
+uniform sampler2D texture_sampler;
+
+in VERTEX_SHADER_OUTPUT
+{
+    vec4 color;
+    vec2 texture_coordinates;
+    vec4 light_color;
+} fragment_shader_input;
+
+out vec4 fragment_color;
+
+void main()
+{
+    if (is_textured)
+    {
+        vec4 texture_color = texture(texture_sampler, fragment_shader_input.texture_coordinates);
+        vec4 lit_texture_color = texture_color * fragment_shader_input.light_color;
+        /// @todo   Color components swapped for some reason.
+        //fragment_color = vec4(lit_texture_color.xyz, 1.0);
+        fragment_color = vec4(lit_texture_color.wzy, 1.0);
+    }
+    else
+    {
+        vec4 lit_color = fragment_shader_input.color * fragment_shader_input.light_color;
+        /// @todo   Color components swapped for some reason.
+        //fragment_color = vec4(lit_color.xyz, 1.0);
+        fragment_color = vec4(lit_color.wzy, 1.0);
+    }
+}
+)GLSL";;
+
+    /// Checks if shader compilation succeeded, provided debug output if something fails.
+    /// @param[in]  shader_id - The ID of the shader to check.
+    void ShaderProgram::CheckShaderCompilation(const GLuint shader_id)
     {
         GLint shader_compile_status;
         glGetShaderiv(shader_id, GL_COMPILE_STATUS, &shader_compile_status);

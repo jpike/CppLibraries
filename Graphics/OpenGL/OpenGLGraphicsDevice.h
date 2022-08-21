@@ -4,11 +4,6 @@
 #include <string>
 #include <vector>
 #include <gl/GL.h>
-#include <GL/wglext.h>
-// Older OpenGL functions must be undefined to avoid missing symbols.
-#undef GL_VERSION_1_1
-#include <gl3w/GL/gl3w.h>
-#include <Windows.h>
 #include "Graphics/Hardware/IGraphicsDevice.h"
 #include "Graphics/OpenGL/ShaderProgram.h"
 #include "Graphics/OpenGL/VertexBuffer.h"
@@ -21,10 +16,6 @@ namespace GRAPHICS::OPEN_GL
     class OpenGLGraphicsDevice : public GRAPHICS::HARDWARE::IGraphicsDevice
     {
     public:
-        // CONSTANTS.
-        /// The value that marks the end of an OpenGL attribute list.
-        static constexpr int ATTRIBUTE_LIST_TERMINATOR = 0;
-
         // CREATION/SHUTDOWN.
         static std::unique_ptr<OpenGLGraphicsDevice> ConnectTo(WINDOWING::IWindow& window);
         void Shutdown() override;
@@ -57,23 +48,6 @@ namespace GRAPHICS::OPEN_GL
         std::shared_ptr<ShaderProgram> ShaderProgram = nullptr;
 
     private:
-        // PRIVATE HELPER METHODS.
-        static void OpenGLDebugMessageCallback(
-            GLenum source,
-            GLenum type,
-            GLuint id,
-            GLenum severity,
-            GLsizei length_in_characters,
-            const GLchar* message,
-            void* user_parameter);
-        static bool InitializeOpenGL(const HDC device_context);
-
-        // LOADED OPEN GL FUNCTIONS.
-        /// The function for choosing pixel formats for OpenGL.
-        inline static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = nullptr;
-        /// The function for creating an OpenGL context with attributes.
-        inline static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
-
         // INTERNALLY MANAGED RESOURCES.
         /// Vertex buffers allocated on the device.
         std::vector<std::shared_ptr<VertexBuffer>> VertexBuffers = {};
