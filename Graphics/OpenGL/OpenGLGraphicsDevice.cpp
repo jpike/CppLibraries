@@ -5,6 +5,7 @@
 #include "Graphics/OpenGL/OpenGLGraphicsDevice.h"
 #include "Graphics/Shading/Lighting/Light.h"
 #include "Graphics/Viewing/ViewingTransformations.h"
+#include "Windowing/SdlWindow.h"
 #include "Windowing/Win32Window.h"
 
 namespace GRAPHICS::OPEN_GL
@@ -14,42 +15,67 @@ namespace GRAPHICS::OPEN_GL
     /// return  The OpenGL graphics device, if successfully connected to the window; null if an error occurs.
     std::unique_ptr<OpenGLGraphicsDevice> OpenGLGraphicsDevice::ConnectTo(WINDOWING::IWindow& window)
     {
-        // ENSURE A COMPATIBLE WINDOW IS GIVEN.
-        // So far, only Win32 windows are supported.
+        // CHECK FOR A VALID TYPE OF WINDOW.
         WINDOWING::Win32Window* win32_window = dynamic_cast<WINDOWING::Win32Window*>(&window);
-        ASSERT_THEN_IF_NOT(win32_window)
+        WINDOWING::SdlWindow* sdl_window = dynamic_cast<WINDOWING::SdlWindow*>(&window);
+        bool window_valid = (win32_window || sdl_window);
+        if (!window_valid)
         {
             // INDICATE THAT NO OPEN GL GRAPHICS DEVICE COULD BE CONNECTED TO THE WINDOW.
             return nullptr;
         }
 
-        // ENSURE A VALID GRAPHICS DEVICE CONTEXT EXISTS ON THE WINDOW.
-        HDC window_device_context = GetDC(win32_window->WindowHandle);
-        ASSERT_THEN_IF_NOT(window_device_context)
+        // INITIALIZE OPEN BASED ON THE TYPE OF WINDOW.
+        HDC window_device_context = nullptr;
+        HGLRC win32_open_gl_render_context = nullptr;
+        SDL_GLContext sdl_open_gl_context = nullptr;
+        if (win32_window)
         {
-            // INDICATE THAT NO OPEN GL GRAPHICS DEVICE COULD BE CONNECTED TO THE WINDOW.
-            return nullptr;
-        }
+            // ENSURE A VALID GRAPHICS DEVICE CONTEXT EXISTS ON THE WINDOW.
+            window_device_context = GetDC(win32_window->WindowHandle);
+            ASSERT_THEN_IF_NOT(window_device_context)
+            {
+                // INDICATE THAT NO OPEN GL GRAPHICS DEVICE COULD BE CONNECTED TO THE WINDOW.
+                return nullptr;
+            }
 
-        // INITIALIZE OPEN GL.
-        bool open_gl_initialized = GRAPHICS::OPEN_GL::Initialize(window_device_context);
-        ASSERT_THEN_IF_NOT(open_gl_initialized)
-        {
-            // INDICATE THAT NO OPEN GL GRAPHICS DEVICE COULD BE CONNECTED TO THE WINDOW.
-            return nullptr;
+            // INITIALIZE OPEN GL.
+            bool open_gl_initialized = GRAPHICS::OPEN_GL::Initialize(window_device_context);
+            ASSERT_THEN_IF_NOT(open_gl_initialized)
+            {
+                // INDICATE THAT NO OPEN GL GRAPHICS DEVICE COULD BE CONNECTED TO THE WINDOW.
+                return nullptr;
+            }
+
+            // CREATE THE OPEN GL RENDERING CONTEXT.
+            const HGLRC NO_CONTEXT_TO_SHARE_WITH = nullptr;
+            const int context_attribute_list[] =
+            {
+                WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
+                WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                ATTRIBUTE_LIST_TERMINATOR
+            };
+            win32_open_gl_render_context = wglCreateContextAttribsARB(window_device_context, NO_CONTEXT_TO_SHARE_WITH, context_attribute_list);
+            BOOL open_gl_context_made_current = wglMakeCurrent(window_device_context, win32_open_gl_render_context);
+            if (!open_gl_context_made_current)
+            {
+                // INDICATE THAT NO OPEN GL GRAPHICS DEVICE COULD BE CONNECTED TO THE WINDOW.
+                return nullptr;
+            }
         }
-        
-        // CREATE THE OPEN GL RENDERING CONTEXT.
-        const HGLRC NO_CONTEXT_TO_SHARE_WITH = nullptr;
-        const int context_attribute_list[] =
+        else if (sdl_window)
         {
-            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-            ATTRIBUTE_LIST_TERMINATOR
-        };
-        HGLRC open_gl_render_context = wglCreateContextAttribsARB(window_device_context, NO_CONTEXT_TO_SHARE_WITH, context_attribute_list);
-        BOOL open_gl_context_made_current = wglMakeCurrent(window_device_context, open_gl_render_context);
-        if (!open_gl_context_made_current)
+            // INITIALIZE OPEN GL FOR SDL.
+            sdl_open_gl_context = SDL_GL_CreateContext(sdl_window->UnderlyingWindow);
+            SDL_GL_MakeCurrent(sdl_window->UnderlyingWindow, sdl_open_gl_context);
+
+            constexpr int VERTICAL_SYNC = 1;
+            SDL_GL_SetSwapInterval(VERTICAL_SYNC);
+
+            // LOAD OPEN GL FUNCTIONS.
+            gl3wInit();
+        }
+        else
         {
             // INDICATE THAT NO OPEN GL GRAPHICS DEVICE COULD BE CONNECTED TO THE WINDOW.
             return nullptr;
@@ -68,7 +94,8 @@ namespace GRAPHICS::OPEN_GL
         graphics_device->OpenGLVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         graphics_device->Window = &window;
         graphics_device->WindowDeviceContext = window_device_context;
-        graphics_device->OpenGLRenderContext = open_gl_render_context;
+        graphics_device->Win32OpenGLRenderContext = win32_open_gl_render_context;
+        graphics_device->SdlOpenGLContext = sdl_open_gl_context;
 
         // CONFIGURE THE SHADER PROGRAM TO USE.
         graphics_device->ShaderProgram = GRAPHICS::OPEN_GL::ShaderProgram::Build(
@@ -91,8 +118,16 @@ namespace GRAPHICS::OPEN_GL
         glDeleteTextures(static_cast<GLsizei>(TextureIds.size()), TextureIds.data());
         VertexBuffers.clear();
         ShaderProgram.reset();
-        wglDeleteContext(OpenGLRenderContext);
-        OpenGLRenderContext = nullptr;
+        if (Win32OpenGLRenderContext)
+        {
+            wglDeleteContext(Win32OpenGLRenderContext);
+            Win32OpenGLRenderContext = nullptr;
+        }
+        if (SdlOpenGLContext)
+        {
+            SDL_GL_DeleteContext(SdlOpenGLContext);
+            SdlOpenGLContext = nullptr;
+        }
         WindowDeviceContext = nullptr;
     }
 
@@ -377,12 +412,8 @@ namespace GRAPHICS::OPEN_GL
 
     /// Displays the rendered image from the graphics device.
     /// @param[in]  window - The window in which to display the image.
-    ///     Currently unused since the device is connected to the window at creation.
     void OpenGLGraphicsDevice::DisplayRenderedImage(WINDOWING::IWindow& window)
     {
-        // The window parameter is referenced to avoid compiler warnings.
-        window;
-
         // TRY TO ENSURE RENDERING COMMANDS HAVE COMPLETED.
         // This does not guarantee the commands will finish, but in practice it has
         // been found to be helpful/necessary.
@@ -398,6 +429,14 @@ namespace GRAPHICS::OPEN_GL
         }
 
         // DISPLAY THE RENDERED IMAGE IN THE WINDOW.
-        SwapBuffers(WindowDeviceContext);
+        if (SdlOpenGLContext)
+        {
+            WINDOWING::SdlWindow* sdl_window = dynamic_cast<WINDOWING::SdlWindow*>(&window);
+            SDL_GL_SwapWindow(sdl_window->UnderlyingWindow);
+        }
+        else
+        {
+            SwapBuffers(WindowDeviceContext);
+        }
     }
 }

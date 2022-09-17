@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <gl/GL.h>
+#include <SDL/SDL_video.h>
 #include "Graphics/Hardware/IGraphicsDevice.h"
 #include "Graphics/OpenGL/ShaderProgram.h"
 #include "Graphics/OpenGL/VertexBuffer.h"
@@ -42,8 +43,10 @@ namespace GRAPHICS::OPEN_GL
         WINDOWING::IWindow* Window = nullptr;
         /// The regular Windows device context.
         HDC WindowDeviceContext = nullptr;
-        /// The OpenGL rendering context.
-        HGLRC OpenGLRenderContext = nullptr;
+        /// The Windows OpenGL rendering context.
+        HGLRC Win32OpenGLRenderContext = nullptr;
+        /// The SDL OpenGL context.
+        SDL_GLContext SdlOpenGLContext = nullptr;
         /// The default shader program.
         std::shared_ptr<ShaderProgram> ShaderProgram = nullptr;
 
