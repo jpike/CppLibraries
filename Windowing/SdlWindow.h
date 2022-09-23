@@ -22,7 +22,8 @@ namespace WINDOWING
             const char* const title,
             const unsigned int width_in_pixels,
             const unsigned int height_in_pixels,
-            const GRAPHICS::HARDWARE::GraphicsDeviceType graphics_device_type);
+            const GRAPHICS::HARDWARE::GraphicsDeviceType graphics_device_type,
+            const Uint32 additional_window_settings = 0);
         virtual ~SdlWindow();
         void Close();
 

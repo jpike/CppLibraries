@@ -13,16 +13,18 @@ namespace WINDOWING
     /// @param[in]  width_in_pixels - The width (in pixels) of the client rendering area of the window.
     /// @param[in]  height_in_pixels - The height (in pixels) of the client rendering area of the window.
     /// @param[in]  graphics_device_type - The type of graphics device to be used for rendering to the window.
+    /// @param[in]  additional_window_settings - Additional settings to apply to the window.
+    ///     Should be any of the SDL_WindowFlags OR'd together.
     /// @return The window, if successfully created; null if not.
     std::unique_ptr<SdlWindow> SdlWindow::Create(
         const char* title,
         const unsigned int width_in_pixels,
         const unsigned int height_in_pixels,
-        const GRAPHICS::HARDWARE::GraphicsDeviceType graphics_device_type)
+        const GRAPHICS::HARDWARE::GraphicsDeviceType graphics_device_type,
+        const Uint32 additional_window_settings)
     {
         // TRY TO CREATE THE WINDOW.
-        /// @todo   Allow switching between OpenGL, Direct3D, etc.
-        SDL_WindowFlags window_settings = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+        SDL_WindowFlags window_settings = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | additional_window_settings);
         bool open_gl_used = (GRAPHICS::HARDWARE::GraphicsDeviceType::OPEN_GL == graphics_device_type);
         if (open_gl_used)
         {
@@ -51,12 +53,18 @@ namespace WINDOWING
             return nullptr;
         }
 
+        // GET THE UPDATED WINDOW SIZE.
+        // In case the window was maximized, the size might alter from what was passed in.
+        int updated_window_width_in_pixels = static_cast<int>(width_in_pixels);
+        int updated_window_height_in_pixels = static_cast<int>(height_in_pixels);
+        SDL_GetWindowSize(sdl_window, &updated_window_width_in_pixels, &updated_window_height_in_pixels);
+
         // RETURN THE CREATED WINDOW.
         auto window = std::make_unique<SdlWindow>();
         window->UnderlyingWindow = sdl_window;
         window->AdditionalInfo = window_info;
-        window->WidthInPixels = width_in_pixels;
-        window->HeightInPixels = height_in_pixels;
+        window->WidthInPixels = updated_window_width_in_pixels;
+        window->HeightInPixels = updated_window_height_in_pixels;
         window->IsOpen = true;
         return window;
     }
