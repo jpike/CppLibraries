@@ -115,6 +115,16 @@ int main()
     };
     build.Add(&stb_library);
 
+    Project stemmer_library = 
+    {
+        .Type = ProjectType::LIBRARY,
+        .Name = "stmr",
+        .CodeFolderPath = workspace_folder_path / "ThirdParty/stmr",
+        .UnityBuildFilepath = workspace_folder_path / "ThirdParty/stmr/stmr.project",
+        .LinkerLibraryNames = { "stmr.lib" },
+    };
+    build.Add(&stemmer_library);
+
     Project catch_library = 
     {
         .Type = ProjectType::LIBRARY,
