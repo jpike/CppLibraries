@@ -20,6 +20,7 @@ Current dependencies are basically just the following:
 - gl3w
 - GSL
 - imgui
+- implot
 - pugixml
 - SDL
 - stb

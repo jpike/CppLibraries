@@ -159,6 +159,19 @@ int main()
     };
     build.Add(&imgui_library);
 
+    Project implot_library = 
+    {
+        .Type = ProjectType::LIBRARY,
+        .Name = "implot",
+        .CodeFolderPath = workspace_folder_path / "ThirdParty/implot",
+        .UnityBuildFilepath = workspace_folder_path / "ThirdParty/implot/ImPlot.project",
+        .Libraries = 
+        {
+            &imgui_library
+        }
+    };
+    build.Add(&implot_library);
+
     // DEFINE CUSTOM PROJECTS FOR THE BUILD.
     Project containers_library = 
     {
